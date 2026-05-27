@@ -16,10 +16,12 @@ class PhishReport(models.Model):
     STATUS_REPORTED = 'reported'
     STATUS_PHISH = 'phish'
     STATUS_NOT_PHISH = 'not_phish'
+    STATUS_TRAINING = 'training'
     STATUS_CHOICES = [
         (STATUS_REPORTED, 'Reported'),
         (STATUS_PHISH, 'Phish'),
         (STATUS_NOT_PHISH, 'Not Phish'),
+        (STATUS_TRAINING, 'Training Needed'),
     ]
 
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE)

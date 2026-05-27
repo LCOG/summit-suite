@@ -350,7 +350,7 @@ export interface PhishReport {
   message: JSON
   additional_info: string
   processed: boolean
-  status: 'reported' | 'phish' | 'not_phish'
+  status: 'reported' | 'phish' | 'not_phish' | 'training'
 }
 
 export interface PhishTask {
