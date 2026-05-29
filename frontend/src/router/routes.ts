@@ -155,16 +155,16 @@ if (maintenanceMode) {
           meta: { requiresAuth: true }
         },
         {
-          path: 'profile/:pk',
+          path: '/profile/:pk',
           name: 'profile',
           component: () => import('src/pages/Profile.vue'),
-          meta: { requiresAuth: true, requiresManager: true }
+          meta: { requiresAuth: true }
         },
         {
-          path: 'organization',
+          path: '/organization',
           name: 'organization',
           component: () => import('src/pages/Organization.vue'),
-          meta: { requiresAuth: true, requiresManager: true }
+          meta: { requiresAuth: true }
         },
 
         /////////////////////////

@@ -203,8 +203,7 @@ const navLinks: Array<LinkData> = [
     title: 'Organization',
     icon: 'diversity_3',
     link: '/organization',
-    id: 'nav-organization',
-    isManager: true
+    id: 'nav-organization'
   },
   {
     title: 'My Profile',

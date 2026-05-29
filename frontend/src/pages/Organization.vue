@@ -23,8 +23,10 @@ import { useUserStore } from 'src/stores/user'
 import { EmployeeRetrieve } from 'src/types'
 
 import EmployeeTable from 'src/components/EmployeeTable.vue'
+import { useRouter } from 'vue-router'
 
 const userStore = useUserStore()
+const router = useRouter()
 
 let employeePk = ref(-1)
 
@@ -39,6 +41,7 @@ function retrieveProfile(): Promise<EmployeeRetrieve> {
         employeePk.value = employee.pk
         displayName.value = employee.name
         displayNameCurrentVal.value = displayName.value
+        resolve(employee)
       })
       .catch(e => {
         console.error('Error getting user from API:', e)
@@ -49,6 +52,13 @@ function retrieveProfile(): Promise<EmployeeRetrieve> {
 
 onMounted(() => { 
   retrieveProfile()
+    .then(() => {
+      // Redirect to profile page of user
+      router.push({ name: 'profile', params: { pk: employeePk.value } })
+        .catch(e => {
+          console.error('Error navigating to profile page:', e)
+        })
+    })
     .catch(e => {
       console.error('Error retrieving Employee profile from API:', e)
     })
