@@ -4,6 +4,20 @@
 
 export const releases = [
   {
+    version: '1.9.0',
+    date: new Date(2026, 4, 29),
+    changes: [
+      {
+        type: 'new',
+        description: 'Organization tab now available to all users.'
+      },
+      {
+        type: 'improved',
+        description: 'Phish reporting workflow enhancements.'
+      },
+    ]
+  },
+  {
     version: '1.8.1',
     date: new Date(2026, 4, 14),
     changes: [
