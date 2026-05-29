@@ -30,6 +30,10 @@
       <span class="email-meta-label">Received</span>
       <span class="email-meta-value">{{ receivedDisplay }}</span>
     </div>
+    <div class="email-meta-row">
+      <span class="email-meta-label">Has Attachments</span>
+      <span class="email-meta-value">{{ hasAttachments ? 'Yes' : 'No' }}</span>
+    </div>
 
     <q-separator class="q-my-md" />
 
@@ -66,6 +70,7 @@ interface OutlookMessage {
   internetMessageId?: string
   bodyPreview?: string
   body?: OutlookBody
+  hasAttachments?: boolean
 }
 
 const props = withDefaults(defineProps<{
@@ -283,6 +288,7 @@ const bccDisplay = computed(() => selectedMessage.value ?
   formatRecipients(selectedMessage.value.bccRecipients) : '')
 const receivedDisplay = computed(() => selectedMessage.value?.receivedDateTime ?
   formatDate(selectedMessage.value.receivedDateTime) : '(Unknown)')
+const hasAttachments = computed(() => !!selectedMessage.value?.hasAttachments)
 
 const renderedBodyHtml = computed(() => {
   if (!selectedMessage.value) {
