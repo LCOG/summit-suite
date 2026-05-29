@@ -30,6 +30,10 @@
       <span class="email-meta-label">Received</span>
       <span class="email-meta-value">{{ receivedDisplay }}</span>
     </div>
+    <div class="email-meta-row">
+      <span class="email-meta-label">Has Attachments</span>
+      <span class="email-meta-value">{{ hasAttachments ? 'Yes' : 'No' }}</span>
+    </div>
 
     <q-separator class="q-my-md" />
 
@@ -66,6 +70,7 @@ interface OutlookMessage {
   internetMessageId?: string
   bodyPreview?: string
   body?: OutlookBody
+  hasAttachments?: boolean
 }
 
 const props = withDefaults(defineProps<{
@@ -135,6 +140,30 @@ function formatRecipients(recipients?: RecipientEntry[]): string {
     .join(', ')
 }
 
+function reconstructSafelink(url: string, shorten=false): string {
+  try {
+    const parsedUrl = new URL(url)
+    let destinationUrl = parsedUrl.href
+    // Decode Safelinks URLs from Microsoft, which wrap the original URL in a "url" query parameter
+    if (parsedUrl.hostname.indexOf('safelinks.protection.outlook.com') !== -1) {
+      const urlParam = parsedUrl.searchParams.get('url')
+      if (urlParam) {
+        destinationUrl = urlParam
+      }
+    }
+    // Shorten the url for display or not
+    if (shorten) {
+      const decodedUrl = new URL(decodeURIComponent(destinationUrl))
+      return decodedUrl.hostname.replace(/^www\./, '') || url
+    } else {
+      return destinationUrl
+    }
+  } catch {
+    // If URL parsing fails, return the original string
+  }
+  return url
+}
+
 function sanitizeAndAnnotateHtml(html: string): string {
   const parser = new DOMParser()
   const doc = parser.parseFromString(html, 'text/html')
@@ -180,11 +209,20 @@ function sanitizeAndAnnotateHtml(html: string): string {
   })
 
   doc.querySelectorAll('a').forEach((anchor) => {
-    const href = anchor.getAttribute('href') || ''
-    const text = (anchor.textContent || '').trim() || href || 'Link'
+    const href = reconstructSafelink(
+      anchor.getAttribute('href') || '', true
+    )
+    const fullLink = reconstructSafelink(
+      anchor.getAttribute('href') || ''
+    )
+    const text = reconstructSafelink(
+      (anchor.textContent || '').trim() || href || 'Link', true
+    )
     const span = doc.createElement('span')
     span.className = 'email-link-callout'
     span.textContent = `${text} (${href || 'no href'})`
+    span.style.cursor = 'help'
+    span.setAttribute('title', fullLink)
     anchor.replaceWith(span)
   })
 
@@ -215,11 +253,6 @@ function sanitizeAndAnnotateHtml(html: string): string {
           doc.createTextNode(source.slice(lastIndex, matchStart))
         )
       }
-
-      const span = doc.createElement('span')
-      span.className = 'email-link-callout'
-      span.textContent = url
-      fragment.appendChild(span)
 
       lastIndex = matchStart + url.length
       match = urlRegex.exec(source)
@@ -255,6 +288,7 @@ const bccDisplay = computed(() => selectedMessage.value ?
   formatRecipients(selectedMessage.value.bccRecipients) : '')
 const receivedDisplay = computed(() => selectedMessage.value?.receivedDateTime ?
   formatDate(selectedMessage.value.receivedDateTime) : '(Unknown)')
+const hasAttachments = computed(() => !!selectedMessage.value?.hasAttachments)
 
 const renderedBodyHtml = computed(() => {
   if (!selectedMessage.value) {

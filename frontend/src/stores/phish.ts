@@ -187,12 +187,12 @@ actions: {
   },
 
   markReportVerdict(
-    reportId: number, verdict: 'phish' | 'not_phish'
+    reportId: number, verdict: 'phish' | 'not_phish' | 'training'
   ) {
     return new Promise((resolve, reject) => {
-      let data = { status: verdict, processed: false }
-      if (verdict === 'not_phish') {
-        data = { status: verdict, processed: true }
+      const data = { status: verdict, processed: true }
+      if (verdict === 'phish') {
+        data.processed = false
       }
       axios({
         url: `${ apiURL }api/v1/phishreport/${ reportId }`,

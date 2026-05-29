@@ -2,22 +2,24 @@
 <q-page class="q-pa-md">
   <div class="row items-center justify-between">
     <div class="text-h4 q-mb-md">Reports</div>
-    <q-toggle
-      v-model="showJunk"
-      label="Show junk"
-      color="primary"
-      dense
-      class="q-mb-md"
-    />
+    <div class="q-gutter-md">
+      <q-toggle
+        v-model="showJunk"
+        label="Show non-phish emails"
+        color="primary"
+        dense
+        class="q-mb-md"
+      />
+    </div>
   </div>
   
   <!-- PROCESSED, JUNK -->
   <q-card flat bordered class="q-mb-md" v-if="showJunk">
     <q-card-section>
-      <div class="text-h6 q-mb-md">Junk</div>
+      <div class="text-h6 q-mb-md">Valid Emails/Junk</div>
       <q-table
-        :rows="processedJunk()"
-        :columns="processedColumns"
+        :rows="processedNotPhish()"
+        :columns="submittedColumns"
         row-key="pk"
         @row-click="onRowClick"
         :pagination="processedPagination"
@@ -26,6 +28,18 @@
         <template v-slot:body-cell-created_at="props">
           <q-td :props="props">
             {{ formatDate(props.value) }}
+          </q-td>
+        </template>
+
+        <template v-slot:body-cell-status="props">
+          <q-td :props="props">
+            <q-chip
+              :color="getStatusDisplay(props.value).color"
+              :text-color="getStatusDisplay(props.value).textColor"
+              :icon="getStatusDisplay(props.value).icon"
+            >
+              {{ getStatusDisplay(props.value).label }}
+            </q-chip>
           </q-td>
         </template>
       </q-table>
@@ -53,8 +67,8 @@
         <template v-slot:body-cell-status="props">
           <q-td :props="props">
             <q-chip
-              text-color="white"
               :color="getStatusDisplay(props.value).color"
+              :text-color="getStatusDisplay(props.value).textColor"
               :icon="getStatusDisplay(props.value).icon"
             >
               {{ getStatusDisplay(props.value).label }}
@@ -146,26 +160,42 @@
 
       <q-card-actions align="center" class="q-mb-sm">
         <q-btn
-          v-if="['reported', 'not_phish'].indexOf(dialogReport?.status || '') !== -1"
+          v-if="dialogReport?.status !== 'phish'"
           label="It's a Phish!"
           color="negative"
           size="xl"
           unelevated
           @click="markAsPhish"
           :loading="loading"
-        />
+        >
+          <q-tooltip class="text-body2">This appears to be a phishing attempt</q-tooltip>
+        </q-btn>
         <q-btn
-          v-if="['reported', 'phish'].indexOf(dialogReport?.status || '') !== -1"
-          label="Just junk"
-          color="warning"
+          v-if="dialogReport?.status !== 'not_phish'"
+          label="Valid"
+          color="positive"
           text-color="black"
           size="xl"
           unelevated
           @click="markAsNotPhish"
           :loading="loading"
-        />
+        >
+          <q-tooltip class="text-body2">This does not appear to be a phishing attempt, but the user was right to report it</q-tooltip>
+        </q-btn>
         <q-btn
-          v-if="['phish'].indexOf(dialogReport?.status || '') !== -1"
+          v-if="dialogReport?.status !== 'training'"
+          label="Training Needed"
+          color="warning"
+          text-color="black"
+          size="xl"
+          unelevated
+          @click="markAsTrainingNeeded"
+          :loading="loading"
+        >
+          <q-tooltip class="text-body2">This does not appear to be a phishing attempt, and the user may require training</q-tooltip>
+        </q-btn>
+        <q-btn
+          v-if="dialogReport?.status == 'phish'"
           label="Processed"
           color="primary"
           size="xl"
@@ -274,29 +304,48 @@ interface StatusDisplay {
   label: string
   icon: string
   color: string
+  textColor: string
 }
 
 function getStatusDisplay(status?: string): StatusDisplay {
   switch ((status || '').toLowerCase()) {
     case 'reported':
-      return { label: 'New', icon: 'new_releases', color: 'primary' }
+      return {
+        label: 'New', icon: 'new_releases', color: 'primary', textColor: 'white'
+      }
     case 'phish':
       return {
         label: 'Phish - Ready for Processing',
         icon: 'report_problem',
-        color: 'negative'
+        color: 'negative',
+        textColor: 'white'
+      }
+    case 'not_phish':
+      return {
+        label: 'Valid',
+        icon: 'check_circle',
+        color: 'positive',
+        textColor: 'black'
+      }
+    case 'training':
+      return {
+        label: 'Training Needed - Processed',
+        icon: 'school',
+        color: 'warning',
+        textColor: 'black'
       }
     default:
       return {
         label: status || 'Unknown',
         icon: 'info',
-        color: 'grey-7'
+        color: 'grey-7',
+        textColor: 'white'
       }
   }
 }
 
-function processedJunk(): PhishReport[] {
-  return processedReports.value.filter(r => r.status === 'not_phish')
+function processedNotPhish(): PhishReport[] {
+  return processedReports.value.filter(r => r.status === 'not_phish' || r.status === 'training')
 }
 
 function processedPhish(): PhishReport[] {
@@ -404,6 +453,18 @@ async function markAsNotPhish() {
   loading.value = true
   try {
     await phishStore.markReportVerdict(dialogReport.value.pk, 'not_phish')
+    showMessageDialog.value = false
+    await refreshReports()
+  } finally {
+    loading.value = false
+  }
+}
+
+async function markAsTrainingNeeded() {
+  if (!dialogReport.value?.pk) return
+  loading.value = true
+  try {
+    await phishStore.markReportVerdict(dialogReport.value.pk, 'training')
     showMessageDialog.value = false
     await refreshReports()
   } finally {
