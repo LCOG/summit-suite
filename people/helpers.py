@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from io import StringIO
 from django.apps import apps
 from django.contrib.auth.models import Group
 from django.contrib.sites.models import Site
@@ -10,10 +11,11 @@ from people.models import PerformanceReview
 
 def send_manager_pr_notices():
     # Notification #0
-    one_year_from_now = timezone.now() + timedelta(days=365)
+    now = timezone.now()
+    one_year_from_now = now + timedelta(days=365)
     upcoming_reviews = PerformanceReview.objects.filter(
         period_end_date__lte=one_year_from_now,
-        period_end_date__gte=timezone.now(),
+        period_end_date__gte=now,
         employee__active=True
     ).exclude(
         status=PerformanceReview.EVALUATION_HR_PROCESSED,
@@ -23,62 +25,95 @@ def send_manager_pr_notices():
         'employee__manager__user',
         'employee__manager__manager',
         'employee__manager__manager__user',
-    ).order_by('period_end_date')
+    ).order_by('employee__manager_id', 'period_end_date', 'pk')
 
     # CC 'PR Completed Employees' group on all emails
-    cc_group = Group.objects.get(name='PR Completed Employees').user_set.all()
-    cc_emails = [user.email for user in cc_group]
-    
-    # Group reviews by manager
-    manager_dict = {}
-    for review in upcoming_reviews:
-        manager = review.employee.manager
-        try:
-            if manager.pk not in manager_dict:
-                print(f'Adding manager {manager.name} to manager_dict')
-                manager_dict[manager.pk] = {
-                    'manager': manager,
-                    'reviews': []
-                }
-            manager_dict[manager.pk]['reviews'].append(review)
-        except AttributeError as e:
-            print(f'Error processing review {review.pk}: {e}')
-            # Handle case where manager is None
-            continue
-    count = 0
-    for manager_id, manager_data in manager_dict.items():
-        current_site = Site.objects.get_current()
-        url = current_site.domain + '/reviews/dashboard'
-        body = f'Below is a list of your team\'s next review dates. See all here: {url}\n\n'
-        html_body = f'<p>Below is a list of your team\'s next review dates. See all here: <a href="{url}">{url}</a></p><ul>'
-        for review in manager_data['reviews']:
-            if review.evaluation_type == \
-            PerformanceReview.PROBATIONARY_EVALUATION:
-                suffix = ' (Probationary)'
-            else:
-                suffix = ''
-            body += f'- {review.employee.name}: {review.period_end_date.strftime("%m/%d/%Y")}{suffix}\n'
-            html_body += f'<li>{review.employee.name}: {review.period_end_date.strftime("%m/%d/%Y")}{suffix}</li>'
-        html_body += '</ul>'
+    cc_emails = list(
+        Group.objects.get(name='PR Completed Employees')
+        .user_set.exclude(email='')
+        .values_list('email', flat=True)
+    )
+
+    current_site = Site.objects.get_current()
+    url = current_site.domain + '/reviews/dashboard'
+
+    def send_manager_email(manager, body_lines, html_items):
+        body = StringIO()
+        html_body = StringIO()
+
+        body.write(f'Below is a list of your team\'s next review dates. See all here: {url}\n\n')
+        html_body.write(
+            f'<p>Below is a list of your team\'s next review dates. See all here: '
+            f'<a href="{url}">{url}</a></p><ul>'
+        )
+
+        body.write(''.join(body_lines))
+        html_body.write(''.join(html_items))
+        html_body.write('</ul>')
+
         # Add a note that recent changes may not be reflected in the data
-        body += '\nPlease note that recent changes may not yet be reflected in the data.'
-        html_body += '<p>Please note that recent changes may not yet be reflected in the data.</p>'
+        body.write('\nPlease note that recent changes may not yet be reflected in the data.')
+        html_body.write('<p>Please note that recent changes may not yet be reflected in the data.</p>')
         # Add a note to email me if there are any errors with the review data
-        body += '\nIf you notice any errors, please send an email to webupdates@lcog-or.gov.'
-        html_body += '<p>If you notice any errors, please send an email to <a href="mailto:webupdates@lcog-or.gov">webupdates@lcog-or.gov</a>.</p>'
-        if manager_data['manager'].manager is not None and \
-            not manager_data['manager'].manager.is_executive_director:
-            cc_list = cc_emails + [manager_data['manager'].manager.user.email]
+        body.write('\nIf you notice any errors, please send an email to webupdates@lcog-or.gov.')
+        html_body.write(
+            '<p>If you notice any errors, please send an email to '
+            '<a href="mailto:webupdates@lcog-or.gov">webupdates@lcog-or.gov</a>.</p>'
+        )
+
+        if manager.manager is not None and not manager.manager.is_executive_director:
+            cc_list = cc_emails + [manager.manager.user.email]
         else:
             cc_list = cc_emails
+
         send_email_multiple(
-            [manager_data['manager'].user.email],
+            [manager.user.email],
             cc_list,
             'Next Review Dates',
-            body,
-            html_body
+            body.getvalue(),
+            html_body.getvalue()
         )
+
+    count = 0
+    current_manager_id = None
+    current_manager = None
+    body_lines = []
+    html_items = []
+
+    for review in upcoming_reviews.iterator(chunk_size=500):
+        manager = review.employee.manager
+        if manager is None:
+            continue
+
+        if current_manager_id is None:
+            current_manager_id = manager.pk
+            current_manager = manager
+
+        if manager.pk != current_manager_id:
+            send_manager_email(current_manager, body_lines, html_items)
+            count += 1
+
+            current_manager_id = manager.pk
+            current_manager = manager
+            body_lines = []
+            html_items = []
+
+        if review.evaluation_type == PerformanceReview.PROBATIONARY_EVALUATION:
+            suffix = ' (Probationary)'
+        else:
+            suffix = ''
+
+        body_lines.append(
+            f'- {review.employee.name}: {review.period_end_date.strftime("%m/%d/%Y")}{suffix}\n'
+        )
+        html_items.append(
+            f'<li>{review.employee.name}: {review.period_end_date.strftime("%m/%d/%Y")}{suffix}</li>'
+        )
+
+    if current_manager is not None:
+        send_manager_email(current_manager, body_lines, html_items)
         count += 1
+
     return count
 
 
