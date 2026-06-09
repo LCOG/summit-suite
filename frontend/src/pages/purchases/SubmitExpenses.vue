@@ -993,7 +993,8 @@ function formErrorItems() {
       )
     }
     for (let gl of exp.gls) {
-      if (!gl.code || gl.code.length !== 17) {
+      // gl.code must be of format ###-##-####-#####
+      if (!gl.code || !/^(\d{3}-\d{2}-\d{4}-\d{5})$/.test(gl.code)) {
         errorItems.push(
           `Provide a valid GL code for each GL row in ${exp.name}`
         )
