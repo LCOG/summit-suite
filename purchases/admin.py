@@ -66,8 +66,8 @@ class ExpenseInline(admin.TabularInline):
     extra = 0
     fields = ('id', 'name', 'date', 'vendor', 'amount')
     readonly_fields = ('id', 'name', 'date', 'vendor', 'amount')
-    # No delete
     can_delete = False
+    show_change_link = True
 
 
 @admin.register(Expense)
