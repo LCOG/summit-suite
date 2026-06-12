@@ -165,6 +165,56 @@
                 {{ formatDate(props.value) }}
               </q-td>
             </template>
+
+            <template v-slot:body-cell-status="props">
+              <q-td :props="props">
+                <q-badge 
+                  class="text-body2"  
+                  :label="(() => {
+                    switch (props.value) {
+                      case 'reported':
+                        return 'Pending Review'
+                      case 'phish':
+                        return 'Confirmed Phish'
+                      case 'not_phish':
+                        return 'Valid Email'
+                      case 'training':
+                        return 'Training Needed'
+                      default:
+                        return 'Unknown'
+                    }
+                  })()"
+                  :color="(() => {
+                    switch (props.value) {
+                      case 'reported':
+                        return 'grey'
+                      case 'phish':
+                        return 'negative'
+                      case 'not_phish':
+                        return 'positive'
+                      case 'training':
+                        return 'warning'
+                      default:
+                        return 'grey'
+                    }
+                  })()"
+                  :text-color="(() => {
+                    switch (props.value) {
+                      case 'reported':
+                        return 'black'
+                      case 'phish':
+                        return 'white'
+                      case 'not_phish':
+                        return 'black'
+                      case 'training':
+                        return 'black'
+                      default:
+                        return 'black'
+                    }
+                  })()"
+                />
+              </q-td>
+            </template>
             
             <template v-slot:body-cell-actions="props">
               <q-td :props="props">
@@ -386,9 +436,9 @@ const organicReportColumns: QTableProps['columns'] = [
     sortable: true
   },
   {
-    name: 'processed',
+    name: 'status',
     label: 'Status',
-    field: (row: PhishReport) => row.processed ? 'Processed' : 'Pending',
+    field: 'status',
     align: 'center',
     sortable: true
   },
