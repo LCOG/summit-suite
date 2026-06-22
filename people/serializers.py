@@ -250,7 +250,8 @@ class SimpleEmployeeSerializer(serializers.ModelSerializer):
         model = Employee
         fields = [
             'pk', 'name', 'legal_name', 'title', 'division', 'program',
-            'manager_name', 'manager_pk', 'is_expense_approver'
+            'manager_name', 'manager_pk', 'is_expense_approver',
+            'is_executive_director'
         ]
 
     title = serializers.CharField(source='job_title')

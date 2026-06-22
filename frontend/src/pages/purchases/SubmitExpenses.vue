@@ -282,7 +282,12 @@
                         :readOnly=false
                         :employeeFilterFn="
                           (employee: SimpleEmployeeRetrieve) => {
-                            return employee.is_expense_approver
+                            if (employee.is_executive_director) {
+                              return employee.is_expense_approver
+                            } else {
+                              return employee.is_expense_approver &&
+                                employee.pk != userStore.profile.employee_pk
+                            }
                           }
                         "
                       />
@@ -751,6 +756,7 @@ import StatementTable from 'src/components/purchases/StatementTable.vue'
 import { readableDateNEW, readableDateTime } from 'src/filters'
 import { handlePromiseError } from 'src/stores'
 import { usePurchaseStore } from 'src/stores/purchase'
+import { useUserStore } from 'src/stores/user'
 import {
   emptyEmployee, Expense, ExpenseMonth, ExpenseStatement, GL,
   SimpleEmployeeRetrieve 
@@ -758,6 +764,7 @@ import {
 
 const quasar = useQuasar()
 const purchaseStore = usePurchaseStore()
+const userStore = useUserStore()
 
 let thisMonthLoaded = ref(false)
 let allExpensesLoaded = ref(false)

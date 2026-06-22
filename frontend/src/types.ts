@@ -152,6 +152,7 @@ export interface SimpleEmployee {
   manager_name?: string
   manager_pk?: number
   is_expense_approver?: boolean
+  is_executive_director?: boolean
 }
 
 export interface SimpleEmployeeRetrieve {
@@ -164,11 +165,13 @@ export interface SimpleEmployeeRetrieve {
   manager_name: string
   manager_pk: number
   is_expense_approver: boolean
+  is_executive_director: boolean
 }
 
 export const emptyEmployee: SimpleEmployeeRetrieve = {
   pk: -1, name: '', legal_name: '', title: '', division: '', program: '',
-  manager_name: '', manager_pk: -1, is_expense_approver: false
+  manager_name: '', manager_pk: -1, is_expense_approver: false,
+  is_executive_director: false
 }
 
 export interface EmployeeEmailRetrieve {
