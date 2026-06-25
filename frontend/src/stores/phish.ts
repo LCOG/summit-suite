@@ -26,7 +26,7 @@ state: () => ({
   teamStats: {} as {
     [employeePk: number]: {
       name: string
-      riskLevel: 'low' | 'med' | 'high'
+      riskLevel: string
       organicReports: number
       syntheticReceived: number
       syntheticReported: number
@@ -144,6 +144,64 @@ actions: {
         })
         .catch(e => {
           handlePromiseError(reject, 'Error deleting phish report task', e)
+        })
+    })
+  },
+
+  getPhishDataForEmployee(employeeId: number):
+  Promise<{
+    'org_risk_profiles': Array<{name: string, color: string}>,
+    'org_groups': Array<{name: string, color: string}>,
+    'risk_profiles': Array<{name: string, color: string}>,
+    'groups': Array<{name: string, color: string}>
+  }> {
+    return new Promise((resolve, reject) => {
+      axios({
+        url: `${ apiURL }api/v1/phish-data?employee=${ employeeId }`
+      })
+        .then(resp => {
+          resolve(resp.data)
+        })
+        .catch(e => {
+          handlePromiseError(
+            reject, 'Error getting phish data for employee', e
+          )
+        })
+    })
+  },
+
+  updateEmployeeRiskLevel(employeeId: number, newRiskLevel: string) {
+    return new Promise((resolve, reject) => {
+      axios({
+        url: `${ apiURL }api/v1/phish-data/${ employeeId }/update-risk-level`,
+        method: 'PATCH',
+        data: { risk_level: newRiskLevel }
+      })
+        .then(resp => {
+          // Update local state
+          if (this.teamStats[employeeId]) {
+            this.teamStats[employeeId].riskLevel = newRiskLevel
+          }
+          resolve(resp.data)
+        })
+        .catch(e => {
+          handlePromiseError(reject, 'Error updating employee risk level', e)
+        })
+    })
+  },
+
+  updateEmployeeGroups(employeeId: number, newGroups: string[]) {
+    return new Promise((resolve, reject) => {
+      axios({
+        url: `${ apiURL }api/v1/phish-data/${ employeeId }/update-groups`,
+        method: 'PATCH',
+        data: { groups: newGroups }
+      })
+        .then(resp => {
+          resolve(resp.data)
+        })
+        .catch(e => {
+          handlePromiseError(reject, 'Error updating employee groups', e)
         })
     })
   },

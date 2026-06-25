@@ -91,3 +91,13 @@ class TrainingAssignmentSerializer(serializers.HyperlinkedModelSerializer):
         ]
 
     employee = SimpleEmployeeSerializer(required=True)
+
+
+class PhishGroupSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=255)
+    color = serializers.CharField(max_length=7)
+
+
+class PhishRiskProfileSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=255)
+    color = serializers.CharField(max_length=7)

@@ -2,7 +2,9 @@ import re
 import traceback
 
 from django.contrib.sites.models import Site
-from django.db.models import Count, F, Q, Value
+from django.db.models import (
+    Case, CharField, Count, F, OuterRef, Q, Subquery, Value, When
+)
 from django.db.models.functions import Concat
 from django.utils import timezone
 from rest_framework import status, viewsets
@@ -12,13 +14,15 @@ from rest_framework.response import Response
 from mainsite.helpers import record_error, send_email
 from people.models import Employee
 from phish.models import (
-    PhishConfiguration, PhishReport, PhishReportTask, PhishTask,
-    SyntheticPhish, SyntheticPhishTemplate, TrainingAssignment, TrainingTemplate
+    PhishConfiguration, PhishReport, PhishReportTask, PhishRiskProfile,
+    PhishTask, SyntheticPhish, SyntheticPhishTemplate, TrainingAssignment,
+    TrainingTemplate
 )
 from phish.serializers import (
-    PhishReportSerializer, PhishReportTaskSerializer, PhishTaskSerializer,
-    SyntheticPhishSerializer, SyntheticPhishTemplateSerializer,
-    TrainingAssignmentSerializer, TrainingTemplateSerializer
+    PhishGroupSerializer, PhishReportSerializer, PhishReportTaskSerializer,
+    PhishRiskProfileSerializer, PhishTaskSerializer, SyntheticPhishSerializer,
+    SyntheticPhishTemplateSerializer, TrainingAssignmentSerializer,
+    TrainingTemplateSerializer
 )
 
 
@@ -304,14 +308,23 @@ class PhishAssignmentViewSet(viewsets.ModelViewSet):
         else:
             # Otherwise, get employees from current user's organization
             employees_qs = \
-                Employee.objects.filter(organization=employee.organization)
+                Employee.active_objects.filter(
+                    organization=employee.organization
+                )
         
         # Annotate with aggregated counts
         # Use distinct=True to prevent duplicate counting when multiple
         # relationships are aggregated
         team_stats = employees_qs.annotate(
-            name=Concat(
-                F('user__first_name'), Value(' '), F('user__last_name')
+            name=Case(
+                When(
+                    Q(user__employee__display_name=None),
+                    then=Concat(
+                        F('user__first_name'), Value(' '), F('user__last_name')
+                    )
+                ),
+                default=F('user__employee__display_name'),
+                output_field=CharField()
             ),
             phish_reports_count=Count('phishreport', distinct=True),
             synthetic_phishes_sent=Count('syntheticphish', distinct=True),
@@ -330,11 +343,27 @@ class PhishAssignmentViewSet(viewsets.ModelViewSet):
                 'trainingassignment',
                 filter=Q(trainingassignment__completed=True),
                 distinct=True
+            ),
+            risk_profile_name=Subquery(
+                PhishRiskProfile.objects.filter(
+                    members=OuterRef('pk')
+                ).order_by('order', 'pk').values('name')[:1]
+            ),
+            risk_profile_color=Subquery(
+                PhishRiskProfile.objects.filter(
+                    members=OuterRef('pk')
+                ).order_by('order', 'pk').values('color')[:1]
+            ),
+            risk_profile_order=Subquery(
+                PhishRiskProfile.objects.filter(
+                    members=OuterRef('pk')
+                ).order_by('order', 'pk').values('order')[:1]
             )
         ).values(
             'pk', 'name', 'phish_reports_count', 'synthetic_phishes_sent',
             'synthetic_phishes_clicked', 'synthetic_phishes_reported',
-            'training_assigned', 'training_completed'
+            'training_assigned', 'training_completed', 'risk_profile_name',
+            'risk_profile_color', 'risk_profile_order'
         ).order_by('name')
         
         return Response(list(team_stats))
@@ -559,3 +588,146 @@ class TrainingAssignmentViewSet(viewsets.ModelViewSet):
         
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
+
+
+class PhishDataViewSet(viewsets.ViewSet):
+
+    def list(self, request):
+        user = request.user
+        employee_pk = request.query_params.get('employee')
+        default_data = {'risk_profiles': [], 'groups': []}
+
+        if not user.is_authenticated or not employee_pk:
+            return Response(default_data)
+
+        employee = getattr(user, 'employee', None)
+        if not user.is_superuser and (
+            not employee or not employee.can_view_phish()
+        ):
+            return Response(default_data)
+
+        try:
+            target_employee = Employee.objects.get(
+                pk=employee_pk, organization=employee.organization
+            )
+        except Employee.DoesNotExist:
+            return Response(default_data)
+
+        org_risk_profiles = \
+            target_employee.organization.phish_risk_profiles.all()
+        org_groups = target_employee.organization.phish_groups.all()
+        risk_profiles = target_employee.phish_risk_profiles.all()
+        groups = target_employee.phish_groups.all()
+
+        # Should return employee.phish_risk_profiles and employee.phish_groups
+        data = {
+            'org_risk_profiles':
+                PhishRiskProfileSerializer(org_risk_profiles, many=True).data,
+            'org_groups': PhishGroupSerializer(org_groups, many=True).data,
+            'risk_profiles':
+                PhishRiskProfileSerializer(risk_profiles, many=True).data,
+            'groups': PhishGroupSerializer(groups, many=True).data
+        }
+        
+        return Response(data)
+
+    @action(detail=True, methods=['patch'], url_path='update-risk-level')
+    def update_risk_level(self, request, pk=None):
+        user = request.user
+        if not user.is_authenticated:
+            return Response(
+                {'error': 'Authentication required'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        employee = getattr(user, 'employee', None)
+        if not user.is_superuser and (
+            not employee or not employee.can_view_phish()
+        ):
+            return Response(
+                {'error': 'Permission denied'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        try:
+            target_employee = Employee.objects.get(
+                pk=pk, organization=employee.organization
+            )
+        except Employee.DoesNotExist:
+            return Response(
+                {'error': 'Employee not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        new_risk_level = request.data.get('risk_level')
+
+        organization_risk_levels = \
+            target_employee.organization.phish_risk_profiles.values_list(
+                'name', flat=True
+            )
+        if new_risk_level not in organization_risk_levels:
+            return Response(
+                {'error': 'Invalid risk level'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Remove employee from all current risk profiles and add to the new one
+        target_employee.phish_risk_profiles.clear()
+        target_employee.phish_risk_profiles.add(
+            target_employee.organization.phish_risk_profiles.get(
+                name=new_risk_level
+            )
+        )
+
+        return Response({
+            'message': 'Risk level updated successfully',
+            'risk_level': new_risk_level
+        })
+
+    @action(detail=True, methods=['patch'], url_path='update-groups')
+    def update_groups(self, request, pk=None):
+        user = request.user
+        if not user.is_authenticated:
+            return Response(
+                {'error': 'Authentication required'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        employee = getattr(user, 'employee', None)
+        if not user.is_superuser and (
+            not employee or not employee.can_view_phish()
+        ):
+            return Response(
+                {'error': 'Permission denied'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        try:
+            target_employee = Employee.objects.get(
+                pk=pk, organization=employee.organization
+            )
+        except Employee.DoesNotExist:
+            return Response(
+                {'error': 'Employee not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        new_groups = request.data.get('groups', [])
+
+        # Validate that the provided groups exist in the organization
+        valid_groups = target_employee.organization.phish_groups.filter(
+            name__in=new_groups
+        )
+        if valid_groups.count() != len(new_groups):
+            return Response(
+                {'error': 'One or more groups are invalid'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Clear existing groups and add the new ones
+        target_employee.phish_groups.set(valid_groups)
+
+        return Response({
+            'message': 'Groups updated successfully',
+            'groups': [g.name for g in valid_groups]
+        })

@@ -1,9 +1,9 @@
 from django.contrib import admin
 
 from .models import (
-    PhishConfiguration, PhishReport, PhishReportTask, PhishTask,
-    SyntheticPhish, SyntheticPhishTemplate, TrainingAssignment,
-    TrainingTemplate
+    PhishConfiguration, PhishGroup, PhishReport, PhishReportTask,
+    PhishRiskProfile, PhishTask, SyntheticPhish, SyntheticPhishTemplate,
+    TrainingAssignment, TrainingTemplate
 )
 
 class PhishReportTaskInline(admin.TabularInline):
@@ -76,3 +76,15 @@ class PhishConfigurationInline(admin.StackedInline):
     extra = 0
     max_num = 1
     can_delete = False
+
+
+class PhishGroupInline(admin.StackedInline):
+    model = PhishGroup
+    extra = 0
+    filter_horizontal = ('members',)
+
+
+class PhishRiskProfileInline(admin.StackedInline):
+    model = PhishRiskProfile
+    extra = 0
+    filter_horizontal = ('members',)

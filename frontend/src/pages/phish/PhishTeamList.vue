@@ -35,8 +35,9 @@
       <template v-slot:body-cell-riskLevel="props">
         <q-td key="riskLevel" :props="props">
           <q-badge 
-            :color="getRiskColor(props.row.riskLevel)" 
-            :label="props.row.riskLevel"
+            v-if="props.row.riskProfileName"
+            :color="props.row.riskProfileColor" 
+            :label="props.row.riskProfileName"
           />
         </q-td>
       </template>
@@ -95,12 +96,14 @@ const phishStore = usePhishStore()
 interface TeamMember {
   pk: number
   name: string
-  riskLevel: 'low' | 'med' | 'high'
   phishReports: number
   syntheticReceived: number
   syntheticReported: number
   trainingAssigned: number
   trainingCompleted: number
+  riskProfileName: string
+  riskProfileColor: string
+  riskProfileOrder: number
 }
 
 const tableFilter = ref('')
@@ -118,12 +121,15 @@ const columns: QTableProps['columns'] = [
   {
     name: 'riskLevel',
     label: 'Risk Level',
-    field: 'riskLevel',
+    field: 'riskProfileName',
     align: 'center',
     sortable: true,
-    sort: (a: string, b: string) => {
-      const riskOrder: { [key: string]: number } = { high: 3, med: 2, low: 1 }
-      return riskOrder[a] - riskOrder[b]
+    sort: (a: string, b: string, rowA, rowB) => {
+      const orderA = Number.isInteger(rowA.riskProfileOrder) ?
+        rowA.riskProfileOrder : Number.MAX_SAFE_INTEGER
+      const orderB = Number.isInteger(rowB.riskProfileOrder) ?
+        rowB.riskProfileOrder : Number.MAX_SAFE_INTEGER
+      return orderA - orderB
     }
   },
   {
@@ -154,35 +160,9 @@ const columns: QTableProps['columns'] = [
 ]
 
 const pagination = ref({
-  sortBy: 'riskLevel',
-  descending: true,
   page: 1,
   rowsPerPage: 10
 })
-
-function calculateRiskLevel(row: TeamMember): 'low' | 'med' | 'high' {
-  // Calculate risk based on synthetic phish reporting rate
-  const reportingRate = row.syntheticReceived > 0 
-    ? (row.syntheticReported / row.syntheticReceived)
-    : 0
-  
-  if (reportingRate >= 0.8) return 'low'
-  if (reportingRate >= 0.5) return 'med'
-  return 'high'
-}
-
-function getRiskColor(riskLevel: string): string {
-  switch (riskLevel) {
-    case 'high':
-      return 'red'
-    case 'med':
-      return 'orange'
-    case 'low':
-      return 'green'
-    default:
-      return 'grey'
-  }
-}
 
 function calculatePercentage(completed: number, total: number): number {
   if (total === 0) return 0
@@ -271,21 +251,14 @@ async function loadTeamStats() {
     teamMembers.value = stats.map((stat: any) => ({
       pk: stat.pk,
       name: stat.name,
-      riskLevel: calculateRiskLevel({
-        pk: stat.pk,
-        name: stat.name,
-        riskLevel: 'low' as const,
-        phishReports: stat.phish_reports_count,
-        syntheticReceived: stat.synthetic_phishes_sent,
-        syntheticReported: stat.synthetic_phishes_reported,
-        trainingAssigned: stat.training_assigned,
-        trainingCompleted: stat.training_completed
-      }),
       phishReports: stat.phish_reports_count,
       syntheticReceived: stat.synthetic_phishes_sent,
       syntheticReported: stat.synthetic_phishes_reported,
       trainingAssigned: stat.training_assigned,
-      trainingCompleted: stat.training_completed
+      trainingCompleted: stat.training_completed,
+      riskProfileName: stat.risk_profile_name,
+      riskProfileColor: stat.risk_profile_color,
+      riskProfileOrder: stat.risk_profile_order
     }))
   } catch (error) {
     console.error('Error loading team stats:', error)
