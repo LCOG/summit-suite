@@ -20,7 +20,8 @@
         class="q-mb-md"
         :options="[
           { label: 'Reports', value: '/phish/admin/reports' },
-          { label: 'Team', value: '/phish/admin/team' }
+          { label: 'Team', value: '/phish/admin/team' },
+          { label: 'Assignments', value: '/phish/admin/assignments' }
         ]"
       />
       <router-view />
@@ -44,7 +45,7 @@ function userHasPhishRoles() {
 }
 
 const currentTab = computed(() => {
-  const match = route.path.match(/\/phish\/admin\/(reports|team)/)
+  const match = route.path.match(/\/phish\/admin\/(reports|team|assignments)/)
   return match ? `/phish/admin/${match[1]}` : '/phish/admin/reports'
 })
 

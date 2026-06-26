@@ -41,23 +41,26 @@
               <q-select
                 v-model="teamMember.riskLevel"
                 :options="riskLevelOptions"
-                @update:model-value="updateRiskLevel"
+                @update:model-value="
+                  phishStore.updateEmployeeRiskLevel(teamMember.pk, $event.name)
+                "
                 outlined
                 dense
                 class="q-mt-xs"
               >
                 <template v-slot:selected>
                   <q-badge 
-                    :color="getRiskColor(teamMember.riskLevel)" 
-                    :label="teamMember.riskLevel"
+                    v-if="teamMember.riskLevel.name"
+                    :color="teamMember.riskLevel.color" 
+                    :label="teamMember.riskLevel.name"
                   />
                 </template>
                 <template v-slot:option="scope">
                   <q-item v-bind="scope.itemProps">
                     <q-item-section>
                       <q-badge 
-                        :color="getRiskColor(scope.opt)" 
-                        :label="scope.opt"
+                        :color="scope.opt.color" 
+                        :label="scope.opt.name"
                       />
                     </q-item-section>
                   </q-item>
@@ -69,8 +72,11 @@
               <div class="text-caption text-grey-7 q-mb-xs">Groups</div>
               <q-select
                 v-model="teamMember.groups"
-                :options="availableGroups"
-                @update:model-value="updateGroups"
+                :options="groupOptions"
+                option-label="name"
+                @update:model-value="phishStore.updateEmployeeGroups(
+                  teamMember.pk, $event.map(g => g.name)
+                )"
                 multiple
                 outlined
                 dense
@@ -82,11 +88,10 @@
                     removable
                     @remove="scope.removeAtIndex(scope.index)"
                     :tabindex="scope.tabindex"
-                    color="primary"
-                    text-color="white"
+                    :color="scope.opt.color"
                     size="sm"
                   >
-                    {{ scope.opt }}
+                    {{ scope.opt.name }}
                   </q-chip>
                 </template>
               </q-select>
@@ -163,6 +168,56 @@
             <template v-slot:body-cell-created_at="props">
               <q-td :props="props">
                 {{ formatDate(props.value) }}
+              </q-td>
+            </template>
+
+            <template v-slot:body-cell-status="props">
+              <q-td :props="props">
+                <q-badge 
+                  class="text-body2"  
+                  :label="(() => {
+                    switch (props.value) {
+                      case 'reported':
+                        return 'Pending Review'
+                      case 'phish':
+                        return 'Confirmed Phish'
+                      case 'not_phish':
+                        return 'Valid Email'
+                      case 'training':
+                        return 'Training Needed'
+                      default:
+                        return 'Unknown'
+                    }
+                  })()"
+                  :color="(() => {
+                    switch (props.value) {
+                      case 'reported':
+                        return 'grey'
+                      case 'phish':
+                        return 'negative'
+                      case 'not_phish':
+                        return 'positive'
+                      case 'training':
+                        return 'warning'
+                      default:
+                        return 'grey'
+                    }
+                  })()"
+                  :text-color="(() => {
+                    switch (props.value) {
+                      case 'reported':
+                        return 'black'
+                      case 'phish':
+                        return 'white'
+                      case 'not_phish':
+                        return 'black'
+                      case 'training':
+                        return 'black'
+                      default:
+                        return 'black'
+                    }
+                  })()"
+                />
               </q-td>
             </template>
             
@@ -331,7 +386,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, Ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import PhishReportMessageViewer from
   'src/components/phish/PhishReportMessageViewer.vue'
@@ -360,21 +415,21 @@ const selectedReport = ref<PhishReport | null>(null)
 const selectedPhishTemplate = ref<SyntheticPhishTemplate | null>(null)
 const selectedTrainingTemplate = ref<TrainingTemplate | null>(null)
 
-const riskLevelOptions = ['low', 'med', 'high']
-const availableGroups = ['Sales', 'Engineering', 'HR', 'Finance', 'Operations', 'Management']
+const riskLevelOptions = ref([]) as Ref<{name: string, color: string}[]>
+const groupOptions = ref([]) as Ref<{name: string, color: string}[]>
 
 interface TeamMember {
   pk: number
   employeeName: string
-  riskLevel: 'low' | 'med' | 'high'
-  groups: string[]
+  riskLevel: {name: string, color: string}
+  groups: {name: string, color: string}[]
 }
 
 const teamMember = ref<TeamMember>({
   pk: Number(route.params.id),
   employeeName: 'Loading...',
-  riskLevel: 'med',
-  groups: []
+  riskLevel: {name: '', color: ''},
+  groups: [] as {name: string, color: string}[]
 })
 
 const organicReportColumns: QTableProps['columns'] = [
@@ -386,9 +441,9 @@ const organicReportColumns: QTableProps['columns'] = [
     sortable: true
   },
   {
-    name: 'processed',
+    name: 'status',
     label: 'Status',
-    field: (row: PhishReport) => row.processed ? 'Processed' : 'Pending',
+    field: 'status',
     align: 'center',
     sortable: true
   },
@@ -467,19 +522,6 @@ function formatDate(date: Date | string): string {
   })
 }
 
-function getRiskColor(riskLevel: string): string {
-  switch (riskLevel) {
-    case 'high':
-      return 'red'
-    case 'med':
-      return 'orange'
-    case 'low':
-      return 'green'
-    default:
-      return 'grey'
-  }
-}
-
 async function loadTeamMemberData() {
   loading.value = true
   try {
@@ -489,9 +531,24 @@ async function loadTeamMemberData() {
       teamMember.value = {
         pk: member.pk,
         employeeName: member.name,
-        riskLevel: 'med', // Default risk level - replace with actual data
-        groups: member.groups || []
+        riskLevel: {name: '', color: ''},
+        groups: []
       }
+    })
+
+    // Load employee phish data
+    await phishStore.getPhishDataForEmployee(employeePk).then(data => {
+      riskLevelOptions.value = data.org_risk_profiles.map(
+        profile => ({ name: profile.name, color: profile.color })
+      )
+      groupOptions.value = data.org_groups.map(
+        group => ({ name: group.name, color: group.color })
+      )
+      teamMember.value.riskLevel =
+        data.risk_profiles[0] || {name: '', color: ''}
+      teamMember.value.groups = data.groups.map(
+        group => ({name: group.name, color: group.color})
+      )
     })
 
     // Load all reports for this employee
@@ -506,16 +563,6 @@ async function loadTeamMemberData() {
 
 function goBack() {
   router.push('/phish/admin/team')
-}
-
-function updateRiskLevel(newLevel: string) {
-  console.log('Updating risk level to:', newLevel)
-  // TODO: API call to update risk level
-}
-
-function updateGroups(newGroups: string[]) {
-  console.log('Updating groups to:', newGroups)
-  // TODO: API call to update groups
 }
 
 function viewReportDetails(report: PhishReport) {

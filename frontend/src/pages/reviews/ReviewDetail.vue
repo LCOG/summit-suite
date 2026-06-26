@@ -7,7 +7,16 @@
       src="../../assets/lcog-banner.png"
     />
     <q-icon
-      id="help"  
+      id="print"
+      name="print"
+      color="primary"
+      size="48px"
+      class="cursor-pointer float-right"
+      @click="navigateToPrintVersion()"
+      v-if="!props.print"
+    />
+    <q-icon
+      id="help"
       name="help"
       color="primary"
       size="48px"
@@ -1231,6 +1240,16 @@ function setFactorsResponseCount() {
   if (container) {
     container.style.setProperty('--factors-response-count', count.toString())
   }
+}
+
+function navigateToPrintVersion() {
+  router.push({
+    name: 'pr-print',
+    params: { pk: prPk.value }
+  })
+    .catch(e => {
+      console.error('Error navigating to print version of PR:', e)
+    })
 }
 
 

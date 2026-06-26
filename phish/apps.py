@@ -1,6 +1,5 @@
 from django.apps import AppConfig
 
-
 class PhishConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'phish'
@@ -11,7 +10,9 @@ class PhishConfig(AppConfig):
 
         from django.contrib import admin
         from mainsite.models import Organization
-        from phish.admin import PhishConfigurationInline
+        from phish.admin import (
+            PhishConfigurationInline, PhishGroupInline, PhishRiskProfileInline
+        )
 
         organization_admin = admin.site._registry.get(Organization)
         if not organization_admin:
@@ -20,5 +21,6 @@ class PhishConfig(AppConfig):
         existing_inlines = list(getattr(organization_admin, 'inlines', []))
         if PhishConfigurationInline not in existing_inlines:
             organization_admin.inlines = existing_inlines + [
-                PhishConfigurationInline
+                PhishConfigurationInline, PhishGroupInline,
+                PhishRiskProfileInline
             ]

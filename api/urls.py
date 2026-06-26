@@ -19,9 +19,9 @@ from people.api_views import (
     UserViewSet, ViewedSecurityMessageViewSet
 )
 from phish.api_views import (
-    PhishReportTaskViewSet, PhishReportViewSet, PhishAssignmentViewSet,
-    PhishTaskViewSet, PhishTemplateViewSet, TrainingAssignmentViewSet,
-    TrainingTemplateViewSet
+    PhishDataViewSet, PhishReportTaskViewSet, PhishReportViewSet,
+    PhishAssignmentViewSet, PhishTaskViewSet, PhishTemplateViewSet,
+    TrainingAssignmentViewSet, TrainingTemplateViewSet
 )
 from purchases.api_views import (
     ExpenseGLViewSet, ExpenseMonthViewSet, ExpenseMonthLockViewSet,
@@ -94,6 +94,9 @@ router.register(
 router.register(
     'v1/training-assignment', TrainingAssignmentViewSet,
     basename='training-assignment'
+)
+router.register(
+    'v1/phish-data', PhishDataViewSet, basename='phish-data'
 )
 # Telework
 router.register(

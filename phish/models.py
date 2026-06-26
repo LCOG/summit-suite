@@ -131,6 +131,48 @@ class TrainingAssignment(models.Model):
     completed_at = models.DateTimeField(blank=True, null=True)
 
 
+class PhishGroup(models.Model):
+    class Meta:
+        verbose_name = 'Phish Group'
+        verbose_name_plural = 'Phish Groups'
+
+    def __str__(self):
+        return self.name
+
+    organization = models.ForeignKey(
+        'mainsite.Organization', on_delete=models.CASCADE,
+        related_name='phish_groups'
+    )
+    order = models.IntegerField(default=0)
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    color = models.CharField(max_length=32, default='primary')
+    members = models.ManyToManyField(
+        Employee, related_name='phish_groups', blank=True
+    )
+
+
+class PhishRiskProfile(models.Model):
+    class Meta:
+        verbose_name = 'Phish Risk Profile'
+        verbose_name_plural = 'Phish Risk Profiles'
+
+    def __str__(self):
+            return self.name
+
+    organization = models.ForeignKey(
+        'mainsite.Organization', on_delete=models.CASCADE,
+        related_name='phish_risk_profiles'
+    )
+    order = models.IntegerField(default=0)
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    color = models.CharField(max_length=32, default='primary')
+    members = models.ManyToManyField(
+        Employee, related_name='phish_risk_profiles', blank=True
+    )
+
+
 class PhishConfiguration(models.Model):
     class Meta:
         verbose_name = 'Phish Configuration'

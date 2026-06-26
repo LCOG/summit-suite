@@ -4,6 +4,22 @@
 
 export const releases = [
   {
+    version: '1.10.0',
+    date: new Date(2026, 5, 26),
+    changes: [
+      {
+        type: 'new',
+        description: 'Employees can now be added to Phish groups and risk ' +
+          'levels and assigned trainings as a group.'
+      },
+      {
+        type: 'improved',
+        description: 'Minor improvements to credit card app, including not ' +
+          'allowing submitters to set themselves as approvers.'
+      },
+    ]
+  },
+  {
     version: '1.9.0',
     date: new Date(2026, 4, 29),
     changes: [

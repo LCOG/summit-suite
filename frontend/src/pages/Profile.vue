@@ -7,6 +7,8 @@
       <div class="text-h5 q-mb-sm">Basic Info</div>
       <div>Legal Name: {{ peopleStore.simpleEmployeeDetail.legal_name }}</div>
       <div>Title: {{ peopleStore.simpleEmployeeDetail.title }}</div>
+      <div>Department: {{ peopleStore.simpleEmployeeDetail.division }} -
+        {{ peopleStore.simpleEmployeeDetail.program }}</div>
       <div>
         Manager: <router-link
           v-if="peopleStore.simpleEmployeeDetail.manager_pk"

@@ -285,6 +285,19 @@ class ExpenseViewSet(viewsets.ModelViewSet):
                 approver = None
                 if approver_obj['pk'] != -1:
                     approver = Employee.objects.get(pk=approver_obj['pk'])
+
+                # Approver cannot be the submitter of the expense unless the
+                # submitter is the Executive Director.
+                if all([
+                    approver,
+                    not expense.month.purchaser.is_executive_director,
+                    approver == expense.month.purchaser
+                ]):
+                    message = 'Approver cannot be the expense submitter.'
+                    return Response(
+                        data=message,
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
                 
                 if pk is not None:
                     expense_gl = ExpenseGL.objects.get(pk=pk)
