@@ -166,7 +166,10 @@ class PhishReportViewSet(viewsets.ModelViewSet):
         except PhishConfiguration.DoesNotExist:
             pass
         except Exception as e:
-            record_error('Error sending phishing report notification email', e, request, traceback.format_exc())
+            record_error(
+                'Error sending phishing report notification email',
+                e, request, traceback.format_exc()
+            )
 
         serializer = self.get_serializer(phish_report)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -527,7 +530,10 @@ class PhishReportTaskViewSet(viewsets.ModelViewSet):
             not employee or not employee.can_view_phish()
         ):
             return Response(
-                {'error': 'You do not have permission to update checklist tasks'},
+                {
+                    'error':
+                        'You do not have permission to update checklist tasks'
+                },
                 status=status.HTTP_403_FORBIDDEN
             )
 
@@ -542,7 +548,10 @@ class PhishReportTaskViewSet(viewsets.ModelViewSet):
 
         if report.employee.organization_id != task.organization_id:
             return Response(
-                {'error': 'Report and task must belong to the same organization'},
+                {
+                    'error':
+                    'Report and task must belong to the same organization'
+                },
                 status=status.HTTP_400_BAD_REQUEST
             )
 
@@ -551,7 +560,10 @@ class PhishReportTaskViewSet(viewsets.ModelViewSet):
             and employee.organization_id != report.employee.organization_id
         ):
             return Response(
-                {'error': 'You do not have permission to update this report'},
+                {
+                    'error':
+                    'You do not have permission to update this report'
+                },
                 status=status.HTTP_403_FORBIDDEN
             )
 
