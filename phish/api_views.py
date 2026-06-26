@@ -231,29 +231,105 @@ class PhishAssignmentViewSet(viewsets.ModelViewSet):
         else:
             return SyntheticPhish.objects.none()
     
-    def create(self, request, *args, **kwargs):
-        """
-        Create a SyntheticPhish instance for an employee based on a template.
-        """
-        employee_pk = request.data.get('employee')
-        template_pk = request.data.get('template')
-        
-        if not employee_pk or not template_pk:
-            return Response(
-                {'error': 'employee and template are required'},
+    def _get_target_employees(self, request):
+        user = request.user
+        current_employee = getattr(user, 'employee', None)
+
+        if not user.is_authenticated:
+            return None, Response(
+                {'error': 'Authentication required'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        if not user.is_superuser and (
+            not current_employee or not current_employee.can_view_phish()
+        ):
+            return None, Response(
+                {'error': 'You do not have permission to assign phish tests'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        target_employee = request.data.get('employee')
+        target_employees = request.data.get('employees')
+        target_group = request.data.get('group')
+        target_risk_profile = request.data.get('risk_profile')
+
+        selectors = [
+            target_employee is not None,
+            isinstance(target_employees, list) and len(target_employees) > 0,
+            bool(target_group),
+            bool(target_risk_profile),
+        ]
+        if sum(selectors) != 1:
+            return None, Response(
+                {
+                    'error': (
+                        'Provide exactly one target selector: employee, '
+                        'employees, group, or risk_profile'
+                    )
+                },
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
-        # Get employee
-        try:            
-            employee = Employee.objects.get(pk=employee_pk)
-        except Employee.DoesNotExist:
-            return Response(
-                {'error': 'Employee with this ID does not exist'},
+
+        organization = getattr(current_employee, 'organization', None)
+        if not organization:
+            return None, Response(
+                {
+                    'error':
+                        'Current user is not associated with an organization'
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        employees_qs = Employee.active_objects.filter(
+            organization=organization
+        )
+
+        if target_employee is not None:
+            employees_qs = employees_qs.filter(pk=target_employee)
+        elif isinstance(target_employees, list) and len(target_employees) > 0:
+            employees_qs = employees_qs.filter(pk__in=target_employees)
+            if employees_qs.count() != len(set(target_employees)):
+                return None, Response(
+                    {'error': 'One or more employees do not exist'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+        elif target_group:
+            employees_qs = employees_qs.filter(
+                phish_groups__name=target_group,
+                phish_groups__organization=organization
+            )
+        else:
+            employees_qs = employees_qs.filter(
+                phish_risk_profiles__name=target_risk_profile,
+                phish_risk_profiles__organization=organization
+            )
+
+        employees = list(employees_qs.distinct())
+        if not employees:
+            return None, Response(
+                {'error': 'No employees found for the selected target'},
                 status=status.HTTP_404_NOT_FOUND
             )
-        
-        # Get template
+
+        return employees, None
+
+    def create(self, request, *args, **kwargs):
+        """
+        Create one or more SyntheticPhish assignments from a template.
+        """
+        template_pk = request.data.get('template')
+
+        if not template_pk:
+            return Response(
+                {'error': 'template is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        target_employees, error_response = self._get_target_employees(request)
+        if error_response is not None:
+            return error_response
+
         try:
             template = SyntheticPhishTemplate.objects.get(pk=template_pk)
         except SyntheticPhishTemplate.DoesNotExist:
@@ -261,27 +337,48 @@ class PhishAssignmentViewSet(viewsets.ModelViewSet):
                 {'error': 'Requested Synthetic Phish Template does not exist'},
                 status=status.HTTP_404_NOT_FOUND
             )
-        
-        synthetic_phish = SyntheticPhish.objects.create(
-            employee=employee,
-            template=template
-        )
 
-        # Send email with custom header containing synthetic phish ID
+        current_employee = getattr(request.user, 'employee', None)
+        if current_employee and (
+            template.organization_id != current_employee.organization_id
+        ):
+            return Response(
+                {'error': 'Template is not in your organization'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        created_assignments = []
         text_body = re.sub('<[^<]+?>', '', template.body)
-        send_email(
-            to_address=employee.user.email,
-            subject=template.subject,
-            body=text_body,
-            html_body=template.body,
-            headers={
-                'X-Synthetic-Phish-ID': str(synthetic_phish.pk),
-                'X-Synthetic-Phish-Template': template.name,
-            }
+        for employee in target_employees:
+            synthetic_phish = SyntheticPhish.objects.create(
+                employee=employee,
+                template=template
+            )
+            created_assignments.append(synthetic_phish)
+
+            send_email(
+                to_address=employee.user.email,
+                subject=template.subject,
+                body=text_body,
+                html_body=template.body,
+                headers={
+                    'X-Synthetic-Phish-ID': str(synthetic_phish.pk),
+                    'X-Synthetic-Phish-Template': template.name,
+                }
+            )
+
+        if len(created_assignments) == 1:
+            serializer = self.get_serializer(created_assignments[0])
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        serializer = self.get_serializer(created_assignments, many=True)
+        return Response(
+            {
+                'created_count': len(created_assignments),
+                'assignments': serializer.data,
+            },
+            status=status.HTTP_201_CREATED
         )
-        
-        serializer = self.get_serializer(synthetic_phish)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @action(detail=False, methods=['get'])
     def team_stats(self, request):
@@ -527,26 +624,106 @@ class TrainingAssignmentViewSet(viewsets.ModelViewSet):
         else:
             return TrainingAssignment.objects.none()
     
-    def create(self, request, *args, **kwargs):
-        employee_pk = request.data.get('employee')
-        template_pk = request.data.get('template')
-        
-        if not employee_pk or not template_pk:
-            return Response(
-                {'error': 'employee and template are required'},
+    def _get_target_employees(self, request):
+        user = request.user
+        current_employee = getattr(user, 'employee', None)
+
+        if not user.is_authenticated:
+            return None, Response(
+                {'error': 'Authentication required'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        if not user.is_superuser and (
+            not current_employee or not current_employee.can_view_phish()
+        ):
+            return None, Response(
+                {
+                    'error': (
+                        'You do not have permission to assign training modules'
+                    )
+                },
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        target_employee = request.data.get('employee')
+        target_employees = request.data.get('employees')
+        target_group = request.data.get('group')
+        target_risk_profile = request.data.get('risk_profile')
+
+        selectors = [
+            target_employee is not None,
+            isinstance(target_employees, list) and len(target_employees) > 0,
+            bool(target_group),
+            bool(target_risk_profile),
+        ]
+        if sum(selectors) != 1:
+            return None, Response(
+                {
+                    'error': (
+                        'Provide exactly one target selector: employee, '
+                        'employees, group, or risk_profile'
+                    )
+                },
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
-        # Get employee
-        try:            
-            employee = Employee.objects.get(pk=employee_pk)
-        except Employee.DoesNotExist:
-            return Response(
-                {'error': 'Employee with this ID does not exist'},
+
+        organization = getattr(current_employee, 'organization', None)
+        if not organization:
+            return None, Response(
+                {
+                    'error':
+                        'Current user is not associated with an organization'
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        employees_qs = Employee.active_objects.filter(
+            organization=organization
+        )
+
+        if target_employee is not None:
+            employees_qs = employees_qs.filter(pk=target_employee)
+        elif isinstance(target_employees, list) and len(target_employees) > 0:
+            employees_qs = employees_qs.filter(pk__in=target_employees)
+            if employees_qs.count() != len(set(target_employees)):
+                return None, Response(
+                    {'error': 'One or more employees do not exist'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+        elif target_group:
+            employees_qs = employees_qs.filter(
+                phish_groups__name=target_group,
+                phish_groups__organization=organization
+            )
+        else:
+            employees_qs = employees_qs.filter(
+                phish_risk_profiles__name=target_risk_profile,
+                phish_risk_profiles__organization=organization
+            )
+
+        employees = list(employees_qs.distinct())
+        if not employees:
+            return None, Response(
+                {'error': 'No employees found for the selected target'},
                 status=status.HTTP_404_NOT_FOUND
             )
-        
-        # Get template
+
+        return employees, None
+
+    def create(self, request, *args, **kwargs):
+        template_pk = request.data.get('template')
+
+        if not template_pk:
+            return Response(
+                {'error': 'template is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        target_employees, error_response = self._get_target_employees(request)
+        if error_response is not None:
+            return error_response
+
         try:
             template = TrainingTemplate.objects.get(pk=template_pk)
         except TrainingTemplate.DoesNotExist:
@@ -554,14 +731,37 @@ class TrainingAssignmentViewSet(viewsets.ModelViewSet):
                 {'error': 'Training Template with this ID does not exist'},
                 status=status.HTTP_404_NOT_FOUND
             )
-        
-        training_assignment = TrainingAssignment.objects.create(
-            employee=employee,
-            template=template
-        )
 
-        serializer = self.get_serializer(training_assignment)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        current_employee = getattr(request.user, 'employee', None)
+        if current_employee and (
+            template.organization_id != current_employee.organization_id
+        ):
+            return Response(
+                {'error': 'Template is not in your organization'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        created_assignments = []
+        for employee in target_employees:
+            created_assignments.append(
+                TrainingAssignment.objects.create(
+                    employee=employee,
+                    template=template
+                )
+            )
+
+        if len(created_assignments) == 1:
+            serializer = self.get_serializer(created_assignments[0])
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        serializer = self.get_serializer(created_assignments, many=True)
+        return Response(
+            {
+                'created_count': len(created_assignments),
+                'assignments': serializer.data,
+            },
+            status=status.HTTP_201_CREATED
+        )
     
     def partial_update(self, request, *args, **kwargs):
         """
@@ -607,9 +807,12 @@ class PhishDataViewSet(viewsets.ViewSet):
             return Response(default_data)
 
         try:
-            target_employee = Employee.objects.get(
-                pk=employee_pk, organization=employee.organization
-            )
+            if user.is_superuser:
+                target_employee = Employee.objects.get(pk=employee_pk)
+            else:
+                target_employee = Employee.objects.get(
+                    pk=employee_pk, organization=employee.organization
+                )
         except Employee.DoesNotExist:
             return Response(default_data)
 
@@ -630,6 +833,49 @@ class PhishDataViewSet(viewsets.ViewSet):
         }
         
         return Response(data)
+
+    @action(detail=False, methods=['get'], url_path='assignment-targets')
+    def assignment_targets(self, request):
+        user = request.user
+        employee = getattr(user, 'employee', None)
+
+        if not user.is_authenticated:
+            return Response(
+                {'error': 'Authentication required'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        if not user.is_superuser and (
+            not employee or not employee.can_view_phish()
+        ):
+            return Response(
+                {'error': 'Permission denied'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        organization = getattr(employee, 'organization', None)
+        if not organization:
+            return Response(
+                {
+                    'error':
+                        'Current user is not associated with an organization'
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        org_risk_profiles = organization.phish_risk_profiles.order_by(
+            'order', 'name'
+        )
+        org_groups = organization.phish_groups.order_by('order', 'name')
+
+        return Response(
+            {
+                'org_risk_profiles': PhishRiskProfileSerializer(
+                    org_risk_profiles, many=True
+                ).data,
+                'org_groups': PhishGroupSerializer(org_groups, many=True).data,
+            }
+        )
 
     @action(detail=True, methods=['patch'], url_path='update-risk-level')
     def update_risk_level(self, request, pk=None):

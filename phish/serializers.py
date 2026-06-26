@@ -2,7 +2,8 @@ from rest_framework import serializers
 
 from people.serializers import SimpleEmployeeSerializer
 from phish.models import (
-    PhishReport, PhishReportTask, PhishTask, SyntheticPhish,
+    PhishGroup, PhishReport, PhishReportTask, PhishRiskProfile, PhishTask,
+    SyntheticPhish,
     SyntheticPhishTemplate, TrainingAssignment, TrainingTemplate
 )
     
@@ -93,11 +94,15 @@ class TrainingAssignmentSerializer(serializers.HyperlinkedModelSerializer):
     employee = SimpleEmployeeSerializer(required=True)
 
 
-class PhishGroupSerializer(serializers.Serializer):
-    name = serializers.CharField(max_length=255)
-    color = serializers.CharField(max_length=7)
+class PhishGroupSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = PhishGroup
+        fields = ['pk', 'name', 'color', 'order']
 
 
-class PhishRiskProfileSerializer(serializers.Serializer):
-    name = serializers.CharField(max_length=255)
-    color = serializers.CharField(max_length=7)
+class PhishRiskProfileSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = PhishRiskProfile
+        fields = ['pk', 'name', 'color', 'order']

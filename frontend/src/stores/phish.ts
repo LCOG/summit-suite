@@ -3,8 +3,9 @@ import { defineStore } from 'pinia'
 
 import { apiURL, handlePromiseError } from 'src/stores/index'
 import {
-  PhishReport, PhishReportTask, PhishTask, SyntheticPhish,
-  SyntheticPhishTemplate, TrainingAssignment, TrainingTemplate
+  PhishGroup, PhishReport, PhishReportTask, PhishRiskProfile, PhishTask,
+  SyntheticPhish, SyntheticPhishTemplate, TrainingAssignment,
+  TrainingTemplate
 } from 'src/types'
 
 export const usePhishStore = defineStore('phish', {
@@ -22,6 +23,10 @@ state: () => ({
   trainingTemplates: [] as Array<TrainingTemplate>,
   trainingAssignments: {} as {
     [employeeId: number]: Array<TrainingAssignment>
+  },
+  assignmentTargets: {
+    groups: [] as Array<PhishGroup>,
+    riskProfiles: [] as Array<PhishRiskProfile>
   },
   teamStats: {} as {
     [employeePk: number]: {
@@ -54,6 +59,35 @@ getters: {
 },
 
 actions: {
+  getAssignmentTargets(forceRefresh = false) {
+    return new Promise<{
+      groups: Array<PhishGroup>
+      riskProfiles: Array<PhishRiskProfile>
+    }>((resolve, reject) => {
+      const hasCachedTargets = (
+        this.assignmentTargets.groups.length > 0 ||
+        this.assignmentTargets.riskProfiles.length > 0
+      )
+      if (!forceRefresh && hasCachedTargets) {
+        resolve(this.assignmentTargets)
+        return
+      }
+
+      axios({ url: `${ apiURL }api/v1/phish-data/assignment-targets` })
+        .then(resp => {
+          const data = resp.data || {}
+          this.assignmentTargets = {
+            groups: data.org_groups || [],
+            riskProfiles: data.org_risk_profiles || []
+          }
+          resolve(this.assignmentTargets)
+        })
+        .catch(e => {
+          handlePromiseError(reject, 'Error getting assignment targets', e)
+        })
+    })
+  },
+
   getPhishTasks(forceRefresh = false) {
     return new Promise<Array<PhishTask>>((resolve, reject) => {
       if (!forceRefresh && this.phishTasks.length > 0) {
@@ -338,6 +372,31 @@ actions: {
     })
   },
 
+  createPhishAssignmentsForTarget(
+    templateId: number,
+    targetType: 'group' | 'risk_profile',
+    targetValue: string
+  ) {
+    return new Promise<{ createdCount: number }>((resolve, reject) => {
+      axios({
+        url: `${ apiURL }api/v1/phish-assignment`,
+        method: 'POST',
+        data: {
+          template: templateId,
+          [targetType]: targetValue,
+        }
+      })
+      .then(resp => {
+        const data = resp.data
+        const createdCount = data.created_count || 1
+        resolve({ createdCount })
+      })
+      .catch(e => {
+        handlePromiseError(reject, 'Error creating phish assignments', e)
+      })
+    })
+  },
+
   // Fetch all SyntheticPhish objects for a given employee
   getPhishAssignmentsForEmployee(employeeId: number) {
     return new Promise((resolve, reject) => {
@@ -384,6 +443,31 @@ actions: {
       })
       .catch(e => {
         handlePromiseError(reject, 'Error assigning training', e)
+      })
+    })
+  },
+
+  createTrainingAssignmentsForTarget(
+    templateId: number,
+    targetType: 'group' | 'risk_profile',
+    targetValue: string
+  ) {
+    return new Promise<{ createdCount: number }>((resolve, reject) => {
+      axios({
+        url: `${ apiURL }api/v1/training-assignment`,
+        method: 'POST',
+        data: {
+          template: templateId,
+          [targetType]: targetValue,
+        }
+      })
+      .then(resp => {
+        const data = resp.data
+        const createdCount = data.created_count || 1
+        resolve({ createdCount })
+      })
+      .catch(e => {
+        handlePromiseError(reject, 'Error assigning training resources', e)
       })
     })
   },

@@ -280,6 +280,12 @@ if (maintenanceMode) {
               name: 'phish-team-detail',
               component:
                 () => import('src/pages/phish/PhishTeamDetail.vue'),
+            },
+            {
+              path: 'assignments',
+              name: 'phish-assignments',
+              component:
+                () => import('src/pages/phish/PhishAssignments.vue'),
             }
           ]
         },

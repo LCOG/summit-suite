@@ -369,6 +369,20 @@ export interface PhishTask {
   order: number
 }
 
+export interface PhishGroup {
+  pk: number
+  name: string
+  color: string
+  order: number
+}
+
+export interface PhishRiskProfile {
+  pk: number
+  name: string
+  color: string
+  order: number
+}
+
 export interface PhishReportTask {
   pk: number
   report_pk: number
