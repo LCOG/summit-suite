@@ -183,6 +183,14 @@ class WorkflowInstanceViewSet(viewsets.ModelViewSet):
         # TODO: Add logic to prevent completing an archived workflow instance
         # TODO: For now, complete is a manual process, but it should intersect
         # somehow with the process instances being complete.
+        elif request.data['action'] == 'cancel':
+            wfi.active = False
+            wfi.cancelled_by = request.user.employee
+            wfi.cancellation_reason = request.data.get('reason', '')
+        elif request.data['action'] == 'reinstate':
+            wfi.active = True
+            wfi.cancelled_by = None
+            wfi.cancellation_reason = ''
         elif request.data['action'] == 'complete':
             wfi.complete = True
             wfi.completed_at = timezone.now()

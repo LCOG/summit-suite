@@ -282,6 +282,8 @@ export const useWorkflowsStore = defineStore('workflows', {
           })
       })
     },
+    // Archive/restore is when you want to remove a workflow instance that has
+    // perhaps been created by accident. No notifications are generated.
     archiveWorkflowInstance(workflowInstancePk: string) {
       return new Promise((resolve, reject) => {
         axios({
@@ -312,6 +314,8 @@ export const useWorkflowsStore = defineStore('workflows', {
           })
       })
     },
+    // Complete/reopen is when you want to manually mark a workflow instance as
+    // complete. It is only available to admins and we may want to remove in the future.
     completeWorkflowInstance(workflowInstancePk: string) {
       return new Promise((resolve, reject) => {
         axios({
@@ -339,6 +343,39 @@ export const useWorkflowsStore = defineStore('workflows', {
           })
           .catch(e => {
             handlePromiseError(reject, 'Error reopening workflow instance', e)
+          })
+      })
+    },
+    // Cancel/reinstate is when you want to cancel a workflow instance that is
+    // in progress. It is functionally equivalent to archive/restore, but it is
+    // available to all users and generates notifications to stakeholders.
+    cancelWorkflowInstance(workflowInstancePk: string, reason: string) {
+      return new Promise((resolve, reject) => {
+        axios({
+          url: `${ apiURL }api/v1/workflowinstance/${ workflowInstancePk }`,
+          data: {action: 'cancel', reason},
+          method: 'PATCH'
+        })
+          .then(resp => {
+            resolve(resp)
+          })
+          .catch(e => {
+            handlePromiseError(reject, 'Error cancelling workflow instance', e)
+          })
+      })
+    },
+    reinstateWorkflowInstance(workflowInstancePk: string) {
+      return new Promise((resolve, reject) => {
+        axios({
+          url: `${ apiURL }api/v1/workflowinstance/${ workflowInstancePk }`,
+          data: {action: 'reinstate'},
+          method: 'PATCH'
+        })
+          .then(resp => {
+            resolve(resp)
+          })
+          .catch(e => {
+            handlePromiseError(reject, 'Error reinstating workflow instance', e)
           })
       })
     },
