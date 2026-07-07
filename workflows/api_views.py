@@ -177,10 +177,18 @@ class WorkflowInstanceViewSet(viewsets.ModelViewSet):
         Archive/restore or complete/reopen a workflow instance.
         """
         wfi = WorkflowInstance.objects.get(pk=pk)
+        # TODO: Archive and cancel are too similar. We use archive as a way to
+        # remove a WFI without notifications (in the case of an accidental
+        # creation, for instance). However, if it's cancelled we send a
+        # notification in which case the proper undo function is reinstate. If
+        # it is cancelled and then restored, we need to clear the cancelation
+        # reason to not have a weird state, but we really shouldn't allow that.
         if request.data['action'] == 'archive':
             wfi.active = False
         elif request.data['action'] == 'restore':
             wfi.active = True
+            wfi.canceled_by = None
+            wfi.cancelation_reason = ''
         # TODO: Add logic to prevent completing an archived workflow instance
         # TODO: For now, complete is a manual process, but it should intersect
         # somehow with the process instances being complete.
