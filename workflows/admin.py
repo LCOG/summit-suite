@@ -227,7 +227,7 @@ class WorkflowInstanceAdmin(admin.ModelAdmin):
     )
     list_filter = ("workflow", "active", "complete")
     readonly_fields = (
-        "started_at", "percent_complete", "cancelled_by", "cancellation_reason"
+        "started_at", "percent_complete", "canceled_by", "cancelation_reason"
     )
 
 

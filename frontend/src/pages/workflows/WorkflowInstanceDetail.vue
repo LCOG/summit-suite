@@ -4,12 +4,12 @@
       <div class="row items-center">
         <div class="text-h4 q-mr-md">{{ wfi().workflow.name }}</div>
         <div class="q-mr-md">
-          <div v-if="wfi().cancelled_by_name">
+          <div v-if="wfi().canceled_by_name">
             <span class="text-bold">Cancelled by:</span>
-              {{ wfi().cancelled_by_name }}
+              {{ wfi().canceled_by_name }}
             <br />
             <span class="text-bold">Reason:</span>
-              {{ wfi().cancellation_reason }}
+              {{ wfi().cancelation_reason }}
           </div>
           <q-linear-progress
             v-else

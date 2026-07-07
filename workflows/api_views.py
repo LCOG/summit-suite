@@ -1,5 +1,6 @@
 from datetime import datetime
 import traceback
+from urllib import request
 
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -18,7 +19,7 @@ from workflows.helpers import (
     send_mailbox_notification_email, send_step_completion_email,
     send_transition_fiscal_email, send_transition_hr_email,
     send_transition_sds_hiring_leads_email, send_transition_stn_email,
-    send_transition_submitter_email
+    send_transition_submitter_email, send_wfi_canceled_email
 )
 from workflows.models import (
     EmployeeTransition, Process, ProcessInstance, Role, Step, StepChoice,
@@ -185,12 +186,19 @@ class WorkflowInstanceViewSet(viewsets.ModelViewSet):
         # somehow with the process instances being complete.
         elif request.data['action'] == 'cancel':
             wfi.active = False
-            wfi.cancelled_by = request.user.employee
-            wfi.cancellation_reason = request.data.get('reason', '')
+            wfi.canceled_by = request.user.employee
+            wfi.cancelation_reason = request.data.get('reason', '')
+            send_wfi_canceled_email(
+                wfi, True, request.user.employee,
+                request.data.get('reason', '')
+            )
         elif request.data['action'] == 'reinstate':
             wfi.active = True
-            wfi.cancelled_by = None
-            wfi.cancellation_reason = ''
+            wfi.canceled_by = None
+            wfi.cancelation_reason = ''
+            send_wfi_canceled_email(
+                wfi, False, request.user.employee, ''
+            )
         elif request.data['action'] == 'complete':
             wfi.complete = True
             wfi.completed_at = timezone.now()
