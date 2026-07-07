@@ -16,6 +16,59 @@ from workflows.models import (
 
 STAFF_TRANSITION_NEWS_EMAIL = os.environ.get('STAFF_TRANSITION_NEWS_EMAIL')
 
+def send_wfi_canceled_email(
+        wfi, canceled, canceled_by, cancelation_reason
+    ):
+    current_site = Site.objects.get_current()
+    workflows_url = current_site.domain + f'/wf/{wfi.pk}/processes'
+    profile_url = current_site.domain + '/profile'
+
+    wf_name = wfi.workflow.name
+    if wfi.transition and wfi.transition.employee_first_name and wfi.transition.employee_last_name:
+        wf_name = f'{wf_name} - {wfi.transition.employee_first_name} {wfi.transition.employee_last_name}'
+    subject = f'Workflow Instance ' + \
+        f'{ "Canceled" if canceled else "Reinstated" }: { wf_name }'
+    html_template = '../templates/email/workflows/wfi-canceled.html'
+    html_message = render_to_string(html_template, {
+        'workflow_name': wf_name,
+        'canceled': canceled,
+        'canceled_by_name': canceled_by.name if canceled_by else '',
+        'cancelation_reason': cancelation_reason,
+        'workflows_url': workflows_url,
+        'profile_url': profile_url
+    })
+    plaintext_message = strip_tags(html_message)
+
+    to_employees = []
+    # Send to all employees who have completed step instances
+    for pi in wfi.pis.all():
+        for si in pi.stepinstance_set.filter(completed_by__isnull=False):
+            if si.completed_by not in to_employees:
+                to_employees.append(si.completed_by)
+    # If workflow has a transition, send to the submitter and hiring manager
+    if wfi.transition:
+        if all([
+            wfi.transition.submitter,
+            wfi.transition.submitter not in to_employees
+        ]):
+            to_employees.append(wfi.transition.submitter)
+        if all([
+            wfi.transition.manager,
+            wfi.transition.manager not in to_employees
+        ]):
+            to_employees.append(wfi.transition.manager)
+    # Remove the canceled_by employee from the list if they are in it
+    if canceled_by and canceled_by in to_employees:
+        to_employees.remove(canceled_by)
+
+    to_addresses = [
+        e.user.email for e in to_employees if
+        e.should_receive_email_of_type('workflows', '')
+    ]
+    send_email_multiple(
+        to_addresses, [], subject, plaintext_message, html_message
+    )
+
 def send_mailbox_notification_email(
     t, sender_name='', sender_email='', url=''
 ):

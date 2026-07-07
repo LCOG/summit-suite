@@ -733,6 +733,11 @@ class WorkflowInstance(HasTimeStampsMixin, HasCreatorMixin):
     active = models.BooleanField(default=True)
     complete = models.BooleanField(default=False)
     percent_complete = models.IntegerField(default=0)
+    canceled_by = models.ForeignKey(
+        Employee, blank=True, null=True, on_delete=models.SET_NULL,
+        related_name="canceled_workflow_instances"
+    )
+    cancelation_reason = models.CharField(max_length=300, blank=True)
     
     @property
     def employee_name(self):

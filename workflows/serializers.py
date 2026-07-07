@@ -412,6 +412,7 @@ class WorkflowInstanceSimpleSerializer(WorkflowInstanceBaseSerializer):
 class WorkflowInstanceSerializer(WorkflowInstanceBaseSerializer):
     process_instances = ProcessInstanceSerializer(source='pis', many=True)
     transition = EmployeeTransitionSerializer()
+    canceled_by_name = serializers.SerializerMethodField()
 
     class Meta:
         model = WorkflowInstance
@@ -419,6 +420,13 @@ class WorkflowInstanceSerializer(WorkflowInstanceBaseSerializer):
             'url', 'pk', 'workflow', 'process_instances', 'transition',
             'active', 'complete', 'percent_complete', 'title_name',
             'employee_action_required', 'pis_action_required',
-            'transition_action_required', 'workflow_type', 'workflow_role_pk'
+            'transition_action_required', 'workflow_type', 'workflow_role_pk',
+            'cancelation_reason', 'canceled_by_name'
         ]
         depth = 1
+
+    @staticmethod
+    def get_canceled_by_name(wfi):
+        if wfi.canceled_by:
+            return wfi.canceled_by.name
+        return ''
