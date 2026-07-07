@@ -4,6 +4,16 @@
 
 export const releases = [
   {
+    version: '1.11.0',
+    date: new Date(2026, 6, 7),
+    changes: [
+      {
+        type: 'new',
+        description: 'Add ability to cancel and reinstate a WFI'
+      },
+    ]
+  },
+  {
     version: '1.10.0',
     date: new Date(2026, 5, 26),
     changes: [
