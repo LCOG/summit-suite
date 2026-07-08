@@ -12,7 +12,7 @@ from django.utils.timezone import get_current_timezone
 
 from mainsite.helpers import is_true_string, prop_in_obj, record_error
 
-from people.models import Employee, JobTitle, UnitOrProgram
+from people.models import Employee, JobTitle, UnitOrProgram, WorkflowOptions
 
 from workflows.helpers import (
     create_process_instances, send_early_hr_email,
@@ -31,7 +31,8 @@ from workflows.serializers import (
     ProcessInstanceSerializer, ProcessSerializer, RoleSerializer,
     StepChoiceSerializer, StepInstanceSerializer, StepSerializer,
     TransitionChangeSerializer, WorkflowInstanceSerializer,
-    WorkflowInstanceSimpleSerializer, WorkflowSerializer
+    WorkflowInstanceSimpleSerializer, WorkflowOptionsSerializer,
+    WorkflowSerializer
 )
 
 
@@ -235,6 +236,31 @@ class WorkflowInstanceViewSet(viewsets.ModelViewSet):
                 data=message,
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+
+class WorkflowOptionsViewSet(viewsets.ModelViewSet):
+    queryset = WorkflowOptions.objects.all()
+    serializer_class = WorkflowOptionsSerializer
+    # permission_classes = [
+    #     IsAuthenticatedOrReadOnly
+    # ]
+
+    def get_queryset(self):
+        """
+        This view should return a list of all workflow options for which the
+        user has the appropriate role.
+        """
+        user = self.request.user
+        if user.is_authenticated:
+            if user.is_superuser:
+                queryset = WorkflowOptions.objects.all()
+            else:
+                queryset = WorkflowOptions.objects.filter(
+                    employee=user.employee
+                )
+        else:
+            queryset = WorkflowOptions.objects.none()
+        return queryset
 
 
 class EmployeeTransitionViewSet(viewsets.ModelViewSet):

@@ -181,15 +181,17 @@ export interface EmployeeEmailRetrieve {
 // For updating employee profile
 export interface EmployeeUpdatePartial {
   display_name?: string
-  email_opt_out_all: boolean
-  email_opt_out_timeoff_all: boolean
-  email_opt_out_timeoff_weekly: boolean
-  email_opt_out_timeoff_daily: boolean
-  email_opt_out_workflows_all: boolean
-  email_opt_out_workflows_transitions: boolean
-  email_opt_out_workflows_processes: boolean
-  email_opt_out_expenses_all: boolean
-  workflow_display_options: Array<WorkflowOption>
+  email_opt_out_all?: boolean
+  email_opt_out_timeoff_all?: boolean
+  email_opt_out_timeoff_weekly?: boolean
+  email_opt_out_timeoff_daily?: boolean
+  email_opt_out_workflows_all?: boolean
+  email_opt_out_workflows_transitions?: boolean
+  email_opt_out_workflows_processes?: boolean
+  email_opt_out_expenses_all?: boolean
+  workflow_display_options?: Array<WorkflowOption>
+  workflow_table_sort?: [string, string, boolean, boolean?]
+  // [workflow_type, sortBy, descending, clearSort]
 }
 
 export type WorkflowOption = {

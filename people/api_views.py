@@ -158,52 +158,66 @@ class EmployeeViewSet(viewsets.ModelViewSet):
         Updates the employee's display name and other preferences.
         """
         employee = Employee.objects.get(pk=pk)
-        employee.display_name = request.data['display_name']
-        employee.email_opt_out_all = request.data['email_opt_out_all']
-        employee.email_opt_out_timeoff_all = request.data[
-            'email_opt_out_timeoff_all'
-        ]
-        employee.email_opt_out_timeoff_weekly = request.data[
-            'email_opt_out_timeoff_weekly'
-        ]
-        employee.email_opt_out_timeoff_daily = request.data[
-            'email_opt_out_timeoff_daily'
-        ]
-        employee.email_opt_out_workflows_all = request.data[
-            'email_opt_out_workflows_all'
-        ]
-        employee.email_opt_out_workflows_transitions = request.data[
-            'email_opt_out_workflows_transitions'
-        ]
-        employee.email_opt_out_workflows_processes = request.data[
-            'email_opt_out_workflows_processes'
-        ]
-        employee.email_opt_out_expenses_all = request.data[
-            'email_opt_out_expenses_all'
-        ]
+        if request.data.get('display_name') is not None:
+            employee.display_name = request.data['display_name']
+        if request.data.get('email_opt_out_all') is not None:
+            employee.email_opt_out_all = request.data['email_opt_out_all']
+        if request.data.get('email_opt_out_timeoff_all') is not None:
+            employee.email_opt_out_timeoff_all = request.data['email_opt_out_timeoff_all']
+        if request.data.get('email_opt_out_timeoff_weekly') is not None:
+            employee.email_opt_out_timeoff_weekly = request.data['email_opt_out_timeoff_weekly']
+        if request.data.get('email_opt_out_timeoff_daily') is not None:
+            employee.email_opt_out_timeoff_daily = request.data['email_opt_out_timeoff_daily']
+        if request.data.get('email_opt_out_workflows_all') is not None:
+            employee.email_opt_out_workflows_all = request.data['email_opt_out_workflows_all']
+        if request.data.get('email_opt_out_workflows_transitions') is not None:
+            employee.email_opt_out_workflows_transitions = request.data['email_opt_out_workflows_transitions']
+        if request.data.get('email_opt_out_workflows_processes') is not None:
+            employee.email_opt_out_workflows_processes = request.data['email_opt_out_workflows_processes']
+        if request.data.get('email_opt_out_expenses_all') is not None:
+            employee.email_opt_out_expenses_all = request.data['email_opt_out_expenses_all']
         # Just set workflow options
-        new_wfos = request.data['workflow_display_options']
-        # All previously set workflow options
-        curr_wfos = WorkflowOptions.objects.filter(employee=employee)
-        # Get all the relevant workflows just once
-        workflows = apps.get_model('workflows.Workflow').objects\
-            .filter(name__in=map(lambda x: x['name'], new_wfos))
-        # Update or create workflow options for the employee
-        for idx, option in enumerate(new_wfos):
+        if request.data.get('workflow_display_options') is not None:
+            new_wfos = request.data['workflow_display_options']
+            # All previously set workflow options
+            curr_wfos = WorkflowOptions.objects.filter(employee=employee)
+            # Get all the relevant workflows just once
+            workflows = apps.get_model('workflows.Workflow').objects\
+                .filter(name__in=map(lambda x: x['name'], new_wfos))
+            # Update or create workflow options for the employee
+            for idx, option in enumerate(new_wfos):
+                try:
+                    wfo = curr_wfos.get(
+                        workflow=workflows.get(name=option['name'])
+                    )
+                    wfo.display = option['display']
+                    wfo.order = idx+1
+                    wfo.save()
+                except WorkflowOptions.DoesNotExist:
+                    wfo = WorkflowOptions.objects.create(
+                        employee=employee,
+                        workflow=workflows.get(name=option['name']),
+                        display=option['display'],
+                        order=idx+1
+                    )
+        # Set workflow table sort
+        if(request.data.get('workflow_table_sort')):
+            sort_ops = request.data.get('workflow_table_sort')
+            wf = apps.get_model('workflows.Workflow')\
+                .objects.get(type=sort_ops[0])
             try:
-                wfo = curr_wfos.get(
-                    workflow=workflows.get(name=option['name'])
-                )
-                wfo.display = option['display']
-                wfo.order = idx+1
-                wfo.save()
+                wfo = WorkflowOptions.objects.get(employee=employee, workflow=wf)
             except WorkflowOptions.DoesNotExist:
                 wfo = WorkflowOptions.objects.create(
                     employee=employee,
-                    workflow=workflows.get(name=option['name']),
-                    display=option['display'],
-                    order=idx+1
+                    workflow=wf,
                 )
+            if sort_ops[3] == True:
+                wfo.column_sort = None
+            else:
+                wfo.column_sort = f'{sort_ops[1]};{sort_ops[2]}'
+            wfo.save()
+
         employee.save()
         serialized_employee = EmployeeSerializer(employee,
              context={'request': request})

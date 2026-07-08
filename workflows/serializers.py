@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from people.models import WorkflowOptions
 from workflows.models import (
     Action, EmployeeTransition, Process, ProcessInstance, Role, Step,
     StepChoice, StepInstance, TransitionChange, Workflow, WorkflowInstance
@@ -430,3 +431,13 @@ class WorkflowInstanceSerializer(WorkflowInstanceBaseSerializer):
         if wfi.canceled_by:
             return wfi.canceled_by.name
         return ''
+
+
+class WorkflowOptionsSerializer(serializers.ModelSerializer):
+    workflow_type = serializers.CharField(source='workflow.type')
+
+    class Meta:
+        model = WorkflowOptions
+        fields = [
+            'url', 'pk', 'workflow_type', 'display', 'order', 'column_sort'
+        ]

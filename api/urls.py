@@ -34,7 +34,8 @@ from timeoff.api_views import TimeOffRequestViewSet
 from workflows.api_views import (
     EmployeeTransitionViewSet, ProcessInstanceViewSet, ProcessViewSet,
     RoleViewSet, StepChoiceViewSet, StepInstanceViewSet, StepViewSet,
-    TransitionChangeViewSet, WorkflowInstanceViewSet, WorkflowViewSet
+    TransitionChangeViewSet, WorkflowInstanceViewSet, WorkflowOptionsViewSet,
+    WorkflowViewSet
 )
 
 
@@ -119,6 +120,7 @@ router.register('v1/stepchoice', StepChoiceViewSet)
 router.register('v1/stepinstance', StepInstanceViewSet)
 router.register('v1/workflow', WorkflowViewSet)
 router.register('v1/workflowinstance', WorkflowInstanceViewSet)
+router.register('v1/workflowoptions', WorkflowOptionsViewSet)
 router.register('v1/employeetransition', EmployeeTransitionViewSet)
 router.register('v1/transitionchange', TransitionChangeViewSet)
 # Meals on Wheels

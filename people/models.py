@@ -624,6 +624,8 @@ class Employee(models.Model):
 
 
 class WorkflowOptions(models.Model):
+    # TODO: For proper separation of concerns, this should be moved to the
+    # workflows app.
     class Meta:
         verbose_name = _("Workflow Option")
         verbose_name_plural = _("Workflow Options")
@@ -634,6 +636,7 @@ class WorkflowOptions(models.Model):
     )
     display = models.BooleanField(default=True)
     order = models.IntegerField(default=0)
+    column_sort = models.CharField(max_length=255, blank=True, null=True)
 
 
 class ManagerUpcomingReviewsManager(models.Manager):
