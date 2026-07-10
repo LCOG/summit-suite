@@ -4,6 +4,20 @@
 
 export const releases = [
   {
+    version: '1.12.0',
+    date: new Date(2026, 6, 10),
+    changes: [
+      {
+        type: 'improved',
+        description: 'Remember workflow table column sort order'
+      },
+      {
+        type: 'improved',
+        description: 'Send notifications when phish trainings are assigned'
+      }
+    ]
+  },
+  {
     version: '1.11.0',
     date: new Date(2026, 6, 7),
     changes: [

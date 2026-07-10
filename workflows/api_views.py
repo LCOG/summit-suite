@@ -12,7 +12,7 @@ from django.utils.timezone import get_current_timezone
 
 from mainsite.helpers import is_true_string, prop_in_obj, record_error
 
-from people.models import Employee, JobTitle, UnitOrProgram
+from people.models import Employee, JobTitle, UnitOrProgram, WorkflowOptions
 
 from workflows.helpers import (
     create_process_instances, send_early_hr_email,
@@ -31,7 +31,8 @@ from workflows.serializers import (
     ProcessInstanceSerializer, ProcessSerializer, RoleSerializer,
     StepChoiceSerializer, StepInstanceSerializer, StepSerializer,
     TransitionChangeSerializer, WorkflowInstanceSerializer,
-    WorkflowInstanceSimpleSerializer, WorkflowSerializer
+    WorkflowInstanceSimpleSerializer, WorkflowOptionsSerializer,
+    WorkflowSerializer
 )
 
 
@@ -177,10 +178,18 @@ class WorkflowInstanceViewSet(viewsets.ModelViewSet):
         Archive/restore or complete/reopen a workflow instance.
         """
         wfi = WorkflowInstance.objects.get(pk=pk)
+        # TODO: Archive and cancel are too similar. We use archive as a way to
+        # remove a WFI without notifications (in the case of an accidental
+        # creation, for instance). However, if it's cancelled we send a
+        # notification in which case the proper undo function is reinstate. If
+        # it is cancelled and then restored, we need to clear the cancelation
+        # reason to not have a weird state, but we really shouldn't allow that.
         if request.data['action'] == 'archive':
             wfi.active = False
         elif request.data['action'] == 'restore':
             wfi.active = True
+            wfi.canceled_by = None
+            wfi.cancelation_reason = ''
         # TODO: Add logic to prevent completing an archived workflow instance
         # TODO: For now, complete is a manual process, but it should intersect
         # somehow with the process instances being complete.
@@ -227,6 +236,31 @@ class WorkflowInstanceViewSet(viewsets.ModelViewSet):
                 data=message,
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+
+class WorkflowOptionsViewSet(viewsets.ModelViewSet):
+    queryset = WorkflowOptions.objects.all()
+    serializer_class = WorkflowOptionsSerializer
+    # permission_classes = [
+    #     IsAuthenticatedOrReadOnly
+    # ]
+
+    def get_queryset(self):
+        """
+        This view should return a list of all workflow options for which the
+        user has the appropriate role.
+        """
+        user = self.request.user
+        if user.is_authenticated:
+            if user.is_superuser:
+                queryset = WorkflowOptions.objects.all()
+            else:
+                queryset = WorkflowOptions.objects.filter(
+                    employee=user.employee
+                )
+        else:
+            queryset = WorkflowOptions.objects.none()
+        return queryset
 
 
 class EmployeeTransitionViewSet(viewsets.ModelViewSet):

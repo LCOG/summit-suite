@@ -46,6 +46,8 @@
       :type="type.type ? type.type : ''"
       :allowAddDelete="true"
       :workflowsLoaded="workflowsLoaded"
+      :employeePk="userStore.getEmployeeProfile.employee_pk"
+      :sortOptions="workflowsStore.workflowOptionsByType(type.type ? type.type : '')"
       v-on:retrieve="retrieveWorkflows"
     />
   </div>
@@ -77,10 +79,13 @@ function userWorkflowTypes() {
 }
 
 function retrieveWorkflows(): void {
-  workflowsStore.getWorkflows({archived: false, complete: false})
+  Promise.all([
+    workflowsStore.getWorkflows({archived: false, complete: false}),
+    workflowsStore.getWorkflowOptions()
+  ])
     .then(() => {
       workflowsLoaded.value = true
-    })  
+    })
     .catch(e => {
       console.error('Error retrieving incomplete workflows:', e)
     })

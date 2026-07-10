@@ -17,6 +17,7 @@
     row-key="name"
     :rows-per-page-options="[0]"
     v-bind:class="'workflowtable-' + props.type"
+    v-model:pagination="pagination"
   >
     <template v-slot:top-right>
       <q-input
@@ -393,18 +394,20 @@
 
 <script setup lang="ts">
 import { QTableProps, useQuasar } from 'quasar'
-import { ref } from 'vue'
+import { ref, Ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 import { WorkflowInstanceSimple } from 'src/types'
 
 import { readableDate } from 'src/filters'
+import { usePeopleStore } from 'src/stores/people'
 import { useUserStore } from 'src/stores/user'
 import { useWorkflowsStore } from 'src/stores/workflows'
 import { isInteger } from 'src/utils'
 
 const quasar = useQuasar()
 const router = useRouter()
+const peopleStore = usePeopleStore()
 const userStore = useUserStore()
 const workflowsStore = useWorkflowsStore()
 
@@ -414,12 +417,21 @@ let archiveDialogPercentComplete = ref(0)
 let rowPkToArchive = ref('')
 let newWorkflowDialogVisible = ref(false)
 
+const pagination = ref({}) as Ref<QTableProps['pagination']>
+
+type WorkflowTableSortOptions = {
+  column?: string
+  descending?: boolean | string
+}
+
 const props = defineProps<{
   archived: boolean,
   complete: boolean,
   type: string,
   allowAddDelete: boolean,
   workflowsLoaded: boolean,
+  employeePk: number,
+  sortOptions?: WorkflowTableSortOptions
   // TODO: Move action required into the table as a column
   // actionRequired?: boolean,
 }>()
@@ -589,6 +601,35 @@ function columns() {
       return completedColumns
     }
     return activeColumns
+  }
+}
+
+function normalizeDescending(value: WorkflowTableSortOptions['descending']): boolean {
+  if (typeof value == 'boolean') {
+    return value
+  }
+  if (typeof value == 'string') {
+    return value.toLowerCase() == 'true'
+  }
+  return false
+}
+
+function applyStoredSortOptions(): void {
+  const column = props.sortOptions?.column
+  if (!column) {
+    return
+  }
+
+  const tableColumns = columns() || []
+  const targetColumn = tableColumns.find((col) => col.name == column)
+  if (!targetColumn || !targetColumn.sortable) {
+    return
+  }
+
+  pagination.value = {
+    ...pagination.value,
+    sortBy: column,
+    descending: normalizeDescending(props.sortOptions?.descending)
   }
 }
 
@@ -783,4 +824,34 @@ function navigateToWorkflowProcesses(pk: number): void {
       console.error('Error navigating to workflow processes:', e)
     })
 }
+
+watch(
+  [() => pagination.value?.sortBy, () => pagination.value?.descending],
+  ([sortBy, descending], [oldSortBy, oldDescending]) => {
+    if (oldSortBy === undefined) {
+      return // Page init
+    }
+    const savedSortBy = props.sortOptions?.column
+    const savedDescending = normalizeDescending(props.sortOptions?.descending)
+    if (savedSortBy == sortBy && savedDescending == descending) {
+      return // No change from stored sort options
+    }
+    let clearSort = false
+    if (!sortBy) {
+      clearSort = true
+    }
+    peopleStore.updatePartialEmployee(
+      props.employeePk.toString(),
+      {workflow_table_sort: [props.type, sortBy, descending, clearSort]}
+    )
+  }
+)
+
+watch(
+  () => props.sortOptions,
+  () => {
+    applyStoredSortOptions()
+  },
+  { immediate: true, deep: true }
+)
 </script>

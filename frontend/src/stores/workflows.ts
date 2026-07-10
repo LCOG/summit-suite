@@ -12,6 +12,7 @@ export const useWorkflowsStore = defineStore('workflows', {
     workflowsIncomplete: [] as Array<WorkflowInstance>,
     workflowsComplete: [] as Array<WorkflowInstance>,
     workflowsArchived: [] as Array<WorkflowInstance>,
+    workflowOptions: {} as {[key: string]: any}
   }),
 
   getters: {
@@ -40,6 +41,15 @@ export const useWorkflowsStore = defineStore('workflows', {
         }
       })
       return d
+    },
+    workflowOptionsByType: state => (type: string) => {
+      if (Object.keys(state.workflowOptions).length === 0) { return [] }
+      const options = state.workflowOptions.results.filter((o: {workflow_type: string}) => o.workflow_type == type)
+      if (options.length > 0 && options[0].column_sort) {
+        const [col, desc] = options[0].column_sort?.split(';')
+        return {column: col, descending: desc}
+      }
+      return {}
     }
   },
 
@@ -180,6 +190,18 @@ export const useWorkflowsStore = defineStore('workflows', {
             reject, `Error getting workflows of type ${ workflowType }`, e
           )
         })
+      })
+    },
+    getWorkflowOptions() {
+      return new Promise((resolve, reject) => {
+        axios({ url: `${ apiURL }api/v1/workflowoptions` })
+          .then(resp => {
+            this.workflowOptions = resp.data
+            resolve(resp)
+          })
+          .catch(e => {
+            handlePromiseError(reject, 'Error getting workflow options', e)
+          })
       })
     },
     completeStepInstance(
