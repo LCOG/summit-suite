@@ -103,15 +103,15 @@ class EmployeeSerializer(serializers.HyperlinkedModelSerializer):
             'is_executive_director', 'viewed_security_message', 'prs_can_view',
             'notes_can_view', 'telework_applications_can_view',
             'time_off_requests_can_view', 'next_to_sign_prs',
-            'email_opt_out_all', 'email_opt_out_timeoff_all',
+            'email_opt_out_all', 'email_opt_out_expenses_all',
+            'email_opt_out_phish_all', 'email_opt_out_timeoff_all',
             'email_opt_out_timeoff_weekly', 'email_opt_out_timeoff_daily',
             'email_opt_out_workflows_all',
             'email_opt_out_workflows_transitions',
-            'email_opt_out_workflows_processes', 'email_opt_out_expenses_all',
-            'is_all_workflows_admin', 'admin_of_workflows',
-            'admin_of_processes', 'workflow_roles', 'is_expense_submitter',
-            'is_expense_approver', 'can_view_phish', 'can_view_reviews',
-            'can_view_mow_routes', 'can_manage_mow_stops',
+            'email_opt_out_workflows_processes', 'is_all_workflows_admin',
+            'admin_of_workflows', 'admin_of_processes', 'workflow_roles',
+            'is_expense_submitter', 'is_expense_approver', 'can_view_phish',
+            'can_view_reviews', 'can_view_mow_routes', 'can_manage_mow_stops',
             'workflow_display_options'
         ]
 

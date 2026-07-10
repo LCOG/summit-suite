@@ -122,13 +122,14 @@ export interface EmployeeRetrieve {
   telework_applications_can_view: Array<number>
   next_to_sign_prs: string
   email_opt_out_all: boolean
+  email_opt_out_expenses_all: boolean
+  email_opt_out_phish_all: boolean
   email_opt_out_timeoff_all: boolean
   email_opt_out_timeoff_weekly: boolean
   email_opt_out_timeoff_daily: boolean
   email_opt_out_workflows_all: boolean
   email_opt_out_workflows_transitions: boolean
   email_opt_out_workflows_processes: boolean
-  email_opt_out_expenses_all: boolean
   is_all_workflows_admin: boolean
   admin_of_workflows: Array<number>
   admin_of_processes: Array<number>
@@ -182,13 +183,14 @@ export interface EmployeeEmailRetrieve {
 export interface EmployeeUpdatePartial {
   display_name?: string
   email_opt_out_all?: boolean
+  email_opt_out_expenses_all?: boolean
+  email_opt_out_phish_all?: boolean
   email_opt_out_timeoff_all?: boolean
   email_opt_out_timeoff_weekly?: boolean
   email_opt_out_timeoff_daily?: boolean
   email_opt_out_workflows_all?: boolean
   email_opt_out_workflows_transitions?: boolean
   email_opt_out_workflows_processes?: boolean
-  email_opt_out_expenses_all?: boolean
   workflow_display_options?: Array<WorkflowOption>
   workflow_table_sort?: [string, string, boolean, boolean?]
   // [workflow_type, sortBy, descending, clearSort]

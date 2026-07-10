@@ -162,6 +162,10 @@ class EmployeeViewSet(viewsets.ModelViewSet):
             employee.display_name = request.data['display_name']
         if request.data.get('email_opt_out_all') is not None:
             employee.email_opt_out_all = request.data['email_opt_out_all']
+        if request.data.get('email_opt_out_expenses_all') is not None:
+            employee.email_opt_out_expenses_all = request.data['email_opt_out_expenses_all']
+        if request.data.get('email_opt_out_phish_all') is not None:
+            employee.email_opt_out_phish_all = request.data['email_opt_out_phish_all']
         if request.data.get('email_opt_out_timeoff_all') is not None:
             employee.email_opt_out_timeoff_all = request.data['email_opt_out_timeoff_all']
         if request.data.get('email_opt_out_timeoff_weekly') is not None:
@@ -174,8 +178,6 @@ class EmployeeViewSet(viewsets.ModelViewSet):
             employee.email_opt_out_workflows_transitions = request.data['email_opt_out_workflows_transitions']
         if request.data.get('email_opt_out_workflows_processes') is not None:
             employee.email_opt_out_workflows_processes = request.data['email_opt_out_workflows_processes']
-        if request.data.get('email_opt_out_expenses_all') is not None:
-            employee.email_opt_out_expenses_all = request.data['email_opt_out_expenses_all']
         # Just set workflow options
         if request.data.get('workflow_display_options') is not None:
             new_wfos = request.data['workflow_display_options']

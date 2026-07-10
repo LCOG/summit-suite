@@ -127,13 +127,14 @@ class Employee(models.Model):
         _("display name"), max_length=100, blank=True, null=True
     )
     email_opt_out_all = models.BooleanField(default=False)
+    email_opt_out_expenses_all = models.BooleanField(default=False)
+    email_opt_out_phish_all = models.BooleanField(default=False)
     email_opt_out_timeoff_all = models.BooleanField(default=False)
     email_opt_out_timeoff_weekly = models.BooleanField(default=False)
     email_opt_out_timeoff_daily = models.BooleanField(default=False)
     email_opt_out_workflows_all = models.BooleanField(default=False)
     email_opt_out_workflows_transitions = models.BooleanField(default=False)
     email_opt_out_workflows_processes = models.BooleanField(default=False)
-    email_opt_out_expenses_all = models.BooleanField(default=False)
     workflow_options = models.ManyToManyField(
         "workflows.Workflow", through="WorkflowOptions", 
     )
@@ -326,6 +327,12 @@ class Employee(models.Model):
     def should_receive_email_of_type(self, type, subtype):
         if self.email_opt_out_all:
             return False
+        if type == 'expenses':
+            if self.email_opt_out_expenses_all:
+                return False
+        if type == 'phish':
+            if self.email_opt_out_phish_all:
+                return False
         if type == 'timeoff':
             if self.email_opt_out_timeoff_all:
                 return False
@@ -345,9 +352,6 @@ class Employee(models.Model):
                 subtype == 'processes',
                 self.email_opt_out_workflows_processes
             ]):
-                return False
-        if type == 'expenses':
-            if self.email_opt_out_expenses_all:
                 return False
         return True
 

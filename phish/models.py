@@ -3,6 +3,7 @@ from django.db import models
 
 from mainsite.models import OrganizationObjectsManager
 from people.models import Employee
+from phish.helpers import send_training_assignment_notification
 
 
 class PhishReport(models.Model):
@@ -129,6 +130,14 @@ class TrainingAssignment(models.Model):
     assigned_at = models.DateTimeField(auto_now_add=True)
     completed = models.BooleanField(default=False)
     completed_at = models.DateTimeField(blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        super().save(*args, **kwargs)
+        if is_new and self.template:
+            send_training_assignment_notification(
+                self.employee, self.template.name, self.pk
+            )
 
 
 class PhishGroup(models.Model):
