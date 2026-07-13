@@ -4,6 +4,16 @@
 
 export const releases = [
   {
+    version: '1.13.0',
+    date: new Date(2026, 6, 13),
+    changes: [
+      {
+        type: 'improved',
+        description: 'Responsibilities app siloed by organization'
+      }
+    ]
+  },
+  {
     version: '1.12.0',
     date: new Date(2026, 6, 10),
     changes: [
