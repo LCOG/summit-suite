@@ -77,6 +77,9 @@ class EmployeeForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.instance and self.instance.pk:
+            self.fields["manager"].queryset = Employee.objects.filter(
+                organization=self.instance.organization
+            )
             self.fields["unit_or_program"].queryset = UnitOrProgram.objects.filter(
                 division__organization=self.instance.organization
             )
