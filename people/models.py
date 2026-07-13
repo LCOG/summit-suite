@@ -7,7 +7,7 @@ from django.urls import reverse
 from django.utils.translation import gettext as _
 
 from mainsite.models import (
-    ActiveManager, OrganizationObjectsManager, SecurityMessage
+    ActiveManager, Organization, OrganizationObjectsManager, SecurityMessage
 )
 
 
@@ -70,6 +70,7 @@ class JobTitle(models.Model):
     active_objects = ActiveManager()
 
     active = models.BooleanField(default=True)
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE)
     name = models.CharField(_("name"), max_length=100)
     division = models.ForeignKey(
         "people.Division", on_delete=models.SET_NULL, blank=True, null=True
