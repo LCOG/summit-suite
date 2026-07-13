@@ -11,6 +11,7 @@ class TagInline(admin.TabularInline):
 @admin.register(Responsibility)
 class ResponsibilityAdmin(admin.ModelAdmin):
     list_display = ("pk", "name", "primary_employee", "secondary_employee")
+    list_filter = ("organization",)
     inlines = (TagInline,)
     exclude = ("tags",)
 
@@ -18,4 +19,5 @@ class ResponsibilityAdmin(admin.ModelAdmin):
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
     list_display = ("name",)
+    list_filter = ("organization",)
     inlines = (TagInline,)
