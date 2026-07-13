@@ -14,6 +14,9 @@ class SimpleTagSerializer(serializers.HyperlinkedModelSerializer):
 
 class ResponsibilitySerializer(serializers.HyperlinkedModelSerializer):
     tags = SimpleTagSerializer(many=True)
+    organization_pk = serializers.PrimaryKeyRelatedField(
+        source='organization', read_only=True
+    )
     primary_employee_pk = serializers.SerializerMethodField()
     primary_employee_name = serializers.SerializerMethodField()
     secondary_employee_pk = serializers.SerializerMethodField()
@@ -22,8 +25,8 @@ class ResponsibilitySerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Responsibility
         fields = [
-            'url', 'pk', 'name', 'description', 'link', 'tags',
-            'primary_employee_pk', 'primary_employee_name',
+            'url', 'pk', 'organization_pk', 'name', 'description', 'link',
+            'tags', 'primary_employee_pk', 'primary_employee_name',
             'secondary_employee_pk', 'secondary_employee_name'
         ]
 
@@ -58,10 +61,13 @@ class ResponsibilitySerializer(serializers.HyperlinkedModelSerializer):
 
 class TagSerializer(serializers.HyperlinkedModelSerializer):
     responsibilities = serializers.SerializerMethodField()
+    organization_pk = serializers.PrimaryKeyRelatedField(
+        source='organization', read_only=True
+    )
     
     class Meta:
         model = Tag
-        fields = ['url', 'pk', 'name', 'responsibilities']
+        fields = ['url', 'pk', 'organization_pk', 'name', 'responsibilities']
 
     def get_responsibilities(self, tag):
         responsibilities = tag.responsibility_set.all()

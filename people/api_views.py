@@ -254,7 +254,13 @@ class EmployeeViewSet(viewsets.ModelViewSet):
         #     employees = self.get_queryset()
         # serializer = SimpleEmployeeSerializer(employees, many=True)
         # return Response(serializer.data)
-        employees = Employee.active_objects.all()
+        user = request.user
+        if user and user.is_authenticated and user.employee:
+            employees = Employee.active_objects.filter(
+                organization=user.employee.organization
+            )
+        else:
+            employees = Employee.active_objects.all()
         serializer = SimpleEmployeeSerializer(employees, many=True)
         return Response(serializer.data)
 
