@@ -850,6 +850,7 @@ class PerformanceReview(models.Model):
 
             # Get the next manager in the chain
             if employee.is_division_director:
+                last_employee_in_chain = employee
                 break
             if employee.manager:
                 last_employee_in_chain = employee
