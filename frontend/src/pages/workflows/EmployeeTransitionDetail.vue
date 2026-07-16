@@ -274,7 +274,7 @@
       <div v-if="workerType == 'Employee'" class="row">
         <q-select
           v-model="unionAffiliation"
-          :options="['Non-Represented','EA', 'SEIU', 'Senior Meals', 'Management']"
+          :options="['Non-Represented','EA', 'SEIU', 'Senior Meals', 'Management', 'GSAM', 'SDSMC']"
           label="Salary Schedule/Union Affiliation"
           id="union-affiliation"
           class="q-mr-md"
