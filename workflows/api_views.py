@@ -541,14 +541,6 @@ class EmployeeTransitionViewSet(viewsets.ModelViewSet):
                     sender_email=request.data['senderEmail'],
                     url=request.data['transitionUrl']
                 )
-                submitter = Employee.objects.get(
-                    user__email=request.data['senderEmail']
-                )
-                if submitter.is_gs_employee or submitter.is_admin_employee:
-                    send_early_hr_email(
-                        transition,
-                        url=request.data['transitionUrl']
-                    )
             elif request.data['type'] == 'HR':
                 transition.assignee = EmployeeTransition.ASSIGNEE_HR
                 transition.save()
