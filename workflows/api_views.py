@@ -18,8 +18,8 @@ from workflows.helpers import (
     create_process_instances, send_early_hr_email,
     send_mailbox_notification_email, send_step_completion_email,
     send_transition_fiscal_email, send_transition_hr_email,
-    send_transition_sds_hiring_leads_email, send_transition_stn_email,
-    send_transition_submitter_email, send_wfi_canceled_email
+    send_transition_stn_email, send_transition_submitter_email,
+    send_wfi_canceled_email
 )
 from workflows.models import (
     EmployeeTransition, Process, ProcessInstance, Role, Step, StepChoice,
@@ -527,23 +527,13 @@ class EmployeeTransitionViewSet(viewsets.ModelViewSet):
     def send_transition_to_email_list(self, request, pk):
         try:
             transition = EmployeeTransition.objects.get(pk=pk)
-            if request.data['type'] == 'SDS':
-                transition.assignee = EmployeeTransition.ASSIGNEE_HIRING_LEAD
+            if request.data['type'] == 'FI':
+                transition.assignee = EmployeeTransition.ASSIGNEE_FISCAL
                 transition.save()
-                send_transition_sds_hiring_leads_email(
-                    transition,
-                    extra_message=request.data['extraMessage'],
-                    sender_name=request.data['senderName'],
-                    sender_email=request.data['senderEmail'],
-                    url=request.data['transitionUrl']
-                )
                 send_early_hr_email(
                     transition,
                     url=request.data['transitionUrl']
                 )
-            elif request.data['type'] == 'FI':
-                transition.assignee = EmployeeTransition.ASSIGNEE_FISCAL
-                transition.save()
                 send_transition_fiscal_email(
                     transition,
                     extra_message=request.data['extraMessage'],
@@ -585,17 +575,6 @@ class EmployeeTransitionViewSet(viewsets.ModelViewSet):
                     transition.assignee = EmployeeTransition.ASSIGNEE_SUBMITTER
                     transition.save()
                     send_transition_submitter_email(
-                        transition,
-                        extra_message=request.data['extraMessage'],
-                        sender_name=request.data['senderName'],
-                        sender_email=request.data['senderEmail'],
-                        url=request.data['transitionUrl'],
-                        reassigned=True
-                    )
-                elif request.data['reassignTo'] == 'Hiring Lead':
-                    transition.assignee = EmployeeTransition.ASSIGNEE_HIRING_LEAD
-                    transition.save()
-                    send_transition_sds_hiring_leads_email(
                         transition,
                         extra_message=request.data['extraMessage'],
                         sender_name=request.data['senderName'],

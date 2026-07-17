@@ -176,14 +176,12 @@ class EmployeeTransition(models.Model):
 
     ASSIGNEE_NONE = 'None'
     ASSIGNEE_SUBMITTER = 'Submitter'
-    ASSIGNEE_HIRING_LEAD = 'Hiring Lead'
     ASSIGNEE_FISCAL = 'Fiscal'
     ASSIGNEE_HR = 'HR'
     ASSIGNEE_COMPLETE = 'Complete'
     ASSIGNEE_CHOICES = [
         (ASSIGNEE_NONE, ASSIGNEE_NONE),
         (ASSIGNEE_SUBMITTER, ASSIGNEE_SUBMITTER),
-        (ASSIGNEE_HIRING_LEAD, ASSIGNEE_HIRING_LEAD),
         (ASSIGNEE_FISCAL, ASSIGNEE_FISCAL),
         (ASSIGNEE_HR, ASSIGNEE_HR),
         (ASSIGNEE_COMPLETE, ASSIGNEE_COMPLETE)
@@ -391,8 +389,6 @@ class EmployeeTransition(models.Model):
         elif assignee == self.ASSIGNEE_SUBMITTER:
             if self.submitter == employee:
                 return True
-        elif assignee == self.ASSIGNEE_HIRING_LEAD:
-            return employee.is_sds_hiring_lead
         elif assignee == self.ASSIGNEE_FISCAL:
             return employee.is_fiscal_employee
         elif assignee == self.ASSIGNEE_HR:
