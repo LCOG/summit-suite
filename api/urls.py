@@ -73,7 +73,7 @@ router.register('v1/expense-month-lock', ExpenseMonthLockViewSet)
 router.register('v1/expense-statement', ExpenseStatementViewSet)
 # Performance Reviews
 router.register('v1/review', PerformanceReviewViewSet)
-router.register('v1/signature', SignatureViewSet)
+router.register('v1/signature', SignatureViewSet, basename='signature')
 router.register('v1/reviewnote', ReviewNoteViewSet)
 # Phishing
 router.register('v1/phishreport', PhishReportViewSet, basename='phishreport')

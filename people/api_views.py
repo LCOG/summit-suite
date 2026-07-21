@@ -698,7 +698,9 @@ class SignatureViewSet(viewsets.ModelViewSet):
 
         serialized_signature = SignatureSerializer(new_signature,
             context={'request': request})
-        return Response(serialized_signature.data)
+        return Response(
+            serialized_signature.data, status=status.HTTP_201_CREATED
+        )
 
 
 class ReviewNoteViewSet(viewsets.ModelViewSet):
