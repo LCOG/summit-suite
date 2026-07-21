@@ -10,8 +10,12 @@ from workflows.models import (
 class RoleSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Role
-        fields = ['url', 'pk', 'name', 'description', 'member_names']
+        fields = [
+            'url', 'pk', 'organization_pk', 'name', 'description',
+            'member_names',
+        ]
     
+    organization_pk = serializers.IntegerField(source='organization.pk')
     member_names = serializers.SerializerMethodField()
 
     @staticmethod
@@ -21,6 +25,7 @@ class RoleSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class StepChoiceSerializer(serializers.HyperlinkedModelSerializer):
+    organization_pk = serializers.IntegerField(source="organization.pk")
     next_step_pk = serializers.IntegerField(source="next_step.pk")
     trigger_processes_pks = serializers.SerializerMethodField()
     
@@ -28,8 +33,8 @@ class StepChoiceSerializer(serializers.HyperlinkedModelSerializer):
         model = StepChoice
         fields = '__all__'
         fields = [
-            'pk', 'order', 'choice_text', 'step', 'next_step', 'next_step_pk',
-            'trigger_processes_pks'
+            'pk', 'organization_pk', 'order', 'choice_text', 'step',
+            'next_step', 'next_step_pk', 'trigger_processes_pks'
         ]
 
     @staticmethod
@@ -38,12 +43,15 @@ class StepChoiceSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class ActionSerializer(serializers.HyperlinkedModelSerializer):
+    organization_pk = serializers.IntegerField(source='organization.pk')
+
     class Meta:
         model = Action
-        fields = '__all__'
+        fields = ['url', 'pk', 'organization_pk', 'name', 'description']
 
 
 class StepSerializer(serializers.HyperlinkedModelSerializer):
+    organization_pk = serializers.IntegerField(source='organization.pk')
     next_step_choices = StepChoiceSerializer(many=True)
     role = RoleSerializer()
     process_role_pk = serializers.SerializerMethodField()
@@ -54,10 +62,10 @@ class StepSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Step
         fields = [
-            'url', 'pk', 'order', 'start', 'end', 'name', 'description',
-            'choices_prompt', 'role', 'next_step', 'next_step_choices',
-            'process_role_pk', 'workflow_role_pk', 'completion_action',
-            'optional_actions'
+            'url', 'pk', 'organization_pk', 'order', 'start', 'end', 'name',
+            'description', 'choices_prompt', 'role', 'next_step',
+            'next_step_choices', 'process_role_pk', 'workflow_role_pk',
+            'completion_action', 'optional_actions'
         ]
     
     @staticmethod
@@ -90,14 +98,16 @@ class WorkflowSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class StepInstanceSerializer(serializers.ModelSerializer):
+    organization_pk = serializers.IntegerField(source='organization.pk')
     step = StepSerializer(required=False)
     completed_by_name = serializers.SerializerMethodField()
     
     class Meta:
         model = StepInstance
         fields = [
-            'url', 'pk', 'started_at', 'completed_at', 'step', 'completed_by',
-            'completed_by_name', 'undo_completion_possible'
+            'url', 'pk', 'organization_pk', 'started_at', 'completed_at',
+            'step', 'completed_by', 'completed_by_name',
+            'undo_completion_possible'
         ]
     
     @staticmethod

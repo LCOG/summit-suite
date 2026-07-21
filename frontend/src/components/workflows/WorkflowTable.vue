@@ -430,7 +430,7 @@ const props = defineProps<{
   type: string,
   allowAddDelete: boolean,
   workflowsLoaded: boolean,
-  employeePk: number,
+  employeePk?: number,
   sortOptions?: WorkflowTableSortOptions
   // TODO: Move action required into the table as a column
   // actionRequired?: boolean,
