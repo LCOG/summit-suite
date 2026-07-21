@@ -179,7 +179,10 @@ class SimpleExpenseMonthSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class ExpenseMonthLockSerializer(serializers.HyperlinkedModelSerializer):
+    organization_pk = serializers.IntegerField(
+        source='organization.pk', read_only=True
+    )
 
     class Meta:
         model = ExpenseMonthLock
-        fields = ['pk', 'year', 'month', 'locked_at', 'locked_by']
+        fields = ['pk', 'organization_pk', 'year', 'month', 'locked_at', 'locked_by']

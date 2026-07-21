@@ -193,7 +193,9 @@ class ExpenseViewSet(viewsets.ModelViewSet):
         else: 
             date = datetime.date.today()
         em = ExpenseMonth.objects.get(pk=request.data.get('em_pk'))
-        expense = Expense.objects.create(month=em, date=date)
+        expense = Expense.objects.create(
+            organization=em.organization, month=em, date=date
+        )
         serialized_expense = ExpenseSerializer(
             expense, context={'request': request})
         return Response(serialized_expense.data)
@@ -210,6 +212,7 @@ class ExpenseViewSet(viewsets.ModelViewSet):
                 month = self.request.query_params.get('month', None)
                 if year and month:
                     return Expense.objects.filter(
+                        organization=user.employee.organization,
                         date__year=year,
                         date__month=month,
                         approver=user.employee,
@@ -221,6 +224,7 @@ class ExpenseViewSet(viewsets.ModelViewSet):
                     )
                 else:
                     return Expense.objects.filter(
+                        organization=user.employee.organization,
                         approver=user.employee,
                         status__in=[
                             Expense.STATUS_SUBMITTED,
@@ -233,12 +237,14 @@ class ExpenseViewSet(viewsets.ModelViewSet):
             end = self.request.query_params.get('end', None)
             if start and end:
                 return Expense.objects.filter(
-                    month__purchaser=self.request.user.employee,
+                    organization=user.employee.organization,
+                    month__purchaser=user.employee,
                     date__range=[start, end]
                 )
             else:
                 return Expense.objects.filter(
-                    month__purchaser=self.request.user.employee
+                    organization=user.employee.organization,
+                    month__purchaser=user.employee
                 )
         else:
             return Expense.objects.none()
@@ -414,30 +420,38 @@ class ExpenseMonthViewSet(viewsets.ModelViewSet):
             if fiscal:
                 if expenseMonthPK:
                     return ExpenseMonth.objects.filter(
+                        organization=user.employee.organization,
                         card__pk=cardPK, year=year, month=month
                     )
                 else:
                     if year and month:
                         return ExpenseMonth.objects.filter(
+                            organization=user.employee.organization,
                             year=year, month=month
                         )
                     else:
-                        return ExpenseMonth.objects.all()
+                        return ExpenseMonth.objects.filter(
+                            organization=user.employee.organization
+                        )
             
             # Division Director getting expense months
             if director:
                 if expenseMonthPK:
                     return ExpenseMonth.objects.filter(
+                        organization=user.employee.organization,
                         card__pk=cardPK,
                         year=year, month=month
                     )
                 else:
                     if year and month:
                         return ExpenseMonth.objects.filter(
+                            organization=user.employee.organization,
                             year=year, month=month
                         )
                     else:
-                        return ExpenseMonth.objects.all()
+                        return ExpenseMonth.objects.filter(
+                            organization=user.employee.organization
+                        )
 
             # Employee getting own expense months
             if year and month:
@@ -471,6 +485,7 @@ class ExpenseMonthViewSet(viewsets.ModelViewSet):
         year = request.data.get('year', None)
         if month is not None and year is not None:
             em = ExpenseMonth.objects.create(
+                organization=request.user.employee.organization,
                 purchaser=request.user.employee,
                 year=year,
                 month=month
@@ -490,6 +505,7 @@ class ExpenseMonthViewSet(viewsets.ModelViewSet):
         if last_em:
             for expense in last_em.expenses.filter(repeat=True):
                 new_expense = Expense.objects.create(
+                    organization=em.organization,
                     month=em,
                     name=expense.name,
                     date=expense.date.replace(year=year, month=month),
@@ -674,8 +690,13 @@ class ExpenseMonthLockViewSet(viewsets.ModelViewSet):
             year = self.request.query_params.get('year', None)
             month = self.request.query_params.get('month', None)
             if year and month:
-                return ExpenseMonthLock.objects.filter(year=year, month=month)
-            return ExpenseMonthLock.objects.all()
+                return ExpenseMonthLock.objects.filter(
+                    organization=user.employee.organization, year=year,
+                    month=month
+                )
+            return ExpenseMonthLock.objects.filter(
+                organization=user.employee.organization
+            )
         else:
             return ExpenseMonthLock.objects.none()
 
@@ -684,6 +705,7 @@ class ExpenseMonthLockViewSet(viewsets.ModelViewSet):
         month = request.data.get('month', None)
         if year is not None and month is not None:
             eml = ExpenseMonthLock.objects.get_or_create(
+                organization=request.user.employee.organization,
                 locked_by=request.user.employee, year=year, month=month
             )[0]
             eml.locked = True
@@ -702,7 +724,10 @@ class ExpenseMonthLockViewSet(viewsets.ModelViewSet):
         month = request.data.get('month', None)
         if year is not None and month is not None:
             try:
-                eml = ExpenseMonthLock.objects.get(year=year, month=month)
+                eml = ExpenseMonthLock.objects.get(
+                    organization=request.user.employee.organization,
+                    year=year, month=month
+                )
                 eml.delete()
                 serialized_eml = ExpenseMonthLockSerializer(
                     eml, context={'request': request}
@@ -738,6 +763,7 @@ class ExpenseStatementViewSet(viewsets.ModelViewSet):
                 if card:
                     if user.employee.is_fiscal_employee:
                         return ExpenseStatement.objects.filter(
+                            organization=user.employee.organization,
                             card__last4=card,
                             year=year,
                             month=month
@@ -745,6 +771,7 @@ class ExpenseStatementViewSet(viewsets.ModelViewSet):
                     else:
                         return ExpenseStatement.objects.filter(
                             can_charge_to_card,
+                            organization=user.employee.organization,
                             card__last4=card,
                             year=year,
                             month=month
@@ -752,16 +779,24 @@ class ExpenseStatementViewSet(viewsets.ModelViewSet):
                 else:
                     if user.employee.is_fiscal_employee:
                         return ExpenseStatement.objects.filter(
+                            organization=user.employee.organization,
                             year=year, month=month
                         )
                     return ExpenseStatement.objects.filter(
-                        can_charge_to_card, year=year, month=month
+                        can_charge_to_card,
+                        organization=user.employee.organization, year=year,
+                        month=month
                     )
             else:
                 if user.employee.is_fiscal_employee:
-                    return ExpenseStatement.objects.all()
+                    return ExpenseStatement.objects.filter(
+                        organization=user.employee.organization
+                    )
                 else:
-                    return ExpenseStatement.objects.filter(can_charge_to_card)
+                    return ExpenseStatement.objects.filter(
+                        can_charge_to_card,
+                        organization=user.employee.organization
+                    )
         else:
             return Expense.objects.none()
 

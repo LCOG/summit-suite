@@ -164,9 +164,11 @@ class FileUploadViewSet(viewsets.ViewSet):
                         return Response(data=m, status=400)
                 if len(items):
                     ec = ExpenseCard.objects.get_or_create(
+                        organization=request.user.employee.organization,
                         last4=items[0]['card']
                     )[0]
                     es, created = ExpenseStatement.objects.get_or_create(
+                        organization=request.user.employee.organization,
                         card=ec, month=month, year=year
                     )
                     if created:

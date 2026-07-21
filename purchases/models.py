@@ -3,6 +3,7 @@ from django.db import models
 from django.db.models import Count
 from django.utils.translation import gettext_lazy as _
 
+from mainsite.models import Organization
 from people.models import Employee
 
 
@@ -10,6 +11,9 @@ class Role(models.Model):
     def __str__(self):
         return self.name
 
+    organization = models.ForeignKey(
+        Organization, on_delete=models.CASCADE
+    )
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     members = models.ManyToManyField(
@@ -115,6 +119,10 @@ class ExpenseBaseModel(models.Model):
         (STATUS_FISCAL_DENIED, 'Fiscal Denied'),
     )
 
+    organization = models.ForeignKey(
+        Organization, on_delete=models.CASCADE,
+        related_name='%(class)ss'
+    )
     status = models.CharField(
         max_length=17, choices=STATUS_CHOICES, default=STATUS_DRAFT
     )
@@ -228,6 +236,10 @@ class ExpenseCard(models.Model):
     def __str__(self):
         return f'*{self.last4}'
 
+    organization = models.ForeignKey(
+        Organization, on_delete=models.CASCADE,
+        related_name='expense_cards'
+    )
     last4 = models.CharField(
         max_length=4,
         validators=[
@@ -252,7 +264,11 @@ class ExpenseCard(models.Model):
 class ExpenseStatement(models.Model):
     class Meta:
         ordering = ["pk",]
-    
+
+    organization = models.ForeignKey(
+        Organization, on_delete=models.CASCADE,
+        related_name='expense_statements'
+    )
     card = models.ForeignKey(
         ExpenseCard, on_delete=models.CASCADE, related_name='statements'
     )
@@ -269,7 +285,8 @@ class ExpenseStatement(models.Model):
             # expense months for the card need to match the number of items in
             # the statement.
             card_ems = ExpenseMonth.objects.filter(
-                month=self.month, year=self.year, card=self.card,
+                organization=self.organization, month=self.month,
+                year=self.year, card=self.card,
                 status=ExpenseMonth.STATUS_FISCAL_APPROVED,
             ).annotate(Count('expenses'))
             # Add up all ems expenses
@@ -279,7 +296,8 @@ class ExpenseStatement(models.Model):
             # If the card is not shared, just verify that there is an approved
             # Expense Month
             return ExpenseMonth.objects.filter(
-                month=self.month, year=self.year, card=self.card,
+                organization=self.organization, month=self.month,
+                year=self.year, card=self.card,
                 status=ExpenseMonth.STATUS_FISCAL_APPROVED
             ).exists()
 
@@ -300,6 +318,10 @@ class ExpenseMonthLock(models.Model):
     class Meta:
         ordering = ["pk",]
 
+    organization = models.ForeignKey(
+        Organization, on_delete=models.CASCADE,
+        related_name='expense_month_locks'
+    )
     year = models.IntegerField()
     month = models.IntegerField()
     locked_at = models.DateTimeField(auto_now_add=True)
