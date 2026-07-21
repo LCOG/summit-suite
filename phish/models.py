@@ -58,6 +58,7 @@ class PhishReportTask(models.Model):
 class SyntheticPhishTemplate(models.Model):
     class Meta:
         unique_together = ('organization', 'name', 'version')
+        ordering = ['pk']
 
     def __str__(self):
         return self.name + " v" + str(self.version)
@@ -104,6 +105,7 @@ class SyntheticPhish(models.Model):
 class TrainingTemplate(models.Model):
     class Meta:
         unique_together = ('organization', 'name', 'version')
+        ordering = ['pk']
 
     def __str__(self):
         return self.name + " v" + str(self.version)

@@ -78,7 +78,7 @@ class ExpenseGLViewSet(viewsets.ModelViewSet):
                         ]
                     )
             return ExpenseGL.objects.filter(
-                expense__purchaser=self.request.user.employee
+                expense__month__purchaser=self.request.user.employee
             )
         else:
             return ExpenseGL.objects.none()

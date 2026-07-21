@@ -227,7 +227,9 @@ class SecurityMessageViewSet(viewsets.ModelViewSet):
             if user.is_staff:
                 queryset = SecurityMessage.objects.all()
             else:
-                queryset = SecurityMessage.objects.filter(employee__user=user)
+                queryset = SecurityMessage.objects.filter(
+                    organization=user.employee.organization
+                )
         else:
             queryset = SecurityMessage.objects.none()
         serializer = SecurityMessageSerializer(

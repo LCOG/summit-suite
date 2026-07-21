@@ -634,6 +634,7 @@ class WorkflowOptions(models.Model):
     class Meta:
         verbose_name = _("Workflow Option")
         verbose_name_plural = _("Workflow Options")
+        ordering = ["pk"]
 
     employee = models.ForeignKey("Employee", on_delete=models.CASCADE)
     workflow = models.ForeignKey(
@@ -988,6 +989,7 @@ class Signature(models.Model):
     class Meta:
         verbose_name = _("PR Signature")
         verbose_name_plural = _("PR Signatures")
+        ordering = ["-pk"]
 
     def __str__(self):
         return f"{self.employee.name}'s approval of {self.review.employee.name}'s performance review"
@@ -1034,6 +1036,11 @@ class ReviewNote(models.Model):
     )
 
 class ViewedSecurityMessage(models.Model):
+    class Meta:
+        verbose_name = _("Viewed Security Message")
+        verbose_name_plural = _("Viewed Security Messages")
+        ordering = ["-datetime"]
+
     employee = models.ForeignKey("people.Employee", verbose_name=_("employee"), on_delete=models.CASCADE)
     security_message = models.ForeignKey(SecurityMessage, on_delete=models.CASCADE)
     datetime = models.DateTimeField(_("viewed date"), auto_now=False, auto_now_add=True)
@@ -1352,6 +1359,7 @@ class TeleworkSignature(models.Model):
     class Meta:
         verbose_name = _("Telework Signature")
         verbose_name_plural = _("Telework Signatures")
+        ordering = ["-pk"]
 
     def __str__(self):
         return f"{self.employee.name}'s approval of {self.application.employee.name}'s telework application"

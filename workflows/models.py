@@ -467,6 +467,7 @@ class Process(models.Model):
 
     class Meta:
         verbose_name_plural = _("Processes")
+        ordering = ["pk"]
 
     organization = models.ForeignKey(
         Organization, on_delete=models.CASCADE,
@@ -592,6 +593,9 @@ class Action(models.Model):
 
 
 class Step(models.Model):
+    class Meta:
+        ordering = ["pk"]
+
     def __str__(self):
         return f"{self.order} - {self.name}"
 
@@ -726,6 +730,9 @@ class Step(models.Model):
 
 
 class StepChoice(models.Model):
+    class Meta:
+        ordering = ["pk"]
+
     organization = models.ForeignKey(
         Organization, on_delete=models.CASCADE,
         related_name="workflow_step_choices"
