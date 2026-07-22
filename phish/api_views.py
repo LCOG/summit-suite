@@ -351,7 +351,6 @@ class PhishAssignmentViewSet(viewsets.ModelViewSet):
             )
 
         created_assignments = []
-        text_body = re.sub('<[^<]+?>', '', template.body)
         for employee in target_employees:
             synthetic_phish = SyntheticPhish.objects.create(
                 employee=employee,
@@ -359,11 +358,20 @@ class PhishAssignmentViewSet(viewsets.ModelViewSet):
             )
             created_assignments.append(synthetic_phish)
 
+            # Insert message context
+            html_body = template.body\
+                .replace('{{user__email}}', employee.user.email)\
+                .replace('{{user__first_name}}', employee.user.first_name)\
+                .replace('{{user__last_name}}', employee.user.last_name)\
+                .replace('{{user__name}}', employee.name)\
+                .replace('{{org__name}}', employee.organization.name)
+
+            text_body = re.sub('<[^<]+?>', '', html_body)
             send_email(
                 to_address=employee.user.email,
                 subject=template.subject,
                 body=text_body,
-                html_body=template.body,
+                html_body=html_body,
                 headers={
                     'X-Synthetic-Phish-ID': str(synthetic_phish.pk),
                     'X-Synthetic-Phish-Template': template.name,
