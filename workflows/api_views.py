@@ -18,8 +18,8 @@ from workflows.helpers import (
     create_process_instances, send_early_hr_email,
     send_mailbox_notification_email, send_step_completion_email,
     send_transition_fiscal_email, send_transition_hr_email,
-    send_transition_sds_hiring_leads_email, send_transition_stn_email,
-    send_transition_submitter_email, send_wfi_canceled_email
+    send_transition_stn_email, send_transition_submitter_email,
+    send_wfi_canceled_email
 )
 from workflows.models import (
     EmployeeTransition, Process, ProcessInstance, Role, Step, StepChoice,
@@ -58,7 +58,10 @@ class WorkflowViewSet(viewsets.ModelViewSet):
                     user.employee.workflow_display_options()
                 )
                 wfs_can_view_ids = list(map(lambda x: x['id'], wfs_can_view))
-                queryset = Workflow.objects.filter(id__in=wfs_can_view_ids)
+                queryset = Workflow.objects.filter(
+                    organization=user.employee.organization,
+                    id__in=wfs_can_view_ids
+                )
         else:
             queryset = Workflow.objects.none()
         return queryset
@@ -83,6 +86,8 @@ class WorkflowInstanceViewSet(viewsets.ModelViewSet):
         """
         user = self.request.user
         if user.is_authenticated:
+            if user.is_superuser:
+                return WorkflowInstance.objects.all()
             wfs_can_view = filter(
                 lambda x: x['display'],
                 user.employee.workflow_display_options()
@@ -92,6 +97,7 @@ class WorkflowInstanceViewSet(viewsets.ModelViewSet):
             if archived is not None and is_true_string(archived):
                 # Archived WFIs
                 return WorkflowInstance.inactive_objects.filter(
+                    organization=user.employee.organization,
                     workflow__id__in=wfs_can_view_ids
                 ).order_by('-started_at').select_related(
                     'transition', 'workflow', 'workflow__role'
@@ -101,6 +107,7 @@ class WorkflowInstanceViewSet(viewsets.ModelViewSet):
                 if complete is not None and is_true_string(complete):
                     # Complete WFIs
                     return WorkflowInstance.active_objects.filter(
+                        organization=user.employee.organization,
                         workflow__id__in=wfs_can_view_ids, complete=True
                     ).order_by('-completed_at').select_related(
                         'transition', 'workflow', 'workflow__role'
@@ -108,11 +115,14 @@ class WorkflowInstanceViewSet(viewsets.ModelViewSet):
                 elif complete is not None and not is_true_string(complete):
                     # Current active WFIs
                     return WorkflowInstance.active_objects.filter(
+                        organization=user.employee.organization,
                         workflow__id__in=wfs_can_view_ids, complete=False
                     ).order_by('started_at').select_related(
                         'transition', 'workflow', 'workflow__role'
                     ).prefetch_related('pis')
-            return WorkflowInstance.objects.all()
+            return WorkflowInstance.objects.filter(
+                organization=user.employee.organization
+            )
         else:
             return WorkflowInstance.objects.none()
 
@@ -126,38 +136,48 @@ class WorkflowInstanceViewSet(viewsets.ModelViewSet):
             employeeID = EmployeeTransition.EMPLOYEE_ID_CLSD
         if wf_type == 'employee-new':
             et = EmployeeTransition.objects.create(
+                organization=request.user.employee.organization,
                 type=EmployeeTransition.TRANSITION_TYPE_NEW,
                 employee_id=employeeID
             )
         elif wf_type == 'employee-return':
             et = EmployeeTransition.objects.create(
+                organization=request.user.employee.organization,
                 type=EmployeeTransition.TRANSITION_TYPE_RETURN,
                 employee_id=employeeID
             )
         elif wf_type == 'employee-name-change':
             et = EmployeeTransition.objects.create(
+                organization=request.user.employee.organization,
                 type=EmployeeTransition.TRANSITION_TYPE_NAME_CHANGE,
                 employee_id=employeeID
             )
         elif wf_type == 'employee-change':
             et = EmployeeTransition.objects.create(
+                organization=request.user.employee.organization,
                 type=EmployeeTransition.TRANSITION_TYPE_CHANGE,
                 employee_id=employeeID
             )
         elif wf_type == 'employee-exit':
             et = EmployeeTransition.objects.create(
+                organization=request.user.employee.organization,
                 type=EmployeeTransition.TRANSITION_TYPE_EXIT,
                 employee_id=employeeID
             )
         try:
-            wf = Workflow.objects.get(type=wf_type)
+            wf = Workflow.objects.get(
+                organization=request.user.employee.organization, type=wf_type
+            )
         except Workflow.DoesNotExist:
             return Response(
                 data='Invalid workflow type',
                 status=status.HTTP_400_BAD_REQUEST
             )
         # Create workflow instance
-        wfi = WorkflowInstance.objects.create(workflow=wf, transition=et)
+        wfi = WorkflowInstance.objects.create(
+            organization=request.user.employee.organization, workflow=wf,
+            transition=et
+        )
         # Create process instances with unique names, selecting highest version
         processes = wf.processes.filter(workflow_start=True)
         unique_processes = {}
@@ -284,7 +304,9 @@ class EmployeeTransitionViewSet(viewsets.ModelViewSet):
                 employee = user.employee
                 if employee.can_view_employee_transitions():
                     # Users who can view employee transitions can see all
-                    queryset = EmployeeTransition.objects.all()
+                    queryset = EmployeeTransition.objects.filter(
+                        organization=employee.organization
+                    )
         return queryset
 
     def get_serializer_class(self):
@@ -304,19 +326,6 @@ class EmployeeTransitionViewSet(viewsets.ModelViewSet):
                     # HR and Fiscal employees can see all fields
                     serializer = EmployeeTransitionSerializer
         return serializer
-
-    # def create(self, request):
-    #     if self.request.data['type'] == 'new_employee_onboarding':
-    #         et = EmployeeTransition.objects.create(type=EmployeeTransition.TRANSITION_TYPE_NEW)
-    #         wf = Workflow.objects.get(name="New Employee Onboarding")
-    #         wfi = WorkflowInstance.objects.create(workflow=wf, transition=et)
-    #         # Create process instances
-    #         for process in wf.processes.filter(workflow_start=True):
-    #             process.create_process_instance(wfi)
-    #         serialized_wfi = WorkflowInstanceSerializer(wfi,
-    #             context={'request': request}
-    #         )
-    #         return Response(serialized_wfi.data)
 
     def update(self, request, pk=None):
         try:
@@ -527,23 +536,13 @@ class EmployeeTransitionViewSet(viewsets.ModelViewSet):
     def send_transition_to_email_list(self, request, pk):
         try:
             transition = EmployeeTransition.objects.get(pk=pk)
-            if request.data['type'] == 'SDS':
-                transition.assignee = EmployeeTransition.ASSIGNEE_HIRING_LEAD
+            if request.data['type'] == 'FI':
+                transition.assignee = EmployeeTransition.ASSIGNEE_FISCAL
                 transition.save()
-                send_transition_sds_hiring_leads_email(
-                    transition,
-                    extra_message=request.data['extraMessage'],
-                    sender_name=request.data['senderName'],
-                    sender_email=request.data['senderEmail'],
-                    url=request.data['transitionUrl']
-                )
                 send_early_hr_email(
                     transition,
                     url=request.data['transitionUrl']
                 )
-            elif request.data['type'] == 'FI':
-                transition.assignee = EmployeeTransition.ASSIGNEE_FISCAL
-                transition.save()
                 send_transition_fiscal_email(
                     transition,
                     extra_message=request.data['extraMessage'],
@@ -551,14 +550,6 @@ class EmployeeTransitionViewSet(viewsets.ModelViewSet):
                     sender_email=request.data['senderEmail'],
                     url=request.data['transitionUrl']
                 )
-                submitter = Employee.objects.get(
-                    user__email=request.data['senderEmail']
-                )
-                if submitter.is_gs_employee or submitter.is_admin_employee:
-                    send_early_hr_email(
-                        transition,
-                        url=request.data['transitionUrl']
-                    )
             elif request.data['type'] == 'HR':
                 transition.assignee = EmployeeTransition.ASSIGNEE_HR
                 transition.save()
@@ -585,17 +576,6 @@ class EmployeeTransitionViewSet(viewsets.ModelViewSet):
                     transition.assignee = EmployeeTransition.ASSIGNEE_SUBMITTER
                     transition.save()
                     send_transition_submitter_email(
-                        transition,
-                        extra_message=request.data['extraMessage'],
-                        sender_name=request.data['senderName'],
-                        sender_email=request.data['senderEmail'],
-                        url=request.data['transitionUrl'],
-                        reassigned=True
-                    )
-                elif request.data['reassignTo'] == 'Hiring Lead':
-                    transition.assignee = EmployeeTransition.ASSIGNEE_HIRING_LEAD
-                    transition.save()
-                    send_transition_sds_hiring_leads_email(
                         transition,
                         extra_message=request.data['extraMessage'],
                         sender_name=request.data['senderName'],
@@ -697,10 +677,6 @@ class ProcessInstanceViewSet(viewsets.ModelViewSet):
     # ]
 
     def get_queryset(self):
-        """
-        This view should return a list of all time off requests for which
-        the currently authenticated user is the manager.
-        """
         user = self.request.user
         if user.is_authenticated:
             if user.is_superuser:
@@ -748,7 +724,12 @@ class StepChoiceViewSet(viewsets.ModelViewSet):
         """
         user = self.request.user
         if user.is_authenticated:
-            queryset = StepChoice.objects.all()
+            if user.is_superuser:
+                queryset = StepChoice.objects.all()
+            else:
+                queryset = StepChoice.objects.filter(
+                    organization=user.employee.organization
+                )
         else:
             queryset = StepChoice.objects.none()
         return queryset
@@ -767,7 +748,12 @@ class StepInstanceViewSet(viewsets.ModelViewSet):
         """
         user = self.request.user
         if user.is_authenticated:
-            queryset = StepInstance.objects.all()
+            if user.is_superuser:
+                queryset = StepInstance.objects.all()
+            else:
+                queryset = StepInstance.objects.filter(
+                    organization=user.employee.organization
+                )
         else:
             queryset = StepInstance.objects.none()
         return queryset
@@ -810,7 +796,7 @@ class StepInstanceViewSet(viewsets.ModelViewSet):
             else:
                 next_step=stepinstance.step.next_step
             new_stepinstance = StepInstance.objects.create(
-                step=next_step,
+                organization=processinstance.organization, step=next_step,
                 process_instance=processinstance
             )
             processinstance.current_step_instance = new_stepinstance

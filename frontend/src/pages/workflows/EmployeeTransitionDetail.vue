@@ -274,7 +274,7 @@
       <div v-if="workerType == 'Employee'" class="row">
         <q-select
           v-model="unionAffiliation"
-          :options="['Non-Represented','EA', 'SEIU', 'Senior Meals', 'Management']"
+          :options="['Non-Represented','EA', 'SEIU', 'Senior Meals', 'Management', 'GSAM', 'SDSMC']"
           label="Salary Schedule/Union Affiliation"
           id="union-affiliation"
           class="q-mr-md"
@@ -792,55 +792,6 @@
       </q-card>
     </q-dialog>
 
-    <!-- Send to SDS Hiring Leads Dialog -->
-    <q-dialog v-model="showSendToSDSHiringLeadsDialog">
-      <q-card class="q-pa-md" style="width: 400px">
-        <div class="text-h6">Send transition to S&DS hiring admins?</div>
-        <div class="row text-red">
-          <q-icon class="col-1 q-mr-xs" name="warning" size="md"/>
-          <div class="col text-bold text-center">
-            By submitting this information you are providing your electronic
-            signature approving this request.
-          </div>
-        </div>
-        <q-chip
-          v-if="valuesAreChanged()"
-          color="negative"
-          text-color="white"
-          icon="warning"
-          label="Unsaved changes - please save before sending"
-        />
-        <q-form
-          @submit='onSubmitSendDialog("SDS")'
-          class="q-gutter-md"
-        >
-          <q-input
-            v-model="sendDialogMessage"
-            filled
-            type="textarea"
-            label="Extra message to include"
-          />
-          <div class="row justify-between">
-            <q-btn
-              name="send-sds-dialog-button"
-              label="Send"
-              icon-right="send"
-              type="submit"
-              color="primary"
-              :disable="formErrors() || valuesAreChanged()"
-            />
-            <div
-              v-if="formErrors()"
-              class="text-red text-bold"
-              style="width:180px;"
-            >
-              There are errors in the form. Fix before submitting.
-            </div>
-          </div>
-        </q-form>
-      </q-card>
-    </q-dialog>
-
     <!-- Send to Fiscal Dialog -->
     <q-dialog v-model="showSendToFiscalDialog">
       <q-card class="q-pa-md" style="width: 400px">
@@ -1108,16 +1059,6 @@
           label="Send to Fiscal"
           @click="showSendToFiscalDialog = true"
         />
-        <q-btn
-          v-else-if="canSendToHiringLeads()"
-          name="send-sds-button"
-          class="q-ml-sm"
-          color="white"
-          text-color="black"
-          icon="send"
-          label="Send to Hiring Leads"
-          @click="showSendToSDSHiringLeadsDialog = true"
-        />
       </div>
       <!-- <div class="col-3 self-center status">
         Current Status: {{ status }}
@@ -1347,42 +1288,25 @@ let assigneeCurrentVal = ref('')
 let assignee = ref('')
 
 function assigneeOptions() {
-  if (submitterDivision.value == 'Senior & Disability Services') {
-    if (assigneeCurrentVal.value == 'Hiring Lead') {
-      return ['Submitter', 'Hiring Lead']
-    } else if (assigneeCurrentVal.value == 'Fiscal') {
-      return ['Submitter', 'Hiring Lead', 'Fiscal']
-    } else if (assigneeCurrentVal.value == 'HR') {
-      return ['Submitter', 'Hiring Lead', 'Fiscal', 'HR']
-    } else if (assigneeCurrentVal.value == 'Complete') {
-      return ['Submitter', 'Hiring Lead', 'Fiscal', 'HR', 'Complete']
-    } else {
-      return []
-    }
+  if (assigneeCurrentVal.value == 'Fiscal') {
+    return ['Submitter', 'Fiscal']
+  } else if (assigneeCurrentVal.value == 'HR') {
+    return ['Submitter', 'Fiscal', 'HR']
+  } else if (assigneeCurrentVal.value == 'Complete') {
+    return ['Submitter', 'Fiscal', 'HR', 'Complete']
   } else {
-    if (assigneeCurrentVal.value == 'Hiring Lead') {
-      return ['Submitter']
-    } else if (assigneeCurrentVal.value == 'Fiscal') {
-      return ['Submitter', 'Fiscal']
-    } else if (assigneeCurrentVal.value == 'HR') {
-      return ['Submitter', 'Fiscal', 'HR']
-    } else if (assigneeCurrentVal.value == 'Complete') {
-      return ['Submitter', 'Fiscal', 'HR', 'Complete']
-    } else {
-      return []
-    }
+    return []
   }
 }
 
 function assigneeLabel(assigneeType: 'CURRENT' | 'DB') {
-  let aVal = assigneeType == 'CURRENT' ? assigneeCurrentVal.value : assignee.value
+  let aVal = assigneeType == 'CURRENT' ?
+    assigneeCurrentVal.value : assignee.value
 
   if (aVal == 'None') {
     return 'Status: Not submitted'
   } else if (aVal == 'Submitter') {
     return 'Assigned to: ' + submitterName.value
-  } else if (aVal == 'Hiring Lead') {
-    return 'Assigned to: Hiring Lead'
   } else if (aVal == 'Fiscal') {
     return 'Assigned to: Fiscal'
   } else if (aVal == 'HR') {
@@ -1414,7 +1338,6 @@ let errorDialogPosition = ref('top') as Ref<QDialogProps['position']>
 
 let showChangesDialog = ref(false)
 
-let showSendToSDSHiringLeadsDialog = ref(false)
 let showSendToFiscalDialog = ref(false)
 let showSendToHRDialog = ref(false)
 let showSendToSTNDialog = ref(false)
@@ -1917,8 +1840,8 @@ function canEditEmployeeNumberFields() {
 }
 
 // Original submitter can view/edit salary fields.
-// If the form is submitted, only the submitter, hiring manager, HR, fiscal, and
-// SDS hiring leads can view/edit them.
+// If the form is submitted, only the submitter, hiring manager, HR, and fiscal
+// can view/edit them.
 // All others can neither view nor edit them.
 function canViewSalaryFields() {
   return !formSubmitted() ||
@@ -1942,14 +1865,13 @@ function canEditFiscalField() {
 }
 
 // If the form is submitted, other fields are editable only by submitter, hiring
-// manager, HR, fiscal, and SDS hiring leads.
+// manager, HR, and fiscal.
 function canEditOtherFields() {
   return !formSubmitted() ||
     employeeIsSubmitter() ||
     userStore.getEmployeeProfile.employee_pk == manager.value.pk ||
     cookies.get('is_hr_employee') == 'true' ||
-    cookies.get('is_fiscal_employee') == 'true' ||
-    cookies.get('is_sds_hiring_lead') == 'true'
+    cookies.get('is_fiscal_employee') == 'true'
 }
 
 // Can only update the assignee if there is an assignee that is not the
@@ -1958,8 +1880,6 @@ function canUpdateAssignee() {
   const assignee = assigneeCurrentVal.value
   if (assignee == 'Submitter') {
     return false // No one to assign back to
-  } else if (assignee == 'Hiring Lead') {
-    return cookies.get('is_sds_hiring_lead') == 'true'
   } else if (assignee == 'Fiscal') {
     return cookies.get('is_fiscal_employee') == 'true'
   } else if (assignee == 'HR') {
@@ -1971,31 +1891,8 @@ function canUpdateAssignee() {
   }
 }
 
-function canSendToHiringLeads() {
-  return assigneeCurrentVal.value == 'Submitter' && employeeIsSubmitter() &&
-    cookies.get('division') == 'Senior & Disability Services'
-}
-
 function canSendToFiscal() {
-  // GS employees send to fiscal. SDS managers send to SDS hiring leads.
-  const division = cookies.get('division')
-  // They function the same, so treat AS as GS
-  const isGS = [
-    'Administrative Services', 'Government Services', 'Test Division'
-  ].indexOf(division) != -1
-  const isSDS = division == 'Senior & Disability Services'
-  if (!(isGS || isSDS)) {
-    userStore.logError({
-      message: `User does not seem to have a correct division: ${division}`,
-      location: 'EmployeeTransitionDetail: canSendToFiscal'
-    })
-  }
-  const isGSSubmitter = employeeIsSubmitter() && isGS
-  const isHiringLeadAndAssignee = assigneeCurrentVal.value == 'Hiring Lead' &&
-    cookies.get('is_sds_hiring_lead') == 'true'
-  const isGSSubmitterAndAssignee = assigneeCurrentVal.value == 'Submitter' &&
-    isGSSubmitter
-  return isHiringLeadAndAssignee || isGSSubmitterAndAssignee
+  return assigneeCurrentVal.value == 'Submitter' && employeeIsSubmitter()
 }
 
 function canSendToHR() {
@@ -2204,7 +2101,6 @@ function onSubmitSendDialog(t: 'SDS'|'FI'|'HR'|'STN'|'ASSIGN') {
         color: 'positive',
         icon: 'send'
       })
-      showSendToSDSHiringLeadsDialog.value = false
       showSendToFiscalDialog.value = false
       showSendToHRDialog.value = false
       showSendToSTNDialog.value = false

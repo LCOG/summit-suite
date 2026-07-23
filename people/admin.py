@@ -62,7 +62,7 @@ class DivisionAdmin(admin.ModelAdmin):
 @admin.register(JobTitle)
 class JobTitleAdmin(admin.ModelAdmin):
     list_display = ("name", "division", "active", "position_description_link")
-    list_filter = ("division", "active")
+    list_filter = ("organization", "division", "active")
     ordering = ("division", "name")
     inlines = [EmployeeInline]
 
@@ -77,8 +77,14 @@ class EmployeeForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.instance and self.instance.pk:
+            self.fields["manager"].queryset = Employee.objects.filter(
+                organization=self.instance.organization
+            )
             self.fields["unit_or_program"].queryset = UnitOrProgram.objects.filter(
                 division__organization=self.instance.organization
+            )
+            self.fields["job_title"].queryset = JobTitle.objects.filter(
+                organization=self.instance.organization
             )
 
 

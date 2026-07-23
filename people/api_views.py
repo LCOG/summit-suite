@@ -70,13 +70,20 @@ class JobTitleViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """
-        Show nothing to unauthenticated users.
+        Superusers see all job titles.
+        Authenticated users see only job titles for their organization.
+        Unauthenticated users see nothing.
         """
         user = self.request.user
-        if user.is_authenticated:
-            queryset = JobTitle.active_objects.all()
+        if user.is_superuser:
+            queryset = JobTitle.objects.all()
         else:
-            queryset = JobTitle.objects.none()
+            if user.is_authenticated and hasattr(user, 'employee'):
+                queryset = JobTitle.active_objects.filter(
+                    organization=user.employee.organization
+                )
+            else:
+                queryset = JobTitle.objects.none()
         return queryset
 
 
@@ -86,13 +93,20 @@ class UnitViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """
-        Show nothing to unauthenticated users.
+        Superusers see all units.
+        Authenticated users see only units for their organization.
+        Unauthenticated users see nothing.
         """
         user = self.request.user
-        if user.is_authenticated:
+        if user.is_superuser:
             queryset = UnitOrProgram.objects.all()
-        else:
-            queryset = UnitOrProgram.objects.none()
+        else:   
+            if user.is_authenticated:
+                queryset = UnitOrProgram.objects.filter(
+                    division__organization=user.employee.organization
+                )
+            else:
+                queryset = UnitOrProgram.objects.none()
         return queryset
 
 
@@ -684,7 +698,9 @@ class SignatureViewSet(viewsets.ModelViewSet):
 
         serialized_signature = SignatureSerializer(new_signature,
             context={'request': request})
-        return Response(serialized_signature.data)
+        return Response(
+            serialized_signature.data, status=status.HTTP_201_CREATED
+        )
 
 
 class ReviewNoteViewSet(viewsets.ModelViewSet):

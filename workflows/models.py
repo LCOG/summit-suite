@@ -8,7 +8,9 @@ from django.db import models
 from django.utils.translation import gettext as _
 
 from mainsite.helpers import record_error
-from mainsite.models import ActiveManager, InactiveManager, LANGUAGE_CHOICES
+from mainsite.models import (
+    ActiveManager, InactiveManager, LANGUAGE_CHOICES, Organization
+)
 from people.middleware import get_current_employee
 from people.models import Employee, JobTitle, UnitOrProgram
 
@@ -50,6 +52,10 @@ class Role(models.Model):
     def __str__(self):
         return self.name
 
+    organization = models.ForeignKey(
+        Organization, on_delete=models.CASCADE,
+        related_name="workflow_roles"
+    )
     name = models.CharField(max_length=100)
     description = models.CharField(max_length=300, blank=True)
     members = models.ManyToManyField(
@@ -129,12 +135,16 @@ class EmployeeTransition(models.Model):
     UNION_SEIU = 'SEIU'
     UNION_SENIOR_MEALS = 'Senior Meals'
     UNION_MANAGEMENT = 'Management'
+    UNION_GSAM = 'GSAM'
+    UNION_SDSMC = 'SDSMC'
     UNION_CHOICES = [
         (UNION_NON_REPRESENTED, UNION_NON_REPRESENTED),
         (UNION_EA, UNION_EA),
         (UNION_SEIU, UNION_SEIU),
         (UNION_SENIOR_MEALS, UNION_SENIOR_MEALS),
-        (UNION_MANAGEMENT, UNION_MANAGEMENT)
+        (UNION_MANAGEMENT, UNION_MANAGEMENT),
+        (UNION_GSAM, UNION_GSAM),
+        (UNION_SDSMC, UNION_SDSMC)
     ]
 
     COMPUTER_TYPE_NEW = 'New'
@@ -172,14 +182,12 @@ class EmployeeTransition(models.Model):
 
     ASSIGNEE_NONE = 'None'
     ASSIGNEE_SUBMITTER = 'Submitter'
-    ASSIGNEE_HIRING_LEAD = 'Hiring Lead'
     ASSIGNEE_FISCAL = 'Fiscal'
     ASSIGNEE_HR = 'HR'
     ASSIGNEE_COMPLETE = 'Complete'
     ASSIGNEE_CHOICES = [
         (ASSIGNEE_NONE, ASSIGNEE_NONE),
         (ASSIGNEE_SUBMITTER, ASSIGNEE_SUBMITTER),
-        (ASSIGNEE_HIRING_LEAD, ASSIGNEE_HIRING_LEAD),
         (ASSIGNEE_FISCAL, ASSIGNEE_FISCAL),
         (ASSIGNEE_HR, ASSIGNEE_HR),
         (ASSIGNEE_COMPLETE, ASSIGNEE_COMPLETE)
@@ -197,6 +205,10 @@ class EmployeeTransition(models.Model):
             self.pk, self.title, date
         )
 
+    organization = models.ForeignKey(
+        Organization, on_delete=models.CASCADE,
+        related_name="employee_transitions"
+    )
     type = models.CharField(
         _("transition type"), max_length=20, choices=TRANSITION_TYPE_CHOICES,
         blank=True, null=True
@@ -387,8 +399,6 @@ class EmployeeTransition(models.Model):
         elif assignee == self.ASSIGNEE_SUBMITTER:
             if self.submitter == employee:
                 return True
-        elif assignee == self.ASSIGNEE_HIRING_LEAD:
-            return employee.is_sds_hiring_lead
         elif assignee == self.ASSIGNEE_FISCAL:
             return employee.is_fiscal_employee
         elif assignee == self.ASSIGNEE_HR:
@@ -420,7 +430,10 @@ class Workflow(models.Model):
     
     def __str__(self):
         return f"Workflow: {self.name}"
-    
+
+    organization = models.ForeignKey(
+        Organization, on_delete=models.CASCADE, related_name="workflows"
+    )
     name = models.CharField(
         max_length=100, help_text=_("Display name of the workflow")
     )
@@ -454,7 +467,12 @@ class Process(models.Model):
 
     class Meta:
         verbose_name_plural = _("Processes")
-    
+        ordering = ["pk"]
+
+    organization = models.ForeignKey(
+        Organization, on_delete=models.CASCADE,
+        related_name="workflow_processes"
+    )
     name = models.CharField(max_length=100)
     workflow = models.ForeignKey(
         Workflow, related_name="processes", on_delete=models.CASCADE
@@ -502,10 +520,13 @@ class Process(models.Model):
 
     def create_process_instance(self, wfi):
         pi = ProcessInstance.objects.create(
-            process=self, workflow_instance=wfi
+            organization=self.organization, process=self, workflow_instance=wfi
         )
         first_step = self.steps.filter(start=True)[0]
-        si = StepInstance.objects.create(step=first_step, process_instance=pi)
+        si = StepInstance.objects.create(
+            organization=self.organization, step=first_step,
+            process_instance=pi
+        )
         from workflows.helpers import send_step_completion_email
         send_step_completion_email(si)
         pi.current_step_instance = si
@@ -531,7 +552,10 @@ class Action(models.Model):
         (API, 'Make API call'),
         (EMAIL, 'Send an email'),
     ]
-    
+
+    organization = models.ForeignKey(
+        Organization, on_delete=models.CASCADE, related_name="workflow_actions"
+    )
     type = models.CharField(
         _("action type"), max_length=5, choices=ACTION_TYPE_CHOICES,
         blank=True, null=True
@@ -569,9 +593,15 @@ class Action(models.Model):
 
 
 class Step(models.Model):
+    class Meta:
+        ordering = ["pk"]
+
     def __str__(self):
         return f"{self.order} - {self.name}"
 
+    organization = models.ForeignKey(
+        Organization, on_delete=models.CASCADE, related_name="workflow_steps"
+    )
     process = models.ForeignKey(
         Process, related_name="steps", on_delete=models.CASCADE
     )
@@ -700,6 +730,13 @@ class Step(models.Model):
 
 
 class StepChoice(models.Model):
+    class Meta:
+        ordering = ["pk"]
+
+    organization = models.ForeignKey(
+        Organization, on_delete=models.CASCADE,
+        related_name="workflow_step_choices"
+    )
     step = models.ForeignKey(
         Step, related_name="next_step_choices", on_delete=models.CASCADE
     )
@@ -726,6 +763,10 @@ class WorkflowInstance(HasTimeStampsMixin, HasCreatorMixin):
     active_objects = ActiveManager()
     inactive_objects = InactiveManager()
 
+    organization = models.ForeignKey(
+        Organization, on_delete=models.CASCADE,
+        related_name="workflow_instances"
+    )
     workflow = models.ForeignKey(Workflow, on_delete=models.CASCADE)
     transition = models.OneToOneField(
         EmployeeTransition, blank=True, null=True, on_delete=models.SET_NULL
@@ -801,7 +842,11 @@ class ProcessInstance(HasTimeStampsMixin):
 
     def __str__(self):
         return "ProcessInstance ({}): {}".format(self.pk, self.process)
-    
+
+    organization = models.ForeignKey(
+        Organization, on_delete=models.CASCADE,
+        related_name="workflow_process_instances"
+    )
     process = models.ForeignKey("workflows.Process", on_delete=models.CASCADE)
     workflow_instance = models.ForeignKey(
         WorkflowInstance, on_delete=models.CASCADE, related_name="pis"
@@ -860,7 +905,11 @@ class StepInstance(HasTimeStampsMixin):
 
     def __str__(self):
         return "StepInstance ({}): {}".format(self.pk, self.step)
-    
+
+    organization = models.ForeignKey(
+        Organization, on_delete=models.CASCADE,
+        related_name="workflow_step_instances"
+    )
     step = models.ForeignKey(Step, on_delete=models.CASCADE)
     process_instance = models.ForeignKey(
         ProcessInstance, on_delete=models.CASCADE

@@ -4,7 +4,9 @@ import datetime
 from django.contrib.auth.models import User
 from django.core import mail
 from django.test import TestCase
+from django.urls import reverse
 
+from rest_framework import status
 from rest_framework.test import APIRequestFactory, APIClient
 
 from mainsite.helpers import send_pr_reminder_emails
@@ -576,7 +578,13 @@ class ManagerWritesEvaluationTestCase(BaseEmailRemindersTestCase):
         
         # Initial reminder
         self.assertEqual(SignatureReminder.objects.count(), 0)
-        Signature.objects.create(review=pr, employee=self.division_director_employee)
+        url = reverse('signature-list')
+        data = {
+            'review_pk': pr.pk,
+            'employee_pk': self.division_director_employee.pk
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(SignatureReminder.objects.count(), 1)
         
         pr.status = PerformanceReview.EVALUATION_APPROVED
@@ -655,9 +663,15 @@ class ManagerWritesEvaluationTestCase(BaseEmailRemindersTestCase):
         pr.save()
         
         # Initial reminder
+        self.assertEqual(SignatureReminder.objects.count(), 0)
+        url = reverse('signature-list')
+        data = {
+            'review_pk': pr.pk,
+            'employee_pk': self.hr_manager_employee.pk
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(SignatureReminder.objects.count(), 1)
-        Signature.objects.create(review=pr, employee=self.hr_manager_employee)
-        self.assertEqual(SignatureReminder.objects.count(), 2)
         
         pr.status = PerformanceReview.EVALUATION_HR_PROCESSED
         pr.save()

@@ -6,6 +6,7 @@ from django.test import TestCase
 
 from rest_framework.test import APIRequestFactory, force_authenticate
 
+from mainsite.models import Organization
 from people.models import Employee
 from purchases.api_views import ExpenseGLViewSet, ExpenseMonthViewSet, ExpenseViewSet
 from purchases.models import Expense, ExpenseCard, ExpenseGL, ExpenseMonth
@@ -15,6 +16,9 @@ class ExpenseReconciliationBackendTests(TestCase):
     def setUp(self):
         self.factory = APIRequestFactory()
 
+        self.organization = Organization.objects.create(
+            name='Test Organization'
+        )
         self.submitter_user = User.objects.create_user(
             username='submitter',
             first_name='Submit',
@@ -22,6 +26,7 @@ class ExpenseReconciliationBackendTests(TestCase):
         )
         self.submitter = Employee.objects.create(
             user=self.submitter_user,
+            organization=self.organization,
             number=1001,
         )
 
@@ -32,6 +37,7 @@ class ExpenseReconciliationBackendTests(TestCase):
         )
         self.approver = Employee.objects.create(
             user=self.approver_user,
+            organization=self.organization,
             number=1002,
         )
 
@@ -42,21 +48,25 @@ class ExpenseReconciliationBackendTests(TestCase):
         )
         self.executive_director = Employee.objects.create(
             user=self.executive_director_user,
+            organization=self.organization,
             number=1003,
             is_executive_director=True,
         )
 
         self.card = ExpenseCard.objects.create(
+            organization=self.submitter.organization,
             last4='1234',
             assignee=self.submitter,
         )
         self.expense_month = ExpenseMonth.objects.create(
+            organization=self.submitter.organization,
             purchaser=self.submitter,
             year=2026,
             month=5,
             card=self.card,
         )
         self.expense = Expense.objects.create(
+            organization=self.expense_month.organization,
             month=self.expense_month,
             name='Office chair',
             date=date(2026, 5, 15),
@@ -156,16 +166,19 @@ class ExpenseReconciliationBackendTests(TestCase):
 
     def test_executive_director_can_assign_themself_as_gl_approver(self):
         card = ExpenseCard.objects.create(
+            organization=self.executive_director.organization,
             last4='4321',
             assignee=self.executive_director,
         )
         expense_month = ExpenseMonth.objects.create(
+            organization=self.executive_director.organization,
             purchaser=self.executive_director,
             year=2026,
             month=6,
             card=card,
         )
         expense = Expense.objects.create(
+            organization=expense_month.organization,
             month=expense_month,
             name='Executive director meal',
             date=date(2026, 6, 10),

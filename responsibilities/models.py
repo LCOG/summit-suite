@@ -5,6 +5,9 @@ from mainsite.models import Organization
 
 
 class Tag(models.Model):
+    class Meta:
+        ordering = ["pk"]
+
     def __str__(self):
         return self.name
 

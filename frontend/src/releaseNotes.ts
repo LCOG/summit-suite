@@ -4,6 +4,28 @@
 
 export const releases = [
   {
+    version: '1.14.0',
+    date: new Date(2026, 6, 23),
+    changes: [
+      {
+        type: 'improved',
+        description: 'People, CC, and Workflow apps siloed by organization'
+      },
+      {
+        type: 'improved',
+        description: 'Add content personalization to synthetic phish emails'
+      },
+      {
+        type: 'fix',
+        description: 'Fix a bug where HR manager was able to sign a PR early'
+      },
+      {
+        type: 'improved',
+        description: 'Various backend improvements'
+      }
+    ]
+  },
+  {
     version: '1.13.0',
     date: new Date(2026, 6, 13),
     changes: [

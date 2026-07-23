@@ -234,6 +234,7 @@ def send_fiscal_weekly_approve_reminders():
         if fiscal.should_receive_email_of_type('expenses', ''):
             # Do they have ExpenseMonths to approve?
             ems = ExpenseMonth.objects.filter(
+                organization=fiscal.organization,
                 status=ExpenseMonth.STATUS_APPROVER_APPROVED
             ).exists()
             if ems:
