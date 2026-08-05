@@ -68,10 +68,6 @@ const workflowsStore = useWorkflowsStore()
 
 let workflowsLoaded = ref(false)
 
-function userHasWorkflowRoles() {
-  return userStore.getEmployeeProfile.workflow_roles.length > 0
-}
-
 function userWorkflowTypes() {
   return userStore.getEmployeeProfile.workflow_display_options.filter(
     (option) => option.display
@@ -94,11 +90,7 @@ function retrieveWorkflows(): void {
 onMounted(() => {
   getCurrentUser()
     .then(() => {
-      if (!userHasWorkflowRoles()) {
-        router.push({ name: 'dashboard' })
-      } else {
-        retrieveWorkflows()
-      }
+      retrieveWorkflows()
     })
     .catch(e => {
       // User not authenticated or an error occurred fetching the user

@@ -51,11 +51,7 @@ function retrieveManagedTimeOffRequests(): void {
 onMounted(() => {
   getCurrentUser()
     .then(() => {
-      if (userIsISEmployee()) {
-        retrieveManagedTimeOffRequests()
-      } else {
-        router.push({ name: 'dashboard' })
-      }
+      retrieveManagedTimeOffRequests()
     })
 
 })

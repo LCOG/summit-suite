@@ -3,7 +3,7 @@
     <div class="row items-center justify-between q-mb-md">
       <div class="text-h4">Security Dashboard</div>
       <div class="q-gutter-lg">
-        <q-btn v-if="userHasPhishRoles()" @click="router.push({ name: 'phish-admin' })">Go To Admin</q-btn>
+        <q-btn v-if="userCanViewSecureAdmin()" @click="router.push({ name: 'phish-admin' })">Go To Admin</q-btn>
         <q-icon
           name="help"
           color="primary"
@@ -33,8 +33,8 @@ const router = useRouter()
 const phishStore = usePhishStore()
 const userStore = useUserStore()
 
-function userHasPhishRoles() {
-  return userStore.getEmployeeProfile.can_view_phish
+function userCanViewSecureAdmin() {
+  return userStore.getEmployeeProfile.can_view_secure_admin
 }
 
 function trainingAssignments() {
@@ -44,11 +44,7 @@ function trainingAssignments() {
 onMounted(() => {
   getCurrentUser()
     .then(() => {
-      if (!userHasPhishRoles()) {
-        router.push({ name: 'dashboard' })
-      } else {
-        phishStore.getTrainingAssignmentsForEmployee(userStore.getEmployeeProfile.employee_pk)
-      }
+      phishStore.getTrainingAssignmentsForEmployee(userStore.getEmployeeProfile.employee_pk)
     })
     .catch(e => {
       // User not authenticated or an error occurred fetching the user

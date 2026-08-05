@@ -50,7 +50,7 @@ class PhishReportViewSet(viewsets.ModelViewSet):
                 return super().get_queryset()
             else:
                 employee = getattr(user, 'employee', None)
-                if employee and employee.can_view_phish():
+                if employee and employee.can_view_secure_admin():
                     return PhishReport.objects.for_employee(employee)
                 else:
                     return PhishReport.objects.none()
@@ -190,7 +190,7 @@ class PhishTemplateViewSet(viewsets.ModelViewSet):
             if user.is_superuser:
                 return super().get_queryset()
             else:
-                if employee and employee.can_view_phish():
+                if employee and employee.can_view_secure_admin():
                     return SyntheticPhishTemplate.objects\
                         .for_employee(employee).filter(active=True)
                 else:
@@ -226,7 +226,7 @@ class PhishAssignmentViewSet(viewsets.ModelViewSet):
                 return super().get_queryset()
             else:
                 employee = getattr(user, 'employee', None)
-                if employee and employee.can_view_phish():
+                if employee and employee.can_view_secure_admin():
                     return SyntheticPhish.objects.for_employee(employee)\
                         .order_by('-sent_at')
                 else:
@@ -245,7 +245,7 @@ class PhishAssignmentViewSet(viewsets.ModelViewSet):
             )
 
         if not user.is_superuser and (
-            not current_employee or not current_employee.can_view_phish()
+            not current_employee or not current_employee.can_view_secure_admin()
         ):
             return None, Response(
                 {'error': 'You do not have permission to assign phish tests'},
@@ -402,7 +402,8 @@ class PhishAssignmentViewSet(viewsets.ModelViewSet):
         employee = getattr(user, 'employee', None)
         
         if not user.is_authenticated or not (
-            user.is_superuser or (employee and employee.can_view_phish())
+            user.is_superuser or 
+            (employee and employee.can_view_secure_admin())
         ):
             return Response(
                 {'error': 'You do not have permission to view phishing data'},
@@ -489,7 +490,7 @@ class PhishTaskViewSet(viewsets.ReadOnlyModelViewSet):
             return super().get_queryset()
 
         employee = getattr(user, 'employee', None)
-        if employee and employee.can_view_phish():
+        if employee and employee.can_view_secure_admin():
             return PhishTask.objects.filter(
                 organization=employee.organization
             ).order_by('order', 'name')
@@ -512,7 +513,7 @@ class PhishReportTaskViewSet(viewsets.ModelViewSet):
             queryset = super().get_queryset()
         else:
             employee = getattr(user, 'employee', None)
-            if not employee or not employee.can_view_phish():
+            if not employee or not employee.can_view_secure_admin():
                 return PhishReportTask.objects.none()
             queryset = PhishReportTask.objects.filter(
                 report__employee__organization=employee.organization
@@ -535,7 +536,7 @@ class PhishReportTaskViewSet(viewsets.ModelViewSet):
             )
 
         if not user.is_superuser and (
-            not employee or not employee.can_view_phish()
+            not employee or not employee.can_view_secure_admin()
         ):
             return Response(
                 {
@@ -603,7 +604,7 @@ class TrainingTemplateViewSet(viewsets.ModelViewSet):
             if user.is_superuser:
                 return super().get_queryset()
             else:
-                if employee and employee.can_view_phish():
+                if employee and employee.can_view_secure_admin():
                     return TrainingTemplate.objects\
                         .for_employee(employee).filter(active=True)
                 else:
@@ -636,7 +637,7 @@ class TrainingAssignmentViewSet(viewsets.ModelViewSet):
                 return super().get_queryset()
             else:
                 employee = getattr(user, 'employee', None)
-                if employee and employee.can_view_phish():
+                if employee and employee.can_view_secure_admin():
                     return TrainingAssignment.objects.for_employee(employee)\
                         .order_by('-assigned_at')
                 else:
@@ -655,7 +656,8 @@ class TrainingAssignmentViewSet(viewsets.ModelViewSet):
             )
 
         if not user.is_superuser and (
-            not current_employee or not current_employee.can_view_phish()
+            not current_employee or
+            not current_employee.can_view_secure_admin()
         ):
             return None, Response(
                 {
@@ -822,7 +824,7 @@ class PhishDataViewSet(viewsets.ViewSet):
 
         employee = getattr(user, 'employee', None)
         if not user.is_superuser and (
-            not employee or not employee.can_view_phish()
+            not employee or not employee.can_view_secure_admin()
         ):
             return Response(default_data)
 
@@ -866,7 +868,7 @@ class PhishDataViewSet(viewsets.ViewSet):
             )
 
         if not user.is_superuser and (
-            not employee or not employee.can_view_phish()
+            not employee or not employee.can_view_secure_admin()
         ):
             return Response(
                 {'error': 'Permission denied'},
@@ -908,7 +910,7 @@ class PhishDataViewSet(viewsets.ViewSet):
 
         employee = getattr(user, 'employee', None)
         if not user.is_superuser and (
-            not employee or not employee.can_view_phish()
+            not employee or not employee.can_view_secure_admin()
         ):
             return Response(
                 {'error': 'Permission denied'},
@@ -961,7 +963,7 @@ class PhishDataViewSet(viewsets.ViewSet):
 
         employee = getattr(user, 'employee', None)
         if not user.is_superuser and (
-            not employee or not employee.can_view_phish()
+            not employee or not employee.can_view_secure_admin()
         ):
             return Response(
                 {'error': 'Permission denied'},

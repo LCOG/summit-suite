@@ -529,15 +529,6 @@ class Employee(models.Model):
             return True
         else:
             return False
-    
-    def can_view_desk_reservation_reports(self):
-        # Employees with the 'View Desk Reservation Reports' group role can
-        # view them.
-        view_desk_reservation_reports = self.user.groups.filter(name='View Desk Reservation Reports').exists()
-        if view_desk_reservation_reports:
-            return True
-        else:
-            return False
 
     def position_description_link(self):
         # Returns override link if provided, otherwise the link from job title if there is a job title
@@ -574,14 +565,44 @@ class Employee(models.Model):
     def is_expense_approver(self):
         return self.user.groups.filter(name='Expense Approver').exists()
 
-    def can_view_phish(self):
+    def can_view_delegate(self):
         return self.user.groups.filter(
-            name='View Phishing'
+            name='Can View Delegate'
         ).exists()
 
-    def can_view_reviews(self):
+    def can_view_process(self):
         return self.user.groups.filter(
-            name='View Performance Reviews'
+            name='Can View Process'
+        ).exists()
+
+    def can_view_reserve(self):
+        return self.user.groups.filter(
+            name='Can View Reserve'
+        ).exists()
+
+    def can_view_reserve_admin(self):
+        return self.user.groups.filter(
+            name='Can View Reserve Admin'
+        ).exists()
+
+    def can_view_review(self):
+        return self.user.groups.filter(
+            name='Can View Review'
+        ).exists()
+
+    def can_view_schedule(self):
+        return self.user.groups.filter(
+            name='Can View Schedule'
+        ).exists()
+
+    def can_view_secure(self):
+        return self.user.groups.filter(
+            name='Can View Secure'
+        ).exists()
+
+    def can_view_secure_admin(self):
+        return self.user.groups.filter(
+            name='Can View Secure Admin'
         ).exists()
 
     def can_view_mow_routes(self):

@@ -65,7 +65,7 @@
         </q-item>
         <div v-if="isAuthenticated()">
           <NavLink
-            v-for="link in navLinks"
+            v-for="link in visibleNavLinks"
             :key="link.title"
             v-bind="link"
             :id="link.id"
@@ -96,10 +96,9 @@
 </style>
 
 <script setup lang="ts">
-import { Configuration } from 'electron-builder'
-import { UserAgentApplication } from 'msal'
+import { Configuration, UserAgentApplication } from 'msal'
 import { Notify } from 'quasar'
-import { ref, onMounted } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 import NavLink from 'components/NavLink.vue'
@@ -107,6 +106,7 @@ import useEventBus from 'src/eventBus'
 import { useAuthStore } from 'src/stores/auth'
 import { useUserStore } from 'src/stores/user'
 import { getCurrentUser } from 'src/utils'
+import { hasAccessRule, type AccessRule } from 'src/utils/access'
 
 const authStore = useAuthStore()
 const userStore = useUserStore()
@@ -120,15 +120,7 @@ interface LinkData {
   icon: string
   link: string
   id?: string
-  isManager?: boolean
-  isISEmployee?: boolean
-  isFiscalEmployee?: boolean
-  eligibleForTeleworkApplicationOnly?: boolean
-  hasWorkflowRoles?: boolean
-  canViewExpenses?: boolean
-  canViewPhish?: boolean
-  canViewReviews?: boolean
-  canViewMOWRoutes?: boolean
+  access?: AccessRule
 }
 
 const navLinks: Array<LinkData> = [
@@ -137,51 +129,52 @@ const navLinks: Array<LinkData> = [
     icon: 'schedule',
     link: '/timeoff',
     id: 'nav-timeoff',
-    isISEmployee: true
+    access: { module: 'schedule', flag: 'can_view_schedule' }
   },
   {
     title: 'Responsibilities',
     icon: 'hardware',
     link: '/responsibilities',
     id: 'nav-responsibilities',
-    isISEmployee: true
+    access: { module: 'delegate', flag: 'can_view_delegate' }
   },
   {
     title: 'Workflows',
     icon: 'double_arrow',
     link: '/workflows',
-    hasWorkflowRoles: true
+    access: { module: 'process', flag: 'can_view_process' }
   },
   {
     title: 'Credit Card Expenses',
     icon: 'credit_card',
     link: '/expenses',
-    canViewExpenses: true
+    access: { module: 'expense', flag: 'can_view_expense' }
   },
   {
     title: 'Performance Reviews',
     icon: 'assignment_turned_in',
     link: '/reviews',
-    canViewReviews: true
+    access: { module: 'review', flag: 'can_view_review' }
   },
   {
     title: 'Phishing',
     icon: 'phishing',
     link: '/phish',
-    canViewPhish: true
+    access: { module: 'secure', flag: 'can_view_secure' }
   },
   {
     title: 'Schaefers Desk Reservation',
     icon: 'laptop',
     link: '/desk-reservation/schaefers/1',
     id: 'nav-schaefers-desk-reservation',
+    access: { module: 'reserve', flag: 'can_view_reserve' }
   },
   {
     title: 'Meals on Wheels Map',
     icon: 'map',
     link: '/mow-map',
     id: 'nav-mow',
-    canViewMOWRoutes: true
+    access: { flag: 'can_view_mow_routes' }
   },
   // {
   //   title: 'My Telework Application',
@@ -212,6 +205,12 @@ const navLinks: Array<LinkData> = [
     id: 'nav-profile'
   },
 ]
+
+const visibleNavLinks = computed(() => {
+  return navLinks.filter(link => {
+    return hasAccessRule(userStore.accessProfile, link.access)
+  })
+})
 
 // For msal.js Azure/AD SSO
 const msalConfig: Configuration = {

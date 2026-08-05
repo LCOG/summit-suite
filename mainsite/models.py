@@ -26,6 +26,19 @@ class ActiveMixin:
     inactive_objects = InactiveManager()
 
 
+class Module(models.Model):
+    class Meta:
+        verbose_name = _("Module")
+        verbose_name_plural = _("Modules")
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+    name = models.CharField(_("name"), max_length=255)
+    description = models.TextField(_("description"), blank=True, null=True)
+
+
 class Organization(models.Model, ActiveMixin):
     class Meta:
         verbose_name = _("Organization")
@@ -37,6 +50,7 @@ class Organization(models.Model, ActiveMixin):
     name = models.CharField(_("name"), max_length=255)
     description = models.TextField(_("description"), blank=True, null=True)
     active = models.BooleanField(default=True) # Define explicitly here in order to filter in admin
+    modules = models.ManyToManyField(Module, blank=True)
 
 
 class OrganizationObjectsQuerySet(models.QuerySet):

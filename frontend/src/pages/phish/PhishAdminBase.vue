@@ -10,7 +10,7 @@
         @click="router.push({ name: 'help-phish' })"
       />
     </div>
-    <div v-if="userHasPhishRoles()">
+    <div v-if="userCanViewSecureAdmin()">
       <q-btn-toggle
         :model-value="currentTab"
         @update:model-value="router.push($event)"
@@ -40,8 +40,8 @@ const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
 
-function userHasPhishRoles() {
-  return userStore.getEmployeeProfile.can_view_phish
+function userCanViewSecureAdmin() {
+  return userStore.getEmployeeProfile.can_view_secure_admin
 }
 
 const currentTab = computed(() => {
@@ -52,7 +52,7 @@ const currentTab = computed(() => {
 onMounted(() => {
   getCurrentUser()
     .then(() => {
-      if (!userHasPhishRoles()) {
+      if (!userCanViewSecureAdmin()) {
         router.push({ name: 'dashboard' })
       }
     })
