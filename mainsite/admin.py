@@ -11,17 +11,32 @@ from django.utils.translation import gettext_lazy as _
 from mainsite.models import ImageUpload, SecurityMessage, TrustedIPAddress
 
 from .models import (
-    City, ImageUpload, Organization, SecurityMessage, State, ZipCode
+    City, ImageUpload, Module, Organization, SecurityMessage, State, ZipCode
 )
+
+
+@admin.register(Module)
+class ModuleAdmin(admin.ModelAdmin):
+    list_display = ("pk", "name", "description")
+    search_fields = ("name",)
+    ordering = ("pk",)
+    fields = ("name", "description")
+    readonly_fields = ("pk",)
+    ordering = ("name",)
 
 
 @admin.register(Organization)
 class OrganizationAdmin(admin.ModelAdmin):
-    list_display = ("pk", "name", "description", "employees_link")
+    list_display = (
+        "pk", "name", "description", "employees_link", "modules_list"
+    )
     search_fields = ("name",)
     ordering = ("pk",)
     list_filter = ("active",)
-    fields = ("pk", "name", "description", "active", "employees_link")
+    fields = (
+        "pk", "name", "description", "active", "employees_link", "modules"
+    )
+    filter_horizontal = ("modules",)
     readonly_fields = ("pk", "employees_link")
 
     def employees_link(self, obj):
@@ -34,6 +49,13 @@ class OrganizationAdmin(admin.ModelAdmin):
         )
 
     employees_link.short_description = "Employees"
+
+    def modules_list(self, obj):
+        if not obj or not obj.pk:
+            return "-"
+        return ", ".join([module.name for module in obj.modules.all()])
+    
+    modules_list.short_description = "Modules"
 
 
 @admin.register(ImageUpload)

@@ -5,7 +5,8 @@ import { useCookies } from 'vue3-cookies'
 import { apiURL, handlePromiseError } from 'src/stores/index'
 import { useSecurityMessageStore } from 'src/stores/securitymessage'
 import {
-  ClientError, EmployeeRetrieve, SimpleEmployeeRetrieve, WorkflowOption
+  ClientError, EmployeeRetrieve, OrganizationRetrieve,
+  SimpleEmployeeRetrieve, WorkflowOption
 } from 'src/types'
 
 const { cookies } = useCookies()
@@ -19,6 +20,7 @@ export const useUserStore = defineStore('user', {
       email: '',
       name: '',
       division: '',
+      organization: null as OrganizationRetrieve | null | undefined,
       is_manager: false,
       has_manager: false,
       is_is_employee: false,
@@ -26,8 +28,6 @@ export const useUserStore = defineStore('user', {
       is_sds_hiring_lead: false,
       is_fiscal_employee: false,
       is_eligible_for_telework_application: false,
-      can_view_seating_charts: false,
-      can_edit_seating_charts: false,
       is_upper_manager: false,
       is_hr_manager: false,
       is_division_director: false,
@@ -43,8 +43,15 @@ export const useUserStore = defineStore('user', {
       is_all_workflows_admin: false,
       is_expense_submitter: false,
       is_expense_approver: false,
-      can_view_phish: false,
-      can_view_reviews: false,
+      can_view_delegate: false,
+      can_view_expense: false,
+      can_view_process: false,
+      can_view_reserve: false,
+      can_view_reserve_admin: false,
+      can_view_review: false,
+      can_view_schedule: false,
+      can_view_secure: false,
+      can_view_secure_admin: false,
       can_view_mow_routes: false,
       can_manage_mow_stops: false
     },
@@ -54,16 +61,18 @@ export const useUserStore = defineStore('user', {
 
   getters: {
     getEmployeeProfile: state => state.profile,
+    accessProfile: state => {
+      return {
+        ...state.profile,
+        organizationModules: state.profile.organization?.modules || []
+      }
+    },
     isProfileLoaded: state => !!state.profile.username,
     isManager: state => state.profile.is_manager,
     isFiscal: state => state.profile.is_fiscal_employee,
     isDivisionDirector: state => state.profile.is_division_director,
-    hasWorkflowRoles: state => !!state.profile.workflow_roles.length,
     isExpenseSubmitter: state => state.profile.is_expense_submitter,
     isExpenseApprover: state => state.profile.is_expense_approver,
-    canViewPhish: state => state.profile.can_view_phish,
-    canViewReviews: state => state.profile.can_view_reviews,
-    canViewMOWRoutes: state => state.profile.can_view_mow_routes,
     canManageMOWStops: state => state.profile.can_manage_mow_stops
   },
 
@@ -79,6 +88,7 @@ export const useUserStore = defineStore('user', {
             this.profile.username = resp.data.username
             this.profile.email = resp.data.email
             this.profile.name = resp.data.name
+            this.profile.organization = resp.data.organization
             this.profile.division = resp.data.division
             this.profile.is_manager = resp.data.is_manager
             this.profile.has_manager = resp.data.has_manager
@@ -88,10 +98,6 @@ export const useUserStore = defineStore('user', {
             this.profile.is_fiscal_employee = resp.data.is_fiscal_employee
             this.profile.is_eligible_for_telework_application =
               resp.data.is_eligible_for_telework_application
-            this.profile.can_view_seating_charts =
-              resp.data.can_view_seating_charts
-            this.profile.can_edit_seating_charts =
-              resp.data.can_edit_seating_charts
             this.profile.is_upper_manager = resp.data.is_upper_manager
             this.profile.is_hr_manager = resp.data.is_hr_manager
             this.profile.is_division_director = resp.data.is_division_director
@@ -112,8 +118,15 @@ export const useUserStore = defineStore('user', {
               resp.data.is_all_workflows_admin
             this.profile.is_expense_submitter = resp.data.is_expense_submitter
             this.profile.is_expense_approver = resp.data.is_expense_approver
-            this.profile.can_view_phish = resp.data.can_view_phish
-            this.profile.can_view_reviews = resp.data.can_view_reviews
+            this.profile.can_view_delegate = resp.data.can_view_delegate
+            this.profile.can_view_expense = resp.data.can_view_expense
+            this.profile.can_view_process = resp.data.can_view_process
+            this.profile.can_view_reserve = resp.data.can_view_reserve
+            this.profile.can_view_reserve_admin = resp.data.can_view_reserve_admin
+            this.profile.can_view_schedule = resp.data.can_view_schedule
+            this.profile.can_view_secure = resp.data.can_view_secure
+            this.profile.can_view_secure_admin = resp.data.can_view_secure_admin
+            this.profile.can_view_review = resp.data.can_view_review
             this.profile.can_view_mow_routes = resp.data.can_view_mow_routes
             this.profile.can_manage_mow_stops = resp.data.can_manage_mow_stops
             cookies.set('division', resp.data.division.toString())
@@ -137,14 +150,6 @@ export const useUserStore = defineStore('user', {
               'is_eligible_for_telework_application',
               resp.data.is_eligible_for_telework_application.toString()
             )
-            cookies.set(
-              'can_view_seating_charts',
-              resp.data.can_view_seating_charts.toString()
-            )
-            cookies.set(
-              'can_edit_seating_charts',
-              resp.data.can_edit_seating_charts.toString()
-            )
             cookies.set('prs_can_view', resp.data.prs_can_view.toString())
             cookies.set('notes_can_view', resp.data.notes_can_view.toString())
             cookies.set(
@@ -165,15 +170,6 @@ export const useUserStore = defineStore('user', {
             )
             cookies.set(
               'is_expense_approver', resp.data.is_expense_approver.toString()
-            )
-            cookies.set(
-              'can_view_reviews', resp.data.can_view_reviews.toString()
-            )
-            cookies.set(
-              'can_view_mow_routes', resp.data.can_view_mow_routes.toString()
-            )
-            cookies.set(
-              'can_manage_mow_stops', resp.data.can_manage_mow_stops.toString()
             )
 
             // TODO: Convert this
@@ -218,8 +214,6 @@ export const useUserStore = defineStore('user', {
         cookies.remove('is_fiscal_employee')
         cookies.remove('is_division_director')
         cookies.remove('is_eligible_for_telework_application')
-        cookies.remove('can_view_seating_charts')
-        cookies.remove('can_edit_seating_charts')
         cookies.remove('prs_can_view')
         cookies.remove('notes_can_view')
         cookies.remove('telework_applications_can_view')
@@ -228,9 +222,6 @@ export const useUserStore = defineStore('user', {
         cookies.remove('workflow_display_options')
         cookies.remove('is_expense_submitter')
         cookies.remove('is_expense_approver')
-        cookies.remove('can_view_reviews')
-        cookies.remove('can_view_mow_routes')
-        cookies.remove('can_manage_mow_stops')
         resolve('Successfully triggered logout')
       })
     },

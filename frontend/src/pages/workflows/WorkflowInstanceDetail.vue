@@ -259,10 +259,6 @@ function retrieveWorkflowInstance() {
   })
 }
 
-function userHasWorkflowRoles() {
-  return userStore.getEmployeeProfile.workflow_roles.length > 0
-}
-
 function canCompleteWorkflowInstance(
   workflowInstance: WorkflowInstance
 ): boolean {
@@ -376,22 +372,18 @@ function reinstateWFI(): void {
 onMounted(() => {
   getCurrentUser()
     .then(() => {
-      if (!userHasWorkflowRoles()) {
-        router.push({ name: 'dashboard' })
-      } else {
-        retrieveWorkflowInstance()
-          .then(() => bus.emit('workflowInstanceRetrieved', Math.random()))
-          .catch(() => {
-            router.push('/')
-              .catch(e => {
-                console.error(
-                  'Error navigating to dashboard upon not finding a matching ' +
-                  'Workflow Instance:',
-                  e
-                )
-              })
-          })
-      }
+      retrieveWorkflowInstance()
+        .then(() => bus.emit('workflowInstanceRetrieved', Math.random()))
+        .catch(() => {
+          router.push('/')
+            .catch(e => {
+              console.error(
+                'Error navigating to dashboard upon not finding a matching ' +
+                'Workflow Instance:',
+                e
+              )
+            })
+        })
     })
     .catch(e => {
       // User not authenticated or an error occurred fetching the user

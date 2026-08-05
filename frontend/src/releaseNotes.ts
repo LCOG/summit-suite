@@ -4,6 +4,17 @@
 
 export const releases = [
   {
+    version: '1.15.0',
+    date: new Date(2026, 7, 5),
+    changes: [
+      {
+        type: 'improved',
+        description: 'Rewrite organization module access to be simpler and ' +
+          'more maintainable'
+      }
+    ]
+  },
+  {
     version: '1.14.0',
     date: new Date(2026, 6, 23),
     changes: [

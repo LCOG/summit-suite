@@ -32,15 +32,9 @@ import { useWorkflowsStore } from 'src/stores/workflows'
 import { getCurrentUser } from 'src/utils'
 
 const router = useRouter()
-const userStore = useUserStore()
 const workflowsStore = useWorkflowsStore()
 
 let workflowsLoaded = ref(false)
-
-// TODO: Parent permission? Duplicated on WorkflowsArchived.vue
-function userHasWorkflowRoles() {
-  return userStore.getEmployeeProfile.workflow_roles.length > 0
-}
 
 function retrieveWorkflows(): void {
   workflowsStore.getWorkflows({archived: false, complete: true})
@@ -55,11 +49,7 @@ function retrieveWorkflows(): void {
 onMounted(() => {
   getCurrentUser()
     .then(() => {
-      if (!userHasWorkflowRoles()) {
-        router.push({ name: 'dashboard' })
-      } else {
-        retrieveWorkflows()
-      }
+      retrieveWorkflows()
     })
     .catch(e => {
       // User not authenticated or an error occurred fetching the user

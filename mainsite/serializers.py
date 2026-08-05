@@ -1,4 +1,4 @@
-from mainsite.models import SecurityMessage
+from mainsite.models import Organization, SecurityMessage
 from django.conf import settings
 from django.contrib.auth import authenticate, login
 from django.utils.translation import gettext_lazy as _
@@ -39,6 +39,18 @@ class FileUploadSerializer(serializers.Serializer):
 
     class Meta:
         fields = ['file_upload']
+
+
+class OrganizationSerializer(serializers.ModelSerializer):
+    modules = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Organization
+        fields = ['pk', 'name', 'modules']
+
+    @staticmethod
+    def get_modules(organization):
+        return [module.name for module in organization.modules.all()]
 
 
 class SecurityMessageSerializer(serializers.ModelSerializer):
