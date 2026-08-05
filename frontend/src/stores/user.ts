@@ -83,6 +83,9 @@ export const useUserStore = defineStore('user', {
         this.status = 'loading'
         axios({ url: `${ apiURL }api/v1/current-user/` })
           .then((resp: {data: EmployeeRetrieve}) => {
+            if (!resp.data.username) {
+              resolve(resp)
+            }
             this.status = 'success'
             this.profile.employee_pk = resp.data.pk
             this.profile.username = resp.data.username
