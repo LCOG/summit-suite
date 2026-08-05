@@ -219,7 +219,7 @@ import { onMounted, ref, Ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useQuasar, QSelect } from 'quasar'
 
-import { getCurrentUser, getRoutePk, userIsISEmployee } from 'src/utils'
+import { getCurrentUser, getRoutePk } from 'src/utils'
 import {
   Responsibility, ResponsibilityTagRetrieve, SimpleEmployeeRetrieve,
   SimpleResponsibilityTagRetrieve 
@@ -624,13 +624,9 @@ watch(() => bus.value.get('emitOpenDeleteTagDialog'), (row: ResponsibilityTagRet
 onMounted(() => {
   getCurrentUser()
     .then(() => {
-      if (userIsISEmployee()) {
-        if (!employees().length) {
-          retrieveSimpleEmployeeList()
-          retrieveSimpleTagList()
-        }
-      } else {
-        router.push({ name: 'dashboard' })
+      if (!employees().length) {
+        retrieveSimpleEmployeeList()
+        retrieveSimpleTagList()
       }
     })
 })

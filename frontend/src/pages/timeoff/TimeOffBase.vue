@@ -21,7 +21,7 @@ import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useTimeOffStore } from 'src/stores/timeoff'
 import { useUserStore } from 'src/stores/user'
-import { getCurrentUser, userIsISEmployee } from 'src/utils'
+import { getCurrentUser } from 'src/utils'
 
 const router = useRouter()
 const timeOffStore = useTimeOffStore()

@@ -319,10 +319,7 @@ if (maintenanceMode) {
           component: () => {
             return import('src/pages/responsibilities/Responsibilities.vue')
           },
-          meta: {
-            requiresAuth: true,
-            access: { module: 'delegate', flag: 'can_view_delegate' }
-          },
+          meta: { access: { module: 'delegate', flag: 'can_view_delegate' } },
           redirect: {name: 'all-responsibilities'},
           children: [
             {
@@ -333,10 +330,7 @@ if (maintenanceMode) {
                   'src/pages/responsibilities/AllResponsibilities.vue'
                 )
               },
-              meta: {
-                requiresAuth: true,
-                access: { module: 'delegate', flag: 'can_view_delegate' }
-              },
+              meta: {access: { module: 'delegate', flag: 'can_view_delegate' }}
             },
             {
               path: 'orphaned',
@@ -345,7 +339,8 @@ if (maintenanceMode) {
                 return import(
                   'src/pages/responsibilities/OrphanedResponsibilities.vue'
                 )
-              }
+              },
+              meta: {access: { module: 'delegate', flag: 'can_view_delegate' }}
             },
             {
               path: 'tag',
@@ -357,6 +352,9 @@ if (maintenanceMode) {
                   name: 'all-tags',
                   component: () => {
                     return import('src/pages/responsibilities/AllTags.vue')
+                  },
+                  meta: {
+                    access: { module: 'delegate', flag: 'can_view_delegate' }
                   }
                 },
                 {
@@ -366,6 +364,9 @@ if (maintenanceMode) {
                     return import (
                       'src/pages/responsibilities/TaggedResponsibilities.vue'
                     )
+                  },
+                  meta: {
+                    access: {module: 'delegate', flag: 'can_view_delegate'}
                   }
                 }
               ]
