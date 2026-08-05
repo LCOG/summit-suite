@@ -14,7 +14,6 @@ export interface UserRetrieve {
   is_staff: boolean
   is_manager: boolean
   is_upper_manager: boolean
-  can_view_desk_reservation_reports: boolean
 }
 
 //////////////////////////////////////////////////////////
@@ -85,6 +84,12 @@ export interface GetDetailReportDataInterface {
   }
 }
 
+export interface OrganizationRetrieve {
+  pk: number
+  name: string
+  modules: Array<string>
+}
+
 ///////////////////////////////////////////////////
 // Employee Structure from Django Rest Framework //
 ///////////////////////////////////////////////////
@@ -101,6 +106,7 @@ export interface EmployeeRetrieve {
   manager_name: string
   manager_pk: number
   division: string
+  organization?: OrganizationRetrieve | null
   is_manager: boolean
   has_manager: boolean
   is_is_employee: boolean
@@ -115,7 +121,6 @@ export interface EmployeeRetrieve {
   is_eligible_for_telework_application: boolean
   can_view_seating_charts: boolean
   can_edit_seating_charts: boolean
-  can_view_desk_reservation_reports: boolean
   prs_can_view: Array<number>
   notes_can_view: Array<number>
   time_off_requests_can_view: Array<number>
@@ -136,8 +141,15 @@ export interface EmployeeRetrieve {
   workflow_roles: Array<number>
   is_expense_submitter: boolean
   is_expense_approver: boolean
-  can_view_phish: boolean
-  can_view_reviews: boolean
+  can_view_delegate: boolean
+  can_view_expense: boolean
+  can_view_process: boolean
+  can_view_reserve: boolean
+  can_view_reserve_admin: boolean
+  can_view_schedule: boolean
+  can_view_secure: boolean
+  can_view_secure_admin: boolean
+  can_view_review: boolean
   can_view_mow_routes: boolean
   can_manage_mow_stops: boolean
   workflow_display_options: Array<WorkflowOption>

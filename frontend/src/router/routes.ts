@@ -62,6 +62,13 @@ if (maintenanceMode) {
           path: 'expenses',
           name: 'expenses',
           component: () => import('src/pages/purchases/ExpensesBase.vue'),
+          meta: {
+            requiresAuth: true,
+            access: {
+              module: 'expense',
+              flag: 'can_view_expense'
+            }
+          },
           redirect: () => {
             if (isFiscal()) {
               return { name: 'fiscal-approve-expenses' }
@@ -174,28 +181,34 @@ if (maintenanceMode) {
           path: '/reviews',
           name: 'reviews',
           component: () => import('pages/reviews/ReviewsBase.vue'),
-          meta: { requiresAuth: true },
+          meta: { access: { module: 'review', flag: 'can_view_review' } },
           children: [
             {
               path: '',
               name: 'reviews-dashboard-redirect',
-              redirect: { name: 'reviews-dashboard' }
+              redirect: { name: 'reviews-dashboard' },
+              meta: { access: { module: 'review', flag: 'can_view_review' } }
             },
             {
               path: 'dashboard',
               name: 'reviews-dashboard',
               component: () => import('pages/reviews/ReviewsDashboard.vue'),
+              meta: { access: { module: 'review', flag: 'can_view_review' } }
             },
             {
               path: 'complete',
               name: 'reviews-complete',
               component: () => import('pages/reviews/ReviewsComplete.vue'),
+              meta: { access: { module: 'review', flag: 'can_view_review' } }
             },
             {
               path: 'admin',
               name: 'reviews-admin',
               component: () => import('pages/reviews/ReviewsAdmin.vue'),
-              meta: { requiresHROrDirector: true },
+              meta: {
+                requiresHROrDirector: true,
+                access: { module: 'review', flag: 'can_view_review' }
+              },
             }
           ]
         },
@@ -203,14 +216,13 @@ if (maintenanceMode) {
           path: '/pr/:pk',
           name: 'pr-details',
           component: () => import('src/pages/reviews/ReviewDetail.vue'),
-          meta: { requiresAuth: true, },
-          // beforeEnter: ifCanViewReview
+          meta: { access: { module: 'review', flag: 'can_view_review' } },
           children: [
             {
               path: 'self',
               name: 'pr-self-evaluation',
               component: () => import('pages/reviews/SelfEvaluation.vue'),
-              meta: { requiresAuth: true },
+              meta: { access: { module: 'review', flag: 'can_view_review' } }
             }
           ]
         },
@@ -218,22 +230,19 @@ if (maintenanceMode) {
           path: '/pr/:pk/self',
           name: 'pr-self-evaluation',
           component: () => import('pages/reviews/SelfEvaluation.vue'),
-          meta: { requiresAuth: true },
-          // beforeEnter: ifCanViewReview
+          meta: { access: { module: 'review', flag: 'can_view_review' } }
         },
         {
           path: '/note/new',
           name: 'note-create',
           component: () => import('src/pages/reviews/ReviewNoteCreate.vue'),
-          meta: { requiresAuth: false },
-          // beforeEnter: ifManager
+          meta: { requiresAuth: false }
         },
         {
           path: '/note/:pk',
           name: 'note-details',
           component: () => import('src/pages/reviews/ReviewNoteDetail.vue'),
-          meta: { requiresAuth: true },
-          // beforeEnter: ifCanViewNote
+          meta: { access: { module: 'review', flag: 'can_view_review' } }
         },
 
         //////////////
@@ -242,19 +251,20 @@ if (maintenanceMode) {
         {
           path: '/phish',
           name: 'phish',
+          meta: { access: {module: 'secure', flag: 'can_view_secure'} },
           redirect: {name: 'phish-dashboard'},
         },
         {
           path: '/phish/dashboard',
           name: 'phish-dashboard',
           component: () => import('src/pages/phish/PhishDashboard.vue'),
-          meta: { requiresAuth: true },
+          meta: { access: {module: 'secure', flag: 'can_view_secure'} },
         },
         {
           path: '/phish/training/:pk',
           name: 'phish-training',
           component: () => import('src/pages/phish/PhishTraining.vue'),
-          meta: { requiresAuth: true },
+          meta: { access: {module: 'secure', flag: 'can_view_secure'} },
         },
         {
           path: '/phish/admin',
@@ -263,29 +273,39 @@ if (maintenanceMode) {
             return import('src/pages/phish/PhishAdminBase.vue')
           },
           redirect: {name: 'phish-reports'},
-          meta: { requiresAuth: true },
+          meta: { access: {module: 'secure', flag: 'can_view_secure_admin'} },
           children: [
             {
               path: 'reports/:pk?',
               name: 'phish-reports',
               component: () => import('src/pages/phish/PhishReports.vue'),
+              meta: {
+                access: {module: 'secure', flag: 'can_view_secure_admin'}
+              },
             },
             {
               path: 'team',
               name: 'phish-team-list',
               component: () => import('src/pages/phish/PhishTeamList.vue'),
+              meta: {
+                access: {module: 'secure', flag: 'can_view_secure_admin'}
+              },
             }, 
             {
               path: 'team/:pk',
               name: 'phish-team-detail',
-              component:
-                () => import('src/pages/phish/PhishTeamDetail.vue'),
+              component: () => import('src/pages/phish/PhishTeamDetail.vue'),
+              meta: {
+                access: {module: 'secure', flag: 'can_view_secure_admin'}
+              },
             },
             {
               path: 'assignments',
               name: 'phish-assignments',
-              component:
-                () => import('src/pages/phish/PhishAssignments.vue'),
+              component: () => import('src/pages/phish/PhishAssignments.vue'),
+              meta: {
+                access: {module: 'secure', flag: 'can_view_secure_admin'}
+              },
             }
           ]
         },
@@ -299,8 +319,11 @@ if (maintenanceMode) {
           component: () => {
             return import('src/pages/responsibilities/Responsibilities.vue')
           },
+          meta: {
+            requiresAuth: true,
+            access: { module: 'delegate', flag: 'can_view_delegate' }
+          },
           redirect: {name: 'all-responsibilities'},
-          meta: { requiresAuth: true },
           children: [
             {
               path: 'all',
@@ -309,7 +332,11 @@ if (maintenanceMode) {
                 return import(
                   'src/pages/responsibilities/AllResponsibilities.vue'
                 )
-              }
+              },
+              meta: {
+                requiresAuth: true,
+                access: { module: 'delegate', flag: 'can_view_delegate' }
+              },
             },
             {
               path: 'orphaned',
@@ -373,34 +400,41 @@ if (maintenanceMode) {
           path: '/timeoff',
           name: 'timeoff',
           component: () => import('src/pages/timeoff/TimeOffBase.vue'),
-          meta: { requiresAuth: true },
+          meta: {access: { module: 'schedule', flag: 'can_view_schedule' }},
           redirect: {name: 'timeoff-my-requests'},
           children: [
             {
               path: 'calendar',
               name: 'timeoff-calendar',
               component: () => import('src/pages/timeoff/Calendar.vue'),
+              meta: {access: { module: 'schedule', flag: 'can_view_schedule' }}
             },
             {
               path: 'new-request',
               name: 'timeoff-new-request',
               component: () => import('src/pages/timeoff/NewRequest.vue'),
+              meta: {access: { module: 'schedule', flag: 'can_view_schedule' }}
             },
             {
               path: 'my-requests',
               name: 'timeoff-my-requests',
               component: () => import('src/pages/timeoff/MyRequests.vue'),
+              meta: {access: { module: 'schedule', flag: 'can_view_schedule' }}
             },
             {
               path: 'request-detail/:pk',
               name: 'timeoff-request-detail',
               component: () => import('src/pages/timeoff/RequestDetail.vue'),
-              meta: { requiresAuth: true, requiresCanViewTimeOffRequest: true }
+              meta: {
+                requiresCanViewTimeOffRequest: true,
+                access: {module: 'schedule', flag: 'can_view_schedule'}
+              }
             },
             {
               path: 'manage-requests',
               name: 'timeoff-manage-requests',
               component: () => import('src/pages/timeoff/ManageRequests.vue'),
+              meta: {access: { module: 'schedule', flag: 'can_view_schedule' }}
             }
           ]
         },
@@ -412,7 +446,13 @@ if (maintenanceMode) {
           path: '/workflows',
           name: 'workflows',
           component: () => import('pages/workflows/WorkflowsBase.vue'),
-          meta: { requiresAuth: true },
+          meta: {
+            requiresAuth: true,
+            access: {
+              module: 'process',
+              flag: 'has_workflow_roles'
+            }
+          },
           children: [
             {
               path: '',
@@ -538,7 +578,13 @@ if (maintenanceMode) {
           path: 'reports',
           name: 'reports',
           component: () => import('src/pages/deskReservation/Reports.vue'),
-          meta: { requiresAuth: true, requiresDeskReservationReportsPermission: true }
+          meta: {
+            requiresAuth: true,
+            access: {
+              module: 'reserve',
+              flag: 'can_view_reserve_admin'
+            }
+          }
         }
       ]
     },
@@ -573,7 +619,12 @@ if (maintenanceMode) {
       path: '/mow-map',
       name: 'mow-map',
       component: () => import('src/pages/meals/MOWMap.vue'),
-      meta: { requiresAuth: true, requiresMealsOnWheelsPermission: true }
+      meta: {
+        requiresAuth: true,
+        access: {
+          flag: 'can_view_mow_routes'
+        }
+      }
     },
 
     ////////////////////

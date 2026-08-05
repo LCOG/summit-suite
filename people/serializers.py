@@ -7,6 +7,7 @@ from django.contrib.auth.models import Group, User
 from rest_framework import serializers
 
 from mainsite.helpers import record_error
+from mainsite.serializers import OrganizationSerializer
 from people.models import (
     Employee, JobTitle, PRForm, PerformanceReview, ReviewNote, Signature,
     TeleworkApplication, TeleworkSignature, UnitOrProgram,
@@ -70,12 +71,10 @@ class EmployeeSerializer(serializers.HyperlinkedModelSerializer):
     )
     manager_name = serializers.CharField(source='manager.name', default='')
     manager_pk = serializers.IntegerField(source='manager.pk', default=None)
+    organization = OrganizationSerializer(read_only=True)
     is_manager = serializers.SerializerMethodField()
     has_manager = serializers.SerializerMethodField()
     is_eligible_for_telework_application = serializers.SerializerMethodField()
-    can_view_seating_charts = serializers.SerializerMethodField()
-    can_edit_seating_charts = serializers.SerializerMethodField()
-    can_view_desk_reservation_reports = serializers.SerializerMethodField()
     is_upper_manager = serializers.SerializerMethodField()
     prs_can_view = serializers.SerializerMethodField()
     notes_can_view = serializers.SerializerMethodField()
@@ -84,8 +83,14 @@ class EmployeeSerializer(serializers.HyperlinkedModelSerializer):
     workflow_roles = serializers.SerializerMethodField()
     is_expense_submitter = serializers.SerializerMethodField()
     is_expense_approver = serializers.SerializerMethodField()
-    can_view_phish = serializers.SerializerMethodField()
-    can_view_reviews = serializers.SerializerMethodField()
+    can_view_delegate = serializers.SerializerMethodField()
+    can_view_process = serializers.SerializerMethodField()
+    can_view_reserve = serializers.SerializerMethodField()
+    can_view_reserve_admin = serializers.SerializerMethodField()
+    can_view_review = serializers.SerializerMethodField()
+    can_view_schedule = serializers.SerializerMethodField()
+    can_view_secure = serializers.SerializerMethodField()
+    can_view_secure_admin = serializers.SerializerMethodField()
     can_view_mow_routes = serializers.SerializerMethodField()
     can_manage_mow_stops = serializers.SerializerMethodField()
     workflow_display_options = serializers.SerializerMethodField()
@@ -94,11 +99,10 @@ class EmployeeSerializer(serializers.HyperlinkedModelSerializer):
         model = Employee
         fields = [
             'url', 'pk', 'name', 'legal_name', 'user', 'username', 'email',
-            'title', 'manager_name', 'manager_pk', 'division', 'is_manager',
-            'has_manager', 'is_is_employee', 'is_hr_employee',
+            'title', 'manager_name', 'manager_pk', 'division', 'organization',
+            'is_manager', 'has_manager', 'is_is_employee', 'is_hr_employee',
             'is_sds_hiring_lead', 'is_fiscal_employee',
-            'is_eligible_for_telework_application', 'can_view_seating_charts',
-            'can_edit_seating_charts', 'can_view_desk_reservation_reports',
+            'is_eligible_for_telework_application',
             'is_upper_manager', 'is_hr_manager', 'is_division_director',
             'is_executive_director', 'viewed_security_message', 'prs_can_view',
             'notes_can_view', 'telework_applications_can_view',
@@ -110,9 +114,11 @@ class EmployeeSerializer(serializers.HyperlinkedModelSerializer):
             'email_opt_out_workflows_transitions',
             'email_opt_out_workflows_processes', 'is_all_workflows_admin',
             'admin_of_workflows', 'admin_of_processes', 'workflow_roles',
-            'is_expense_submitter', 'is_expense_approver', 'can_view_phish',
-            'can_view_reviews', 'can_view_mow_routes', 'can_manage_mow_stops',
-            'workflow_display_options'
+            'is_expense_submitter', 'is_expense_approver', 'can_view_delegate',
+            'can_view_process', 'can_view_reserve', 'can_view_reserve_admin',
+            'can_view_review', 'can_view_schedule', 'can_view_secure',
+            'can_view_secure_admin', 'can_view_mow_routes',
+            'can_manage_mow_stops', 'workflow_display_options'
         ]
 
     @staticmethod
@@ -141,18 +147,6 @@ class EmployeeSerializer(serializers.HyperlinkedModelSerializer):
             # Not anyone who reports to the HR manager
             not employee.manager.is_hr_manager
         ])
-    
-    @staticmethod
-    def get_can_view_seating_charts(employee):
-        return employee.can_view_seating_charts()
-    
-    @staticmethod
-    def get_can_edit_seating_charts(employee):
-        return employee.can_edit_seating_charts()
-
-    @staticmethod
-    def get_can_view_desk_reservation_reports(employee):
-        return employee.can_view_desk_reservation_reports()
 
     @staticmethod
     def get_is_upper_manager(employee):
@@ -225,12 +219,36 @@ class EmployeeSerializer(serializers.HyperlinkedModelSerializer):
         return employee.is_expense_approver()
 
     @staticmethod
-    def get_can_view_phish(employee):
-        return employee.can_view_phish()
+    def get_can_view_delegate(employee):
+        return employee.can_view_delegate()
 
     @staticmethod
-    def get_can_view_reviews(employee):
-        return employee.can_view_reviews()
+    def get_can_view_process(employee):
+        return employee.can_view_process()
+
+    @staticmethod
+    def get_can_view_reserve(employee):
+        return employee.can_view_reserve()
+
+    @staticmethod
+    def get_can_view_reserve_admin(employee):
+        return employee.can_view_reserve_admin()
+
+    @staticmethod
+    def get_can_view_review(employee):
+        return employee.can_view_review()
+
+    @staticmethod
+    def get_can_view_schedule(employee):
+        return employee.can_view_schedule()
+
+    @staticmethod
+    def get_can_view_secure(employee):
+        return employee.can_view_secure()
+
+    @staticmethod
+    def get_can_view_secure_admin(employee):
+        return employee.can_view_secure_admin()
 
     @staticmethod
     def get_can_view_mow_routes(employee):

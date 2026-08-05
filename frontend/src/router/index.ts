@@ -1,4 +1,5 @@
 import { route } from 'quasar/wrappers'
+import { RouteLocationNormalized } from 'vue-router'
 import {
   createMemoryHistory,
   createRouter,
@@ -7,12 +8,29 @@ import {
 } from 'vue-router'
 
 import routes from 'src/router/routes'
+import { useUserStore } from 'src/stores/user'
+import { hasAccessRule, type AccessRule } from 'src/utils/access'
 
 import {
-  canViewDeskReservationReports, canViewMealsOnWheelsRoutes,
   canViewTimeOffRequest, isAuthenticated, isDivisionDirector, isExpenseApprover,
   isExpenseSubmitter, isFiscal, isHROrDirector, isManager 
 } from './guards'
+
+interface RouteMetaWithAccess {
+  access?: AccessRule
+  requiresAuth?: boolean
+  requiresCanViewTimeOffRequest?: boolean
+  requiresHROrDirector?: boolean
+}
+
+function getRouteAccessRule (to: RouteLocationNormalized) {
+  const leafRoute = to.matched[to.matched.length - 1]
+  return (leafRoute?.meta as RouteMetaWithAccess | undefined)?.access
+}
+
+function isPublicRoute (path: string): boolean {
+  return path === '/dashboard' || path === '/auth/login'
+}
 
 /*
  * If not building with SSR mode, you can
@@ -28,7 +46,7 @@ export default route(function (/* { store, ssrContext } */) {
     ? createMemoryHistory
     : (process.env.VUE_ROUTER_MODE === 'history' ? createWebHistory : createWebHashHistory)
 
-  const Router = createRouter({
+  const routerInstance = createRouter({
     scrollBehavior: () => ({ left: 0, top: 0 }),
     routes,
 
@@ -38,16 +56,22 @@ export default route(function (/* { store, ssrContext } */) {
     history: createHistory(process.env.VUE_ROUTER_BASE),
   })
 
-  Router.beforeEach(async (to) => {
+  routerInstance.beforeEach(async (to) => {
+    const userStore = useUserStore()
+
+    if (isPublicRoute(to.path)) {
+      return true
+    }
+
     if (to.meta.requiresAuth && !isAuthenticated()) {
       return '/dashboard'
     }
-    if (to.meta.requiresDeskReservationReportsPermission) {
-      const canViewReports = await canViewDeskReservationReports()
-      if (!canViewReports) {
-        return '/dashboard'
-      }
+
+    const routeAccessRule = getRouteAccessRule(to)
+    if (routeAccessRule && !hasAccessRule(userStore.accessProfile, routeAccessRule)) {
+      return '/dashboard'
     }
+
     if (to.meta.requiresManager && !isManager()) {
       return '/dashboard'
     }
@@ -63,9 +87,6 @@ export default route(function (/* { store, ssrContext } */) {
     if (to.meta.requiresExpenseApprover && !isExpenseApprover()) {
       return '/dashboard'
     }
-    if (to.meta.requiresMealsOnWheelsPermission && !canViewMealsOnWheelsRoutes()) {
-      return '/dashboard'
-    }
     if (to.meta.requiresCanViewTimeOffRequest && !canViewTimeOffRequest(to)) {
       return '/timeoff'
     }
@@ -75,5 +96,5 @@ export default route(function (/* { store, ssrContext } */) {
 
   })
 
-  return Router
+  return routerInstance
 })
