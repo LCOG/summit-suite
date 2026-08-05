@@ -59,6 +59,10 @@ export default route(function (/* { store, ssrContext } */) {
   routerInstance.beforeEach(async (to) => {
     const userStore = useUserStore()
 
+    if (!userStore.isProfileLoaded) {
+      await userStore.userRequest()
+    }
+
     if (isPublicRoute(to.path)) {
       return true
     }

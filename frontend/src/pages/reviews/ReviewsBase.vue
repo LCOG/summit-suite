@@ -10,9 +10,7 @@
         @click="showHelp = true"
       />
     </div>
-    <div v-if="userHasWorkflowRoles()">
-      <router-view />
-    </div>
+    <router-view />
     <q-dialog v-model="showHelp">
       <q-card id="help-dialog">
         <q-card-section class="q-ma-lg">
@@ -60,34 +58,12 @@
 </style>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-
-// import { useUserStore } from 'src/stores/user'
-import { getCurrentUser } from 'src/utils'
 
 const router = useRouter()
 // const userStore = useUserStore()
 
 let showHelp = ref(false)
-
-function userHasWorkflowRoles() {
-  // return userStore.getEmployeeProfile.workflow_roles.length > 0
-  return true
-}
-
-onMounted(() => {
-  getCurrentUser()
-    .then(() => {
-      if (!userHasWorkflowRoles()) {
-        router.push({ name: 'dashboard' })
-      }
-    })
-    .catch(e => {
-      // User not authenticated or an error occurred fetching the user
-      console.error(e)
-      router.push({ name: 'dashboard' })
-    })
-})
 
 </script>

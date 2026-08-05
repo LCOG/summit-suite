@@ -446,13 +446,7 @@ if (maintenanceMode) {
           path: '/workflows',
           name: 'workflows',
           component: () => import('pages/workflows/WorkflowsBase.vue'),
-          meta: {
-            requiresAuth: true,
-            access: {
-              module: 'process',
-              flag: 'has_workflow_roles'
-            }
-          },
+          meta: { access: { module: 'process', flag: 'can_view_process' } },
           children: [
             {
               path: '',
@@ -462,12 +456,15 @@ if (maintenanceMode) {
             {
               path: 'dashboard',
               name: 'workflow-dashboard',
-              component: () => import('pages/workflows/WorkflowDashboard.vue')
+              component: () => import('pages/workflows/WorkflowDashboard.vue'),
+              meta: { access: { module: 'process', flag: 'can_view_process' } }
             },
             {
               path: 'complete',
               name: 'workflows-complete',
-              component: () => import('src/pages/workflows/WorkflowsComplete.vue'),
+              component: () =>
+                import('src/pages/workflows/WorkflowsComplete.vue'),
+              meta: { access: { module: 'process', flag: 'can_view_process' } }
               // TODO: For now we just have one complete page/table
               // children: [
               //   {
@@ -489,7 +486,9 @@ if (maintenanceMode) {
             {
               path: 'deleted',
               name: 'workflows-archived',
-              component: () => import('src/pages/workflows/WorkflowsArchived.vue')
+              component: () =>
+                import('src/pages/workflows/WorkflowsArchived.vue'),
+              meta: { access: { module: 'process', flag: 'can_view_process' } }
             }
           ]
         },
@@ -499,19 +498,21 @@ if (maintenanceMode) {
           component: () => {
             return import('src/pages/workflows/WorkflowInstanceDetail.vue')
           },
-          meta: { requiresAuth: true },
+          meta: { access: { module: 'process', flag: 'can_view_process' } },
           children: [
             {
               path: 'processes',
               name: 'workflow-processes',
-              component: () => import('src/pages/workflows/WorkflowProcesses.vue')
+              component: () =>
+                import('src/pages/workflows/WorkflowProcesses.vue'),
+              meta: { access: { module: 'process', flag: 'can_view_process' } }
             },
             {
               path: 'transition',
               name: 'workflow-transition-form',
-              component: () => {
-                return import('src/pages/workflows/EmployeeTransitionDetail.vue')
-              }
+              component: () => 
+                import('src/pages/workflows/EmployeeTransitionDetail.vue'),
+              meta: { access: { module: 'process', flag: 'can_view_process' } }
             }
           ]
         }
@@ -581,7 +582,6 @@ if (maintenanceMode) {
           meta: {
             requiresAuth: true,
             access: {
-              module: 'reserve',
               flag: 'can_view_reserve_admin'
             }
           }
