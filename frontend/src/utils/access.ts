@@ -112,15 +112,12 @@ export function hasAccessRule (
   if (
     rule.module && hasModuleAccess(profile, rule.module)
   ) {
-    console.log(`Org access: ${rule.module}`)
     return true
   }
 
   if (rule.flag && hasAccessFlag(profile, rule.flag)) {
-    console.log(`Individual access: ${rule.flag}`)
     return true
   }
 
-  console.log(`No access: ${rule.module}`)
   return false
 }
