@@ -29,7 +29,7 @@ function getRouteAccessRule (to: RouteLocationNormalized) {
 }
 
 function isPublicRoute (path: string): boolean {
-  return path === '/dashboard' || path === '/auth/login'
+  return path === '/dashboard' || path === '/auth/login' || path === '/maintenance'
 }
 
 /*
@@ -59,8 +59,18 @@ export default route(function (/* { store, ssrContext } */) {
   routerInstance.beforeEach(async (to) => {
     const userStore = useUserStore()
 
+    // Always allow maintenance route so outage handling can render.
+    if (to.path === '/maintenance') {
+      return true
+    }
+
     if (!userStore.isProfileLoaded) {
-      await userStore.userRequest()
+      try {
+        await userStore.userRequest()
+      } catch (error) {
+        console.warn('Failed to load user profile during navigation:', error)
+        return '/maintenance'
+      }
     }
 
     if (isPublicRoute(to.path)) {
