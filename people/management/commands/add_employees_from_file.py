@@ -114,7 +114,8 @@ class Command(BaseCommand):
             
             title = row[4]
             job_title, created = JobTitle.objects.get_or_create(
-                name=self.get_title(title)
+                name=self.get_title(title),
+                organization=Organization.objects.get(name='LCOG')
             )
             if created:
                 self.stdout.write("vvvvvvvvvvvv WARNING vvvvvvvvvvv")
@@ -254,7 +255,7 @@ class Command(BaseCommand):
                 )
 
         # Deactivate any employee not in the list
-        for employee in Employee.active_objects.all():
+        for employee in Employee.active_objects.filter(organization__name='LCOG'):
             if employee.number not in numbers_in_file and not employee.temporary:
                 employee.active = False
                 employee.save()
