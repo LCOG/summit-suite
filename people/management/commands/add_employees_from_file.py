@@ -59,12 +59,13 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         # Set up database if new
+        lcog = Organization.objects.get(name='LCOG')
         if not Division.objects.filter(name='Administrative Services').count():
-            d = Division.objects.create(name='Administrative Services')
+            d = Division.objects.create(name='Administrative Services', organization=lcog)
             UnitOrProgram.objects.create(name='-', division=d)
             UnitOrProgram.objects.create(name='Administration', division=d)
         if not Division.objects.filter(name='Government Services').count():
-            d = Division.objects.create(name='Government Services')
+            d = Division.objects.create(name='Government Services', organization=lcog)
             UnitOrProgram.objects.create(name='-', division=d)
             UnitOrProgram.objects.create(name='Business Services', division=d)
             UnitOrProgram.objects.create(name='GIS', division=d)
@@ -75,12 +76,12 @@ class Command(BaseCommand):
             UnitOrProgram.objects.create(name='Telecom', division=d)
             UnitOrProgram.objects.create(name='Transport Services', division=d)
         if not Division.objects.filter(name='Senior & Disability Services').count():
-            d = Division.objects.create(name='Senior & Disability Services')
+            d = Division.objects.create(name='Senior & Disability Services', organization=lcog)
             UnitOrProgram.objects.create(name='-', division=d)
             UnitOrProgram.objects.create(name='Area Plan', division=d)
             UnitOrProgram.objects.create(name='Senior Meals', division=d)
         if not Division.objects.filter(name='Test Division').count():
-            d = Division.objects.create(name='Test Division')
+            d = Division.objects.create(name='Test Division', organization=lcog)
             UnitOrProgram.objects.create(name='-', division=d)
             UnitOrProgram.objects.create(name='Test Unit', division=d)
         
