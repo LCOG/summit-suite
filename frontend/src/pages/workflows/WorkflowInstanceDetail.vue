@@ -289,7 +289,13 @@ function canCancelWorkflowInstance(
     // Cannot cancel a completed workflow instance
     return false
   }
-  if (userStore.getEmployeeProfile.is_all_workflows_admin) {
+  if (
+    workflowInstance.created_by_pk == userStore.getEmployeeProfile.employee_pk
+  ) {
+    // The creator of the workflow instance can cancel it
+    return true
+  }
+  else if (userStore.getEmployeeProfile.is_all_workflows_admin) {
     // If they are an All-Workflows-Admin, allow cancel/reopen
     return true
   } else {

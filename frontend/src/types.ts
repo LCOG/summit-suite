@@ -1038,6 +1038,7 @@ export interface WorkflowInstance {
   transition_action_required: boolean
   canceled_by_name: string
   cancelation_reason: string
+  created_by_pk: number
 }
 
 export type EmployeeID = 'CLSD' | 'CLID' | ''
