@@ -1,185 +1,143 @@
 <!-- Not converted from Quasar 1/Vue 2 -->
 <template>
-  <div>
-    <q-form
-      @submit="formSubmit"
-      @reset="formReset"
-      class="q-gutter-md"
-    >
-      
-      <table>
+  <q-card class="q-pa-md">
+    <q-form @submit.prevent="formSubmit" @reset.prevent="formReset" class="q-gutter-md">
+      <table class="full-width mileage-table">
         <thead>
           <tr>
-            <td colspan="3"></td>
-            <td colspan="2" class="rowspan">Odometer</td>
-            <td></td>
+            <td colspan="3" />
+            <td colspan="2" class="text-center text-weight-bold">Odometer</td>
+            <td />
           </tr>
-          <tr>
+          <tr class="text-weight-bold">
             <td>Date</td>
             <td>Purpose/Destination</td>
-            <td>Subfund & Contract</td>
+            <td>Subfund &amp; Contract</td>
             <td>Start</td>
             <td>Finish</td>
             <td>Miles</td>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="row in rows" :key="rows.indexOf(row)">
+          <tr v-for="(row, index) in rows" :key="index">
             <td>
-              <div>
-                <q-input filled v-model="row.date" mask="date" :rules="['date']" style="padding-bottom: 0px;">
-                  <template v-slot:append>
-                    <q-icon name="event" class="cursor-pointer">
-                      <q-popup-proxy ref="qDateProxy" cover transition-show="scale" transition-hide="scale">
-                        <q-date v-model="row.date">
-                          <div class="row items-center justify-end">
-                            <q-btn v-close-popup label="Close" color="primary" flat />
-                          </div>
-                        </q-date>
-                      </q-popup-proxy>
-                    </q-icon>
-                  </template>
-                </q-input>
-              </div>
-            </td>
-
-            <td>
-              <q-input outlined v-model="row.purpose" />
+              <q-input v-model="row.date" filled type="date" />
             </td>
             <td>
-              <q-input outlined v-model="row.subfund" />
+              <q-input v-model="row.purpose" outlined />
             </td>
             <td>
-              <q-input outlined v-model="row.start" />
+              <q-input v-model="row.subfund" outlined />
             </td>
             <td>
-              <q-input outlined v-model="row.finish" />
+              <q-input v-model="row.start" outlined type="number" min="0" />
             </td>
-            <div v-if="row.finish && row.start && row.start < row.finish">{{ (parseInt(row.finish) - parseInt(row.start)).toFixed() }}</div>
-
+            <td>
+              <q-input v-model="row.finish" outlined type="number" min="0" />
+            </td>
+            <td>
+              {{ getRowMiles(row) }}
+            </td>
           </tr>
-          <tr>
-            <td colspan="4"></td>
-            <td>Total Miles:</td>
-            <td>{{ totalMiles() }}</td>
-          </tr>
-          <tr>
-            <td colspan="4"></td>
-            <td>x $0.585</td>
-            <td>${{ (totalMiles() * 0.585).toFixed(2) }}</td>
-          </tr>
-
         </tbody>
-
+        <tfoot>
+          <tr>
+            <td colspan="4" />
+            <td class="text-right text-weight-bold">Total Miles:</td>
+            <td class="text-weight-bold">{{ totalMiles }}</td>
+          </tr>
+          <tr>
+            <td colspan="4" />
+            <td class="text-right text-weight-bold">x $0.585</td>
+            <td class="text-weight-bold">${{ (totalMiles * 0.585).toFixed(2) }}</td>
+          </tr>
+        </tfoot>
       </table>
 
-      
-
-      <q-btn unelevated rounded color="primary" icon="add" label="Add Row" @click="addRow()" />
+      <div class="row items-center q-gutter-sm">
+        <q-btn unelevated rounded color="primary" icon="add" label="Add Row" @click="addRow" />
+      </div>
 
       <div>
-        <div class="text-subtitle1 q-mb-sm">By clicking "Submit" below, I certify that all the expenses listed above are true and correct and were incurred on official LCOG business.</div>
-        <q-btn label="Submit" type="submit" color="primary"/>
-        <q-btn label="Reset" type="reset" color="primary" flat class="q-ml-sm" />
+        <div class="text-subtitle1 q-mb-sm">
+          By clicking "Submit" below, I certify that all the expenses listed above are true and correct and were incurred on official LCOG business.
+        </div>
+        <div class="q-gutter-sm">
+          <q-btn label="Submit" type="submit" color="primary" />
+          <q-btn label="Reset" type="reset" color="primary" flat />
+        </div>
       </div>
     </q-form>
-
-    <!-- {{rows}} -->
-
-  </div>
+  </q-card>
 </template>
 
 <style scoped lang="scss">
-table {
+.mileage-table {
+  border-collapse: collapse;
 
-  thead {
-    font-weight: bold;
+  thead,
+  tfoot,
+  tbody {
+    td {
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      padding: 8px 10px;
+      vertical-align: top;
+    }
   }
 
-  td.rowspan {
-    text-align: center;
+  thead td {
+    font-weight: 600;
   }
-
-  tfoot {
-    font-weight: bold;
-  }
-
 }
 </style>
 
-<script lang="ts">
+<script setup lang="ts">
+import { computed, ref } from 'vue'
 import { Notify } from 'quasar'
-import { Component, Vue } from 'vue-property-decorator'
-import { bus } from '../../App.vue'
-import { Responsibility, VuexStoreGetters } from '../../store/types'
 
-@Component
-export default class AllResponsibilities extends Vue {
-  private getters = this.$store.getters as VuexStoreGetters
+interface MileageRow {
+  date: string
+  purpose: string
+  subfund: string
+  start: string
+  finish: string
+}
 
-  private emptyRow = {'date': '', 'purpose': '', 'subfund': '', 'start': '', 'finish': ''}
-  private rows = [{'date': '', 'purpose': '', 'subfund': '', 'start': '', 'finish': ''}]
+const emptyRow: MileageRow = {
+  date: '',
+  purpose: '',
+  subfund: '',
+  start: '',
+  finish: ''
+}
 
-  private allResponsibilities(): Array<Responsibility> {
-    return this.getters['responsibilityModule/allResponsibilities'].results
-  }
-  
-  private tableColumns = [
-    { name: 'name', required: true, label: 'Name', field: 'name', sortable: true, align: 'left' },
-    { name: 'primary_employee_name', label: 'Primary Employee', field: 'primary_employee_name', sortable: true },
-    { name: 'secondary_employee_name', label: 'Secondary Employee', field: 'secondary_employee_name', sortable: true },
-    { name: 'actions', label: 'Actions', },
-  ]
+const rows = ref<MileageRow[]>([{ ...emptyRow }])
 
-  private initialTablePagination = {
-    rowsPerPage: 10
-  }
+function getRowMiles(row: MileageRow): number {
+  const start = Number(row.start || 0)
+  const finish = Number(row.finish || 0)
 
-  private totalMiles(): number {
-    let totalMiles = 0
-    this.rows.forEach(row => {
-      if (parseInt(row.finish) >= parseInt(row.start)) {
-        totalMiles += parseInt(row.finish) - parseInt(row.start)
-      }
-    })
-    return totalMiles
+  if (start > 0 && finish >= start) {
+    return finish - start
   }
 
-  private retrieveAllResponsibilites(): void {
-    this.$store.dispatch('responsibilityModule/getAllResponsibilities')
-      .catch(e => {
-        console.error('Error retrieving responsibilities', e)
-      })
-  }
+  return 0
+}
 
-  private showEditDialog(row: Responsibility): void {
-    bus.$emit('emitOpenEditDialog', row) // eslint-disable-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-  }
+const totalMiles = computed(() => {
+  return rows.value.reduce((total, row) => total + getRowMiles(row), 0)
+})
 
-  private showDeleteDialog(row: Responsibility): void {
-    bus.$emit('emitOpenDeleteDialog', row) // eslint-disable-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-  }
+function addRow(): void {
+  rows.value.push({ ...emptyRow })
+}
 
-  private addRow(): void {
-    this.rows.push({...this.emptyRow})
-  }
+function formSubmit(): void {
+  Notify.create('Mileage reimbursement submitted')
+  formReset()
+}
 
-  private formSubmit (): void {
-    this.formReset()
-    Notify.create('Submitted')
-  }
-
-  private formReset (): void {
-    this.rows = []
-    this.rows.push({...this.emptyRow})
-  }
-
-  mounted() {
-    // TODO: Only fetch if doesn't exist, or needs update?
-    this.retrieveAllResponsibilites()
-    if (this.allResponsibilities() == []) { // <----- THIS DOESN'T WORK
-      this.retrieveAllResponsibilites()
-    }
-  }
+function formReset(): void {
+  rows.value = [{ ...emptyRow }]
 }
 </script>

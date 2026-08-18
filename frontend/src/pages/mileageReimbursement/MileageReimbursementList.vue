@@ -1,151 +1,100 @@
 <!-- Not converted from Quasar 1/Vue 2 -->
 <template>
-  <div class="q-pt-sm">
-    <q-form
-      @submit="formSubmit"
-      class="q-gutter-md"
-    >
-      
-      <table>
+  <q-card class="q-pa-md">
+    <q-form @submit.prevent="formSubmit" class="q-gutter-md">
+      <table class="full-width mileage-table">
         <thead>
           <tr>
-            <td colspan="4"></td>
-            <td colspan="2" class="rowspan">Odometer</td>
-            <td></td>
+            <td colspan="4" />
+            <td colspan="2" class="text-center text-weight-bold">Odometer</td>
+            <td />
           </tr>
-          <tr>
-            <td><q-checkbox :value="allChecked()" @input="checkAll()" /></td>
+          <tr class="text-weight-bold">
+            <td>
+              <q-checkbox :model-value="allChecked" @update:model-value="toggleAll" />
+            </td>
             <td>Date</td>
             <td>Purpose/Destination</td>
-            <td>Subfund & Contract</td>
+            <td>Subfund &amp; Contract</td>
             <td>Start</td>
             <td>Finish</td>
             <td>Miles</td>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="row in rows" :key="rows.indexOf(row)">
-            <td><q-checkbox v-model="row.checked" /></td>
+          <tr v-for="(row, index) in rows" :key="index">
+            <td>
+              <q-checkbox v-model="row.checked" />
+            </td>
             <td>{{ row.date }}</td>
             <td>{{ row.purpose }}</td>
             <td>{{ row.subfund }}</td>
             <td>{{ row.start }}</td>
             <td>{{ row.finish }}</td>
-            <td>{{ row.finish - row.start }}</td>
+            <td>{{ getMileage(row) }}</td>
           </tr>
         </tbody>
-
       </table>
 
       <div>
-        <q-btn label="Approve all checked" type="submit" color="primary"/>
+        <q-btn label="Approve all checked" type="submit" color="primary" />
       </div>
     </q-form>
-
-    <!-- {{rows}} -->
-
-  </div>
+  </q-card>
 </template>
 
 <style scoped lang="scss">
-table {
-   border: 1px solid black;
-   border-radius: 10px;
+.mileage-table {
+  border-collapse: collapse;
 
-  thead {
-    font-weight: bold;
+  thead,
+  tbody {
+    td {
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      padding: 8px 10px;
+    }
   }
 
-  td {
-    padding-left: 5px;
-    padding-right: 5px;
-
-  &.rowspan {
-    text-align: center;
-  }
+  thead td {
+    font-weight: 600;
   }
 }
 </style>
 
-<script lang="ts">
+<script setup lang="ts">
+import { computed, ref } from 'vue'
 import { Notify } from 'quasar'
-import { Component, Vue } from 'vue-property-decorator'
-import { bus } from '../../App.vue'
-import { Responsibility, VuexStoreGetters } from '../../store/types'
 
-@Component
-export default class AllResponsibilities extends Vue {
-  private getters = this.$store.getters as VuexStoreGetters
+interface MileageRequestRow {
+  checked: boolean
+  date: string
+  purpose: string
+  subfund: string
+  start: string
+  finish: string
+}
 
-  // private allChecked = false
+const rows = ref<MileageRequestRow[]>([
+  { checked: false, date: '2022/02/22', purpose: 'Portland', subfund: 'Fund A', start: '1005', finish: '1010' },
+  { checked: false, date: '2022/02/23', purpose: 'Salem', subfund: 'Fund B', start: '42', finish: '420' },
+])
 
-  private rows = [
-    { 'checked': false, 'date': '2022/02/22', 'purpose': 'Portland', 'subfund': 'Fund A', 'start': '1005', 'finish': '1010' },
-    { 'checked': false, 'date': '2022/02/23', 'purpose': 'Salem', 'subfund': 'Fund B', 'start': '42', 'finish': '420' }
-  ]
+const allChecked = computed(() => rows.value.length > 0 && rows.value.every((row) => row.checked))
 
-  private allResponsibilities(): Array<Responsibility> {
-    return this.getters['responsibilityModule/allResponsibilities'].results
-  }
-  
-  private tableColumns = [
-    { name: 'name', required: true, label: 'Name', field: 'name', sortable: true, align: 'left' },
-    { name: 'primary_employee_name', label: 'Primary Employee', field: 'primary_employee_name', sortable: true },
-    { name: 'secondary_employee_name', label: 'Secondary Employee', field: 'secondary_employee_name', sortable: true },
-    { name: 'actions', label: 'Actions', },
-  ]
+function getMileage(row: MileageRequestRow): number {
+  const start = Number(row.start || 0)
+  const finish = Number(row.finish || 0)
+  return finish >= start ? finish - start : 0
+}
 
-  private initialTablePagination = {
-    rowsPerPage: 10
-  }
+function toggleAll(checked: boolean): void {
+  rows.value.forEach((row) => {
+    row.checked = checked
+  })
+}
 
-  private allChecked(): boolean {
-    let falseRows = this.rows.filter(row => {
-      if (row.checked == false) {
-        return row
-      }
-    })
-    if (falseRows.length) {
-      return false
-    }
-    return true
-  }
-
-  private checkAll(): void {
-    let setCheckedTo = true
-    if (this.allChecked()) {
-      setCheckedTo = false
-    }
-    this.rows.forEach(row => {
-      row.checked = setCheckedTo
-    })
-  }
-
-  private retrieveAllResponsibilites(): void {
-    this.$store.dispatch('responsibilityModule/getAllResponsibilities')
-      .catch(e => {
-        console.error('Error retrieving responsibilities', e)
-      })
-  }
-
-  private showEditDialog(row: Responsibility): void {
-    bus.$emit('emitOpenEditDialog', row) // eslint-disable-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-  }
-
-  private showDeleteDialog(row: Responsibility): void {
-    bus.$emit('emitOpenDeleteDialog', row) // eslint-disable-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-  }
-
-  private formSubmit (): void {
-    Notify.create('Approved')
-  }
-
-  mounted() {
-    // TODO: Only fetch if doesn't exist, or needs update?
-    this.retrieveAllResponsibilites()
-    if (this.allResponsibilities() == []) { // <----- THIS DOESN'T WORK
-      this.retrieveAllResponsibilites()
-    }
-  }
+function formSubmit(): void {
+  const selected = rows.value.filter((row) => row.checked).length
+  Notify.create(selected > 0 ? `Approved ${selected} mileage request(s)` : 'No mileage requests selected')
 }
 </script>
