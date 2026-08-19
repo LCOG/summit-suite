@@ -4,6 +4,20 @@
 
 export const releases = [
   {
+    version: '1.15.1',
+    date: new Date(2026, 7, 18),
+    changes: [
+      {
+        type: 'improved',
+        description: 'Workflow submitters can now cancel WFIs.'
+      },
+      {
+        type: 'improved',
+        description: 'Minor bugfixes'
+      }
+    ]
+  },
+  {
     version: '1.15.0',
     date: new Date(2026, 7, 5),
     changes: [

@@ -424,6 +424,9 @@ class WorkflowInstanceSerializer(WorkflowInstanceBaseSerializer):
     process_instances = ProcessInstanceSerializer(source='pis', many=True)
     transition = EmployeeTransitionSerializer()
     canceled_by_name = serializers.SerializerMethodField()
+    created_by_pk = serializers.IntegerField(
+        source='created_by.pk', required=False
+    )
 
     class Meta:
         model = WorkflowInstance
@@ -432,7 +435,7 @@ class WorkflowInstanceSerializer(WorkflowInstanceBaseSerializer):
             'active', 'complete', 'percent_complete', 'title_name',
             'employee_action_required', 'pis_action_required',
             'transition_action_required', 'workflow_type', 'workflow_role_pk',
-            'cancelation_reason', 'canceled_by_name'
+            'cancelation_reason', 'canceled_by_name', 'created_by_pk'
         ]
         depth = 1
 

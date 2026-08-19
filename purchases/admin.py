@@ -35,8 +35,16 @@ class ExpenseSubmitterFilter(admin.SimpleListFilter):
 
 @admin.register(Role)
 class RoleAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name')
+    list_display = ('id', 'name', 'description', 'members_list')
     filter_horizontal = ("members",)
+
+    # Avoid many queries when getting members to display in list
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.prefetch_related('members')
+
+    def members_list(self, obj):
+        return ",\n".join([employee.name for employee in obj.members.all()])
 
 
 @admin.register(PurchaseCategory)

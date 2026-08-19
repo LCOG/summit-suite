@@ -394,6 +394,28 @@ if (maintenanceMode) {
             }
           ]
         },
+        //////////////////////////////
+        // MILEAGE REIMBURSEMENT //
+        //////////////////////////////
+        {
+          path: '/mileage-reimbursement',
+          name: 'mileage-reimbursement',
+          component: () => import('src/pages/mileageReimbursement/MileageReimbursement.vue'),
+          redirect: { name: 'mileage-reimbursement-create' },
+          children: [
+            {
+              path: 'create',
+              name: 'mileage-reimbursement-create',
+              component: () => import('src/pages/mileageReimbursement/MileageReimbursementCreate.vue')
+            },
+            {
+              path: 'list',
+              name: 'mileage-reimbursement-list',
+              component: () => import('src/pages/mileageReimbursement/MileageReimbursementList.vue')
+            }
+          ]
+        },
+
         //////////////
         // TIME OFF //
         //////////////

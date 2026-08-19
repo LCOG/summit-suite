@@ -17,7 +17,7 @@ class WorkflowAdmin(admin.ModelAdmin):
 
 @admin.register(Role)
 class RoleAdmin(admin.ModelAdmin):
-    list_display = ("pk", "name", "members_list")
+    list_display = ("pk", "name", "description", "members_list")
     filter_horizontal = ("members",)
     
     # Avoid many queries when getting members to display in list

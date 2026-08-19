@@ -637,9 +637,16 @@ class TrainingAssignmentViewSet(viewsets.ModelViewSet):
                 return super().get_queryset()
             else:
                 employee = getattr(user, 'employee', None)
-                if employee and employee.can_view_secure_admin():
-                    return TrainingAssignment.objects.for_employee(employee)\
-                        .order_by('-assigned_at')
+                if employee:
+                    if employee.can_view_secure_admin():
+                        return TrainingAssignment.objects\
+                            .for_employee(employee)\
+                            .order_by('-assigned_at')
+                    elif employee.can_view_secure():
+                        return TrainingAssignment.objects\
+                            .for_employee(employee)\
+                            .filter(employee=employee)\
+                            .order_by('-assigned_at')
                 else:
                     return TrainingAssignment.objects.none()
         else:
