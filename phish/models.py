@@ -1,4 +1,6 @@
 from ckeditor.fields import RichTextField
+import secrets
+
 from django.db import models
 
 from mainsite.models import OrganizationObjectsManager
@@ -86,6 +88,10 @@ class SyntheticPhishTemplate(models.Model):
         super().save(*args, **kwargs)
     
 
+def generate_click_token():
+    return secrets.token_urlsafe(32)
+
+
 class SyntheticPhish(models.Model):
     class Meta:
         verbose_name_plural = 'Synthetic phishes'
@@ -97,7 +103,15 @@ class SyntheticPhish(models.Model):
         SyntheticPhishTemplate, on_delete=models.SET_NULL, null=True
     )
     sent_at = models.DateTimeField(auto_now_add=True)
+    click_token = models.CharField(
+        max_length=64,
+        unique=True,
+        db_index=True,
+        default=generate_click_token,
+        editable=False,
+    )
     clicked = models.BooleanField(default=False)
+    clicked_at = models.DateTimeField(blank=True, null=True)
     reported = models.BooleanField(default=False)
     reported_at = models.DateTimeField(blank=True, null=True)
 

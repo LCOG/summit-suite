@@ -42,7 +42,8 @@ class SyntheticPhishTemplateAdmin(admin.ModelAdmin):
 class SyntheticPhishAdmin(admin.ModelAdmin):
     list_display = ('employee', 'template', 'sent_at', 'clicked', 'reported')
     readonly_fields = (
-        'employee', 'template', 'sent_at', 'clicked', 'reported', 'reported_at'
+        'employee', 'template', 'sent_at', 'click_token', 'clicked',
+        'clicked_at', 'reported', 'reported_at'
     )
     search_fields = (
         'employee__user__first_name', 'employee__user__last_name',
