@@ -351,12 +351,8 @@ class PhishAssignmentViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_403_FORBIDDEN
             )
 
-        phish_link_domain = current_employee.organization.phish_link_domain\
-            if current_employee else None
-        if phish_link_domain:
-            click_url = (
-                f'{phish_link_domain}?token={synthetic_phish.click_token}'
-            )
+        phish_link_domain = current_employee.organization.phish_configuration\
+            .phish_link_domain if current_employee else None
 
         created_assignments = []
         for employee in target_employees:
@@ -375,6 +371,9 @@ class PhishAssignmentViewSet(viewsets.ModelViewSet):
                 .replace('{{org__name}}', employee.organization.name)
 
             if phish_link_domain:
+                click_url = (
+                    f'{phish_link_domain}?token={synthetic_phish.click_token}'
+                )
                 html_body = html_body.replace(
                     '{{click_url}}', click_url
                 )
