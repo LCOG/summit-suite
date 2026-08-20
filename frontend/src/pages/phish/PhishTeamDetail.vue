@@ -273,7 +273,7 @@
               <q-td :props="props">
                 <q-icon 
                   :name="props.value ? 'check_circle' : 'cancel'" 
-                  :color="props.value ? 'positive' : 'negative'"
+                  :color="props.value ? 'negative' : 'positive'"
                   size="sm"
                 />
               </q-td>
