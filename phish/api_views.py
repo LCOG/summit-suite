@@ -351,6 +351,13 @@ class PhishAssignmentViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_403_FORBIDDEN
             )
 
+        phish_link_domain = current_employee.organization.phish_link_domain\
+            if current_employee else None
+        if phish_link_domain:
+            click_url = (
+                f'{phish_link_domain}?token={synthetic_phish.click_token}'
+            )
+
         created_assignments = []
         for employee in target_employees:
             synthetic_phish = SyntheticPhish.objects.create(
@@ -360,18 +367,17 @@ class PhishAssignmentViewSet(viewsets.ModelViewSet):
             created_assignments.append(synthetic_phish)
 
             # Insert message context
-            click_url = (
-                f'https://{Site.objects.get_current().domain}/api/v1'
-                f'/phish-assignment/link-click'
-                f'?token={synthetic_phish.click_token}'
-            )
             html_body = template.body\
                 .replace('{{user__email}}', employee.user.email)\
                 .replace('{{user__first_name}}', employee.user.first_name)\
                 .replace('{{user__last_name}}', employee.user.last_name)\
                 .replace('{{user__name}}', employee.name)\
-                .replace('{{org__name}}', employee.organization.name)\
-                .replace('{{click_url}}', click_url)
+                .replace('{{org__name}}', employee.organization.name)
+
+            if phish_link_domain:
+                html_body = html_body.replace(
+                    '{{click_url}}', click_url
+                )
 
             text_body = re.sub('<[^<]+?>', '', html_body)
             send_email(

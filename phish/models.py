@@ -219,3 +219,12 @@ class PhishConfiguration(models.Model):
             'phishing report is submitted.'
         ),
     )
+    phish_link_domain = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text=(
+            'Domain used for synthetic phishing links. For example, '
+            '"https://hu1Wei.s.gy" (no trailing slash).'
+        ),
+    )
