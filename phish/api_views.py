@@ -1,4 +1,5 @@
 import re
+from rest_framework.permissions import AllowAny
 import traceback
 
 from django.contrib.sites.models import Site
@@ -359,12 +360,18 @@ class PhishAssignmentViewSet(viewsets.ModelViewSet):
             created_assignments.append(synthetic_phish)
 
             # Insert message context
+            click_url = (
+                f'https://{Site.objects.get_current().domain}/api/v1'
+                f'/phish-assignment/link-click'
+                f'?token={synthetic_phish.click_token}'
+            )
             html_body = template.body\
                 .replace('{{user__email}}', employee.user.email)\
                 .replace('{{user__first_name}}', employee.user.first_name)\
                 .replace('{{user__last_name}}', employee.user.last_name)\
                 .replace('{{user__name}}', employee.name)\
-                .replace('{{org__name}}', employee.organization.name)
+                .replace('{{org__name}}', employee.organization.name)\
+                .replace('{{click_url}}', click_url)
 
             text_body = re.sub('<[^<]+?>', '', html_body)
             send_email(
@@ -476,6 +483,43 @@ class PhishAssignmentViewSet(viewsets.ModelViewSet):
         ).order_by('name')
         
         return Response(list(team_stats))
+
+    @action(
+        detail=False,
+        methods=['get'],
+        url_path=r'link-click/?',
+        url_name='link-click',
+        permission_classes=[AllowAny],
+        authentication_classes=[],
+    )
+    def link_click(self, request):
+        token = request.GET.get('token', None)
+        phish = SyntheticPhish.objects.filter(click_token=token).first()
+        if not phish:
+            return Response(
+                {'error': 'Synthetic phish not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        else:
+            updated = SyntheticPhish.objects.filter(
+                click_token=token,
+                clicked=False
+            ).update(
+                clicked=True,
+                clicked_at=timezone.now()
+            )
+
+            next_url = request.query_params.get('next')
+            if next_url:
+                return redirect(next_url)
+            
+            return Response(
+                {
+                    'message': 'Synthetic phish marked as clicked',
+                    'already_clicked': (updated == 0),
+                },
+                status=status.HTTP_200_OK
+            )
 
 
 class PhishTaskViewSet(viewsets.ReadOnlyModelViewSet):
