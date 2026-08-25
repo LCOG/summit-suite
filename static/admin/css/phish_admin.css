@@ -1,0 +1,6 @@
+.form-row.field-body .help,
+.form-row.field-body p.help {
+    clear: both;
+    display: block;
+    margin-top: 8px;
+}

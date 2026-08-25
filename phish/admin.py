@@ -37,6 +37,9 @@ class SyntheticPhishTemplateAdmin(admin.ModelAdmin):
     search_fields = ('name', 'subject')
     list_filter = ('active', 'organization',)
 
+    class Media:
+        css = {'all': ('admin/css/phish_admin.css',)}
+
 
 @admin.register(SyntheticPhish)
 class SyntheticPhishAdmin(admin.ModelAdmin):
