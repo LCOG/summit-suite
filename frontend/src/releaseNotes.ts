@@ -4,6 +4,16 @@
 
 export const releases = [
   {
+    version: '1.17.0',
+    date: new Date(2026, 7, 25),
+    changes: [
+      {
+        type: 'improved',
+        description: 'Package security updates.'
+      }
+    ]
+  },
+  {
     version: '1.16.0',
     date: new Date(2026, 7, 20),
     changes: [

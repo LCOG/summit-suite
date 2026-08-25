@@ -7,9 +7,7 @@ from django.http.response import HttpResponse
 
 from rest_framework import parsers, renderers
 from rest_framework.authtoken.models import Token
-from rest_framework.compat import coreapi, coreschema
 from rest_framework.response import Response
-from rest_framework.schemas import ManualSchema
 from rest_framework.views import APIView
 
 from mainsite.helpers import record_error
@@ -23,21 +21,6 @@ class ObtainAuthTokenWithoutPassword(APIView):
     parser_classes = (parsers.FormParser, parsers.MultiPartParser, parsers.JSONParser,)
     renderer_classes = (renderers.JSONRenderer,)
     serializer_class = AuthTokenSerializerWithoutPassword
-    if coreapi is not None and coreschema is not None:
-        schema = ManualSchema(
-            fields=[
-                coreapi.Field(
-                    name="username",
-                    required=True,
-                    location='form',
-                    schema=coreschema.String(
-                        title="Username",
-                        description="Valid username for authentication",
-                    ),
-                ),
-            ],
-            encoding="application/json",
-        )
 
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data,

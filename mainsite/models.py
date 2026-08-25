@@ -97,7 +97,7 @@ class SecurityMessage(models.Model):
     active = models.BooleanField(default=False)
     description = models.CharField(_("description"), max_length=255)
     date = models.DateField(default=timezone.now)
-    content = RichTextField()
+    content = RichTextField(config_name='allow_all_content')
     num_active_employees = models.IntegerField(
         _("number of active employees at time of creation"), default=0
     )

@@ -20,7 +20,7 @@ class PhishReportAdmin(admin.ModelAdmin):
         'employee__user__first_name', 'employee__user__last_name',
         'employee__user__email'
     )
-    list_filter = ('created_at', 'status')
+    list_filter = ('employee__organization', 'created_at', 'status')
     inlines = [PhishReportTaskInline]
 
 
@@ -33,9 +33,9 @@ class PhishTaskAdmin(admin.ModelAdmin):
 
 @admin.register(SyntheticPhishTemplate)
 class SyntheticPhishTemplateAdmin(admin.ModelAdmin):
-    list_display = ('name', 'version', 'subject', 'active')
+    list_display = ('name', 'organization', 'version', 'subject', 'active')
     search_fields = ('name', 'subject')
-    list_filter = ('active',)
+    list_filter = ('active', 'organization',)
 
 
 @admin.register(SyntheticPhish)
@@ -49,14 +49,14 @@ class SyntheticPhishAdmin(admin.ModelAdmin):
         'employee__user__first_name', 'employee__user__last_name',
         'employee__user__email', 'template__name'
     )
-    list_filter = ('clicked', 'reported', 'sent_at')
+    list_filter = ('employee__organization', 'clicked', 'reported', 'sent_at')
 
 
 @admin.register(TrainingTemplate)
 class TrainingTemplateAdmin(admin.ModelAdmin):
-    list_display = ('name', 'version', 'active')
+    list_display = ('name', 'organization', 'version', 'active')
     search_fields = ('name',)
-    list_filter = ('active',)
+    list_filter = ('active', 'organization',)
 
 
 @admin.register(TrainingAssignment)
@@ -69,7 +69,7 @@ class TrainingAssignmentAdmin(admin.ModelAdmin):
         'employee__user__first_name', 'employee__user__last_name',
         'employee__user__email', 'template__name'
     )
-    list_filter = ('template', 'completed', 'assigned_at')
+    list_filter = ('employee__organization', 'template', 'completed', 'assigned_at')
 
 
 class PhishConfigurationInline(admin.StackedInline):

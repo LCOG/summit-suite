@@ -266,6 +266,16 @@ AWS_S3_OBJECT_PARAMETERS = {
 
 X_FRAME_OPTIONS = "SAMEORIGIN"
 
+CKEDITOR_CONFIGS = {
+    'default': {
+        'toolbar': 'Basic',
+    },
+    'allow_all_content': {
+        'toolbar': 'Full',
+        'allowedContent': True,
+    },
+}
+
 #########
 # Email #
 #########

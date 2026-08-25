@@ -2,12 +2,12 @@ boto3==1.35.68               # For AWS deployment
 channels==4.3.2              # Websockets for Django - for use on desk reservation kiosk app
 channels-redis==4.3.0        # Redis channel layer for Django Channels - for use on desk reservation kiosk app
 daphne==4.2.2                # Daphne server for handling Websockets connections on production
-Django==6.0.6                # The Django
+Django==6.1.0                # The Django
 django-ckeditor==6.5.1       # Rich text fields
 django-cors-headers==3.14.0  # To access API from Vue frontend
 django-js-asset==2.0.0
 django-storages==1.13.2      # Static and media file storage
-djangorestframework==3.15.2  # API framework
+djangorestframework==3.18.0  # API framework
 jmespath==0.10.0
 pillow==12.3.0               # For image uploads
 psycopg==3.1.10              # Postgres adapter for Python
@@ -16,6 +16,6 @@ python-dateutil==2.8.2
 python-dotenv==1.2.2         # Secrets manager
 pytz==2021.1                 # Timezone support
 requests==2.33.1             # HTTP requests
-sqlparse==0.5.5              # Required by Django for parsing SQL
+sqlparse==0.6.0              # Required by Django for parsing SQL
 supervisor==4.2.4            # Process control system for running Daphne on production
 watchtower==3.0.1            # AWS CloudWatch logging

@@ -2,6 +2,7 @@ from ckeditor.fields import RichTextField
 import secrets
 
 from django.db import models
+from django.utils.safestring import mark_safe
 
 from mainsite.models import OrganizationObjectsManager
 from people.models import Employee
@@ -75,7 +76,18 @@ class SyntheticPhishTemplate(models.Model):
     name = models.CharField(max_length=255)
     version = models.IntegerField(default=1)
     subject = models.CharField(max_length=255)
-    body = RichTextField()
+    body = RichTextField(config_name='allow_all_content', help_text=mark_safe(
+        "HTML content of the email. Use the following variables to personalize"
+        " messages:<ul>"
+        "<li>{{user__email}} – user's email</li>"
+        "<li>{{user__first_name}} – user's first name</li>"
+        "<li>{{user__last_name}} – user's last name</li>"
+        "<li>{{user__name}} – user's full name</li>"
+        "<li>{{org__name}} – organization's name</li>"
+        "<li>{{click_url}} – link which tracks user clicks - configured in your "
+        "Organization's Phish Configuration</li>"
+        "</ul>"
+    ))
     difficulty = models.IntegerField(
         default=1, help_text="1 is easiest, 3 is hardest"
     )
@@ -133,7 +145,7 @@ class TrainingTemplate(models.Model):
 
     name = models.CharField(max_length=255)
     version = models.IntegerField(default=1)
-    content = RichTextField()
+    content = RichTextField(config_name='allow_all_content')
 
 
 class TrainingAssignment(models.Model):
