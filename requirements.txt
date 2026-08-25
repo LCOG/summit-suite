@@ -7,7 +7,7 @@ django-ckeditor==6.5.1       # Rich text fields
 django-cors-headers==3.14.0  # To access API from Vue frontend
 django-js-asset==2.0.0
 django-storages==1.13.2      # Static and media file storage
-djangorestframework==3.15.2  # API framework
+djangorestframework==3.18.0  # API framework
 jmespath==0.10.0
 pillow==12.3.0               # For image uploads
 psycopg==3.1.10              # Postgres adapter for Python
