@@ -508,14 +508,9 @@ class PhishAssignmentViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_404_NOT_FOUND
             )
         else:
-            updated = SyntheticPhish.objects.filter(
-                click_token=token,
-                clicked=False
-            ).update(
-                clicked=True,
-                clicked_at=timezone.now()
-            )
-
+            phish.clicked=True
+            phish.clicked_at=timezone.now()
+            phish.save()
             frontendUrl = settings.FRONTEND_DOMAIN if \
                 hasattr(settings, 'FRONTEND_DOMAIN') else '/'
             return redirect(f'{frontendUrl}/phish-clicked')
