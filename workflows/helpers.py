@@ -24,13 +24,8 @@ def send_wfi_canceled_email(
     profile_url = current_site.domain + '/profile'
 
     wf_name = wfi.workflow.name
-    if wfi.transition:
-        if wfi.transition.employee_preferred_name:
-            wf_name = f'{wf_name} - {wfi.transition.employee_preferred_name}'
-        elif wfi.transition.employee_first_name and \
-        wfi.transition.employee_last_name:
-            wf_name = f'{wf_name} - {wfi.transition.employee_first_name} ' \
-            f'{wfi.transition.employee_last_name}'
+    if wfi.transition and wfi.transition.employee_first_name and wfi.transition.employee_last_name:
+        wf_name = f'{wf_name} - {wfi.transition.employee_first_name} {wfi.transition.employee_last_name}'
     subject = f'Workflow Instance ' + \
         f'{ "Canceled" if canceled else "Reinstated" }: { wf_name }'
     html_template = '../templates/email/workflows/wfi-canceled.html'
@@ -81,12 +76,9 @@ def send_mailbox_notification_email(
     transition_url = current_site.domain + url
     profile_url = current_site.domain + '/profile'
 
-    preferred_name = t.employee_preferred_name if t.employee_preferred_name \
-        else ''
     first_name = t.employee_first_name if t.employee_first_name else ''
     last_name = t.employee_last_name if t.employee_last_name else ''
-    name_string = f'{ preferred_name if preferred_name else \
-                     first_name + " " + last_name }'
+    name_string = f'{ first_name } { last_name }'
     if t.type == EmployeeTransition.TRANSITION_TYPE_NEW:
         type_verb = 'starting'
     elif t.type == EmployeeTransition.TRANSITION_TYPE_CHANGE:
@@ -169,12 +161,9 @@ def send_transition_fiscal_email(
     profile_url = current_site.domain + '/profile'
     
     reassigned_subject = 'REASSIGNED: ' if reassigned else ''
-    preferred_name = t.employee_preferred_name if t.employee_preferred_name \
-        else ''
     first_name = t.employee_first_name if t.employee_first_name else ''
     last_name = t.employee_last_name if t.employee_last_name else ''
-    name = f'{ preferred_name if preferred_name else first_name + " " +
-              last_name }'
+    name = f'{ first_name } { last_name }'
     if t.type == EmployeeTransition.TRANSITION_TYPE_NEW:
         type_verb = 'starting'
     elif t.type == EmployeeTransition.TRANSITION_TYPE_CHANGE:
@@ -227,13 +216,10 @@ def send_early_hr_email(t, url=''):
     current_site = Site.objects.get_current()
     transition_url = current_site.domain + url
     profile_url = current_site.domain + '/profile'
-
-    preferred_name = t.employee_preferred_name if t.employee_preferred_name \
-        else ''
+    
     first_name = t.employee_first_name if t.employee_first_name else ''
     last_name = t.employee_last_name if t.employee_last_name else ''
-    name_string = f'{ preferred_name if preferred_name else first_name + " "
-                     + last_name }'
+    name_string = f'{ first_name } { last_name }'
     if t.type == EmployeeTransition.TRANSITION_TYPE_NEW:
         type_verb = 'starting'
     elif t.type == EmployeeTransition.TRANSITION_TYPE_CHANGE:
@@ -282,12 +268,9 @@ def send_transition_hr_email(
     profile_url = current_site.domain + '/profile'
     
     reassigned_subject = 'REASSIGNED: ' if reassigned else ''
-    preferred_name = t.employee_preferred_name if t.employee_preferred_name \
-        else ''
     first_name = t.employee_first_name if t.employee_first_name else ''
     last_name = t.employee_last_name if t.employee_last_name else ''
-    name = f'{ preferred_name if preferred_name else first_name + " " +
-              last_name }'
+    name = f'{ first_name } { last_name }'
     if t.type == EmployeeTransition.TRANSITION_TYPE_NEW:
         type_verb = 'starting'
     elif t.type == EmployeeTransition.TRANSITION_TYPE_CHANGE:
@@ -339,13 +322,9 @@ def send_transition_stn_email(
     
     updated = 'UPDATED: ' if update else ''
     reassigned = 'REASSIGNED: ' if reassigned else ''
-
-    preferred_name = t.employee_preferred_name if t.employee_preferred_name \
-        else ''
     first_name = t.employee_first_name if t.employee_first_name else ''
     last_name = t.employee_last_name if t.employee_last_name else ''
-    name = f'{ preferred_name if preferred_name else first_name + " " +
-              last_name }'
+    name = f'{ first_name } { last_name }'
     exit = 'EXIT: ' if \
         t.type == EmployeeTransition.TRANSITION_TYPE_EXIT else ''
     date = readable_date(t.transition_date) if t.transition_date else ''
@@ -473,10 +452,8 @@ def send_employee_transition_report():
             'date': wfi.transition.transition_date,
             'past_date': wfi.transition.transition_date < datetime.now(pytz.utc) if wfi.transition.transition_date else False,
             'assignee': wfi.transition.assignee,
-            'employee_name': wfi.transition.employee_preferred_name if 
-                wfi.transition.employee_preferred_name else
-                wfi.transition.employee_first_name + ' ' +
-                wfi.transition.employee_last_name,
+            'employee_first_name': wfi.transition.employee_first_name,
+            'employee_last_name': wfi.transition.employee_last_name,
             'title_name': wfi.transition.title.name if wfi.transition.title else 'Title not set',
         },
         'pis': [
@@ -507,10 +484,8 @@ def send_employee_transition_report():
         't': {
             'type': wfi.transition.type,
             'date': wfi.transition.transition_date,
-            'employee_name': wfi.transition.employee_preferred_name if
-                wfi.transition.employee_preferred_name else
-                wfi.transition.employee_first_name + ' ' +
-                wfi.transition.employee_last_name,
+            'employee_first_name': wfi.transition.employee_first_name,
+            'employee_last_name': wfi.transition.employee_last_name,
             'title_name': wfi.transition.title.name if wfi.transition.title else 'Title not set',
         }  
     } for wfi in last_week_wfis]

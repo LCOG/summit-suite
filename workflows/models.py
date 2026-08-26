@@ -783,14 +783,7 @@ class WorkflowInstance(HasTimeStampsMixin, HasCreatorMixin):
     @property
     def employee_name(self):
         if self.transition:
-            preferred_name = self.transition.employee_preferred_name if \
-                self.transition.employee_preferred_name else ''
-            first_name = self.transition.employee_first_name if \
-                self.transition.employee_first_name else ''
-            last_name = self.transition.employee_last_name if \
-                self.transition.employee_last_name else ''
-            return f'{ preferred_name if preferred_name else first_name + " " +
-              last_name }'
+            return f'{self.transition.employee_first_name} {self.transition.employee_last_name}'
     
     @property
     def title(self):
