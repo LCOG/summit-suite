@@ -2,11 +2,13 @@ import re
 from rest_framework.permissions import AllowAny
 import traceback
 
+from django.conf import settings
 from django.contrib.sites.models import Site
 from django.db.models import (
     Case, CharField, Count, F, OuterRef, Q, Subquery, Value, When
 )
 from django.db.models.functions import Concat
+from django.shortcuts import redirect
 from django.utils import timezone
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -514,17 +516,9 @@ class PhishAssignmentViewSet(viewsets.ModelViewSet):
                 clicked_at=timezone.now()
             )
 
-            next_url = request.query_params.get('next')
-            if next_url:
-                return redirect(next_url)
-            
-            return Response(
-                {
-                    'message': 'Synthetic phish marked as clicked',
-                    'already_clicked': (updated == 0),
-                },
-                status=status.HTTP_200_OK
-            )
+            frontendUrl = settings.FRONTEND_DOMAIN if \
+                hasattr(settings, 'FRONTEND_DOMAIN') else '/'
+            return redirect(f'{frontendUrl}/phish-clicked')
 
 
 class PhishTaskViewSet(viewsets.ReadOnlyModelViewSet):
