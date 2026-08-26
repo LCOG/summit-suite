@@ -30,6 +30,8 @@ urlpatterns = [
     path('accounts/', include('django.contrib.auth.urls')),
     path('favicon.ico', RedirectView.as_view(url='%sfavicon.ico' % settings.STATIC_URL)),
     path('robots.txt', TemplateView.as_view(template_name="robots.txt", content_type="text/plain")),
+    # API UptimePage Redirect
+    path('uptime', RedirectView.as_view(url='https://stats.uptimerobot.com/qimsVZG4tZ')),
     # Elastic beanstalk ELB requires trailing slash for health check
     path('health/', health_check_view, name='health_check_view'),
     # Material icons
