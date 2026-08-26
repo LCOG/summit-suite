@@ -63,7 +63,7 @@
                 <img class="avatar" src="https://api.team.lcog.org/material-person-remove" />
               {% endif %}
               <a href="{{ domain }}/wf/{{ wfi.pk}}/processes">
-                {{ wfi.t.type }}: {{ wfi.t.employee_name }}, {{ wfi.t.title_name }}
+                {{ wfi.t.type }}: {{ wfi.t.employee_first_name }} {{ wfi.t.employee_last_name }}, {{ wfi.t.title_name }}
               </a>, Form complete<span class="checkmark">√</span>
               <ul>
                 {% if wfi.t.date %}
@@ -105,7 +105,7 @@
               {% elif wfi.t.type == 'Exit' %}
                 <img class="avatar" src="https://api.team.lcog.org/material-person-remove" />
               {% endif %}
-              <a href="{{ domain }}/wf/{{ wfi.pk}}/transition">{{ wfi.t.type }}: {{ wfi.t.employee_name }}, {{ wfi.t.title_name }}</a>, Form assigned to {{ wfi.t.assignee }}
+              <a href="{{ domain }}/wf/{{ wfi.pk}}/transition">{{ wfi.t.type }}: {{ wfi.t.employee_first_name }} {{ wfi.t.employee_last_name }}, {{ wfi.t.title_name }}</a>, Form assigned to {{ wfi.t.assignee }}
               <ul>
                 {% if wfi.t.date %}
                   <li {% if wfi.t.past_date %}style="color: red;"{% endif %}>Transition Date: {{ wfi.t.date|date:"n/j/Y" }}</li>
@@ -132,7 +132,7 @@
               {% elif wfi.t.type == 'Exit' %}
                 <img class="avatar" src="https://api.team.lcog.org/material-person-remove" />
               {% endif %}
-              <a href="{{ domain }}/wf/{{ wfi.pk}}/transition">{{ wfi.t.type }}: {{ wfi.t.employee_name }}, {{ wfi.t.title_name }}</a>, Completed on {{ wfi.completed_at|date:"n/j/Y" }}
+              <a href="{{ domain }}/wf/{{ wfi.pk}}/transition">{{ wfi.t.type }}: {{ wfi.t.employee_first_name }} {{ wfi.t.employee_last_name }}, {{ wfi.t.title_name }}</a>, Completed on {{ wfi.completed_at|date:"n/j/Y" }}
               {% if wfi.t.date %}<ul><li>
                 <div>Transition Date: {{ wfi.t.date|date:"n/j/Y" }}</div>
               </li></ul>{% endif %}

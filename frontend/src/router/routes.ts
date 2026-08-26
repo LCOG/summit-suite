@@ -744,6 +744,15 @@ if (maintenanceMode) {
       component: () => import('src/pages/MaintenancePage.vue'),
     },
 
+    /////////////////////////
+    // PHISH CLICKED PAGE //
+    /////////////////////////
+    {
+      path: '/phish-clicked',
+      name: 'phish-clicked',
+      component: () => import('src/pages/PhishClicked.vue'),
+    },
+
     ///////////////
     // Test page //
     ///////////////
