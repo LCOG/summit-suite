@@ -1840,8 +1840,8 @@ function canEditEmployeeNumberFields() {
 }
 
 // Original submitter can view/edit salary fields.
-// If the form is submitted, only the submitter, hiring manager, HR, and fiscal
-// can view/edit them.
+// If the form is submitted, only the submitter, hiring manager, HR, fiscal, and
+// SDS hiring leads can view/edit them.
 // All others can neither view nor edit them.
 function canViewSalaryFields() {
   return !formSubmitted() ||
@@ -1865,13 +1865,14 @@ function canEditFiscalField() {
 }
 
 // If the form is submitted, other fields are editable only by submitter, hiring
-// manager, HR, and fiscal.
+// manager, HR, fiscal, and SDS hiring leads.
 function canEditOtherFields() {
   return !formSubmitted() ||
     employeeIsSubmitter() ||
     userStore.getEmployeeProfile.employee_pk == manager.value.pk ||
     cookies.get('is_hr_employee') == 'true' ||
-    cookies.get('is_fiscal_employee') == 'true'
+    cookies.get('is_fiscal_employee') == 'true' ||
+    cookies.get('is_sds_hiring_lead') == 'true'
 }
 
 // Can only update the assignee if there is an assignee that is not the
@@ -1880,6 +1881,8 @@ function canUpdateAssignee() {
   const assignee = assigneeCurrentVal.value
   if (assignee == 'Submitter') {
     return false // No one to assign back to
+  } else if (assignee == 'Hiring Lead') {
+    return cookies.get('is_sds_hiring_lead') == 'true'
   } else if (assignee == 'Fiscal') {
     return cookies.get('is_fiscal_employee') == 'true'
   } else if (assignee == 'HR') {
