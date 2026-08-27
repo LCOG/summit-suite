@@ -414,6 +414,20 @@ actions: {
     })
   },
 
+  getPhishMessageFromToken(token: string) {
+    return new Promise((resolve, reject) => {
+      axios({
+        url: `${ apiURL }api/v1/phish-assignment/phish-message?token=${ token }`
+      })
+        .then(resp => {
+          resolve(resp.data)
+        })
+        .catch(e => {
+          handlePromiseError(reject, 'Error getting phish message', e)
+        })
+    })
+  },
+
   getTrainingTemplates() {
     return new Promise((resolve, reject) => {
       axios({ url: `${ apiURL }api/v1/training-template` })
