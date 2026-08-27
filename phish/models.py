@@ -91,6 +91,13 @@ class SyntheticPhishTemplate(models.Model):
     difficulty = models.IntegerField(
         default=1, help_text="1 is easiest, 3 is hardest"
     )
+    failure_message = models.TextField(
+        blank=True, null=True,
+        help_text="Message displayed when the user clicks a phishing link and "
+        "fails the simulation, providing feedback to the user. For example, "
+        "'The message contained a suspicious link.' or 'Your manager will "
+        "never email you asking for your Social Security number.'"
+    )
 
     def save(self, *args, **kwargs):
         if self.difficulty < 1:

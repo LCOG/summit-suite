@@ -513,7 +513,27 @@ class PhishAssignmentViewSet(viewsets.ModelViewSet):
             phish.save()
             frontendUrl = settings.FRONTEND_DOMAIN if \
                 hasattr(settings, 'FRONTEND_DOMAIN') else '/'
-            return redirect(f'{frontendUrl}/phish-clicked')
+            return redirect(f'{frontendUrl}/phish-clicked?token={token}')
+
+    @action(
+        detail=False,
+        methods=['get'],
+        url_path=r'phish-message/?',
+        url_name='phish-message',
+        permission_classes=[AllowAny],
+        authentication_classes=[],
+    )
+    def phish_message_by_token(self, request):
+        token = request.GET.get('token', None)
+        phish = SyntheticPhish.objects.filter(click_token=token).first()
+        if not phish:
+            return Response(
+                {'error': 'Synthetic phish not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        else:
+            message = phish.template.failure_message
+            return Response({'message': message})
 
 
 class PhishTaskViewSet(viewsets.ReadOnlyModelViewSet):
