@@ -88,6 +88,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'mainsite.middleware.HealthCheckMiddleware',
+    'mainsite.middleware.MemoryUsageMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'corsheaders.middleware.CorsMiddleware',  # django-cors-headers - must be before CommonMiddleware
     'django.contrib.sessions.middleware.SessionMiddleware', 
