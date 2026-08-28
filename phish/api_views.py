@@ -366,11 +366,11 @@ class PhishAssignmentViewSet(viewsets.ModelViewSet):
 
             # Insert message context
             html_body = template.body\
-                .replace('{{user__email}}', employee.user.email)\
-                .replace('{{user__first_name}}', employee.user.first_name)\
-                .replace('{{user__last_name}}', employee.user.last_name)\
-                .replace('{{user__name}}', employee.name)\
-                .replace('{{org__name}}', employee.organization.name)
+                .replace('{{user_email}}', employee.user.email)\
+                .replace('{{user_first_name}}', employee.user.first_name)\
+                .replace('{{user_last_name}}', employee.user.last_name)\
+                .replace('{{user_name}}', employee.name)\
+                .replace('{{org_name}}', employee.organization.name)
 
             if phish_link_domain:
                 click_url = (
