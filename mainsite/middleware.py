@@ -37,7 +37,7 @@ class MemoryUsageMiddleware:
         
         # Log requests that increase RSS memory by more than 50 MB
         # (adjust threshold as needed)
-        if mem_diff > 35:
+        if mem_diff > 10:
             error_logger.warning(
                 f"HIGH MEMORY REQUEST: {request.method} {request.path} | "
                 f"Before: {mem_before:.2f}MB | After: {mem_after:.2f}MB | "
