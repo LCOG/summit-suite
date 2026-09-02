@@ -22,16 +22,22 @@ from phish.models import (
     TrainingTemplate
 )
 from phish.serializers import (
-    PhishGroupSerializer, PhishReportSerializer, PhishReportTaskSerializer,
-    PhishRiskProfileSerializer, PhishTaskSerializer, SyntheticPhishSerializer,
-    SyntheticPhishTemplateSerializer, TrainingAssignmentSerializer,
-    TrainingTemplateSerializer
+    PhishGroupSerializer, PhishReportSerializer, PhishReportSimpleSerializer,
+    PhishReportTaskSerializer, PhishRiskProfileSerializer, PhishTaskSerializer,
+    SyntheticPhishSerializer, SyntheticPhishTemplateSerializer,
+    TrainingAssignmentSerializer, TrainingTemplateSerializer
 )
 
 
 class PhishReportViewSet(viewsets.ModelViewSet):
     queryset = PhishReport.objects.all().order_by('-pk')
     serializer_class = PhishReportSerializer
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return PhishReportSimpleSerializer
+        else:
+            return super().get_serializer_class()
 
     def get_queryset(self):
         user = self.request.user

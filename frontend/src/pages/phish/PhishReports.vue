@@ -106,8 +106,10 @@
         <div class="col">
           <div class="text-h6">Phish Report Message</div>
           <div class="text-subtitle2">
-            Employee: {{ dialogReport?.employee?.name || '' }} ({{ dialogReport?.employee?.email || '' }}) — Submitted:
-            {{ dialogReport?.created_at ? formatDate(dialogReport.created_at) : '' }}
+            Employee: {{ dialogReport?.employee?.name || '' }} ({{ dialogReport?.employee?.email || '' }})
+          </div>
+          <div class="text-subtitle2">
+            Submitted: {{ dialogReport?.created_at ? formatDate(dialogReport.created_at) : '' }}
           </div>
           <div
             v-if="dialogReport?.additional_info"
@@ -385,15 +387,21 @@ async function refreshReports() {
   }
 }
 
+async function loadReport(reportPk: number) {
+  dialogReport.value = await phishStore.getReport(reportPk)
+}
+
 async function onRowClick(_evt: Event, row: PhishReport) {
-  dialogReport.value = row
-  dialogMessage.value = row.message
-  showRawJson.value = false
-  showMessageDialog.value = true
   if (row.status === 'phish' && row.pk) {
     await loadChecklistDataForReport(row.pk)
   }
   if (row.pk) {
+    await loadReport(row.pk)
+      .then(() => {
+        dialogMessage.value = dialogReport.value?.message || ''
+        showRawJson.value = false
+        showMessageDialog.value = true
+      })
     window.history.replaceState(
       window.history.state, '', `/phish/admin/reports/${row.pk}`
     )

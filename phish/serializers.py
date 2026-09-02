@@ -20,6 +20,17 @@ class PhishReportSerializer(serializers.HyperlinkedModelSerializer):
     employee = SimpleEmployeeSerializer(required=False)
 
 
+class PhishReportSimpleSerializer(serializers.HyperlinkedModelSerializer):
+
+    class Meta:
+        model = PhishReport
+        fields = [
+            'pk', 'employee', 'created_at', 'status', 'processed'
+        ]
+
+    employee = SimpleEmployeeSerializer(required=False)
+
+
 class PhishTaskSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
