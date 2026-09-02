@@ -159,6 +159,7 @@ export interface SimpleEmployee {
   pk: number
   name: string
   legal_name: string
+  email?: string
   title?: string
   division?: string
   program?: string
@@ -172,6 +173,7 @@ export interface SimpleEmployeeRetrieve {
   pk: number
   name: string
   legal_name: string
+  email: string
   title: string
   division: string
   program: string
@@ -182,8 +184,8 @@ export interface SimpleEmployeeRetrieve {
 }
 
 export const emptyEmployee: SimpleEmployeeRetrieve = {
-  pk: -1, name: '', legal_name: '', title: '', division: '', program: '',
-  manager_name: '', manager_pk: -1, is_expense_approver: false,
+  pk: -1, name: '', legal_name: '', email: '', title: '', division: '',
+  program: '', manager_name: '', manager_pk: -1, is_expense_approver: false,
   is_executive_director: false
 }
 

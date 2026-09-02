@@ -241,7 +241,7 @@ actions: {
   },
 
   // Fetch all PhishReport objects from the Django API
-  getAllReports() {
+  getAllReports(): Promise<PhishReport[]> {
     return new Promise((resolve, reject) => {
       axios({ url: `${ apiURL }api/v1/phishreport` })
         .then(resp => {
@@ -256,6 +256,20 @@ actions: {
         })
         .catch(e => {
           handlePromiseError(reject, 'Error getting phish reports', e)
+        })
+    })
+  },
+
+  getReport(reportId: number): Promise<PhishReport> {
+    return new Promise((resolve, reject) => {
+      axios({
+        url: `${ apiURL }api/v1/phishreport/${ reportId }`
+      })
+        .then(resp => {
+          resolve(resp.data)
+        })
+        .catch(e => {
+          handlePromiseError(reject, 'Error getting report', e)
         })
     })
   },

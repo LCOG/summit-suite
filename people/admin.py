@@ -42,6 +42,13 @@ class UnitOrProgramInline(admin.TabularInline):
     model = UnitOrProgram
     extra = 0
 
+    # Display the number of employees in the unit or program
+    def employees_count(self, instance):
+        return instance.employee_set.count()
+    employees_count.short_description = "Number of Employees"
+    readonly_fields = ("employees_count",)
+
+
 
 @admin.register(Division)
 class DivisionAdmin(admin.ModelAdmin):
@@ -53,7 +60,7 @@ class DivisionAdmin(admin.ModelAdmin):
     def employees_list(self, obj):
         return mark_safe(
             '<br>'.join(
-                [f'<a href="{reverse("admin:people_employee_change", args=[e.pk])}">{e.name}</a>'
+                [f'<a href="{reverse("admin:people_employee_change", args=[e.pk])}">{e.name} - {e.unit_or_program.name}</a>'
                  for e in obj.employees]
             )
         )
