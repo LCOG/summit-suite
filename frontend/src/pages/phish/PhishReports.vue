@@ -106,7 +106,7 @@
         <div class="col">
           <div class="text-h6">Phish Report Message</div>
           <div class="text-subtitle2">
-            Employee: {{ dialogReport?.employee?.name || '' }} — Submitted:
+            Employee: {{ dialogReport?.employee?.name || '' }} ({{ dialogReport?.employee?.email || '' }}) — Submitted:
             {{ dialogReport?.created_at ? formatDate(dialogReport.created_at) : '' }}
           </div>
           <div

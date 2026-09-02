@@ -267,11 +267,12 @@ class SimpleEmployeeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Employee
         fields = [
-            'pk', 'name', 'legal_name', 'title', 'division', 'program',
-            'manager_name', 'manager_pk', 'is_expense_approver',
+            'pk', 'name', 'legal_name', 'email', 'title', 'division',
+            'program', 'manager_name', 'manager_pk', 'is_expense_approver',
             'is_executive_director'
         ]
 
+    email = serializers.CharField(source='user.email', default='')
     title = serializers.CharField(source='job_title')
     division = serializers.CharField(
         source='unit_or_program.division.name', default=''
