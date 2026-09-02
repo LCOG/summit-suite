@@ -394,12 +394,14 @@ async function onRowClick(_evt: Event, row: PhishReport) {
     await loadChecklistDataForReport(row.pk)
   }
   if (row.pk) {
-    window.history.replaceState(null, '', `/phish/admin/reports/${row.pk}`)
+    window.history.replaceState(
+      window.history.state, '', `/phish/admin/reports/${row.pk}`
+    )
   }
 }
 
 function onDialogClose() {
-  window.history.replaceState(null, '', `/phish/admin/reports`)
+  window.history.replaceState(window.history.state, '', `/phish/admin/reports`)
 }
 
 async function onTaskToggle(taskPk: number, checked: boolean) {
