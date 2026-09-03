@@ -127,39 +127,57 @@ class Command(BaseCommand):
                 )
                 self.stdout.write("^^^^^^^^^^^^ WARNING ^^^^^^^^^^^^")
             
-            department_col_pieces = row[5].split(' ')
-            if department_col_pieces[0] == 'PR':
-                department_col_pieces = department_col_pieces[1:]
-            if department_col_pieces[-1] == 'Admin':
-                department_col_pieces = department_col_pieces[0:-1]
-            if len(department_col_pieces) == 1:
-                department = row[5]
-            else:
-                if any([
-                    (department_col_pieces[1] == 'Panduro' and department_col_pieces[2] == 'Melendez'),
-                    (department_col_pieces[1] == 'Magana' and department_col_pieces[2] == 'Jr.')
-                ]):
-                    # Deal with two last names
-                    department = " ".join(department_col_pieces[0:-2])
-                else:
-                    department = " ".join(department_col_pieces[0:-1])
-            department = department.strip()
-            if department in ['Technology Services']:
-                unit_or_program = UnitOrProgram.objects.get(name='Technology Services')
-            elif department in ['Business Services', 'Business Services GS']:
-                unit_or_program = UnitOrProgram.objects.get(name='Business Services')
-            elif department in ['MetroTV Services', 'MetroTV Services GS']:
-                unit_or_program = UnitOrProgram.objects.get(name='MetroTV Services')
-            elif department in ['Planning Services', 'Planning Svcs', 'Planning Svcs GS', 'Planning Services GS']:
-                unit_or_program = UnitOrProgram.objects.get(name='Planning Services')
-            elif department in ['Administration', 'Administration FD', 'Administration GS']:
+            department = row[6]
+            if department in ['Administration', 'Admin Wilson']:
                 unit_or_program = UnitOrProgram.objects.get(name='Administration')
-            elif department in ['Senior & Disability Services', 'SDS', 'Senior & Disablility', 'Senior & Disablility Services', 'Senior $ Disability Services', 'Senior & Diability Services', 'S&DS']:
-                unit_or_program = UnitOrProgram.objects.get(division__name='Senior & Disability Services', name='-')
-            elif department in ['Govt Services', 'Gov Svs']:
-                unit_or_program = UnitOrProgram.objects.get(division__name='Government Services', name='-')
-            elif department in ['Transport Services', 'Transport Service', 'Transport Service GS']:
-                unit_or_program = UnitOrProgram.objects.get(name='Transport Services')
+            elif department in ['ADRC']:
+                unit_or_program = UnitOrProgram.objects.get(name='ADRC')
+            elif department in ['APS1', 'APS2', 'APS3', 'APS4']:
+                unit_or_program = UnitOrProgram.objects.get(name='APS')
+            elif department in ['Case Management 1', 'Case Management 2', 'Case Management 3', 'Case Management 4', 'Case Management 5', 'Case Management 6']:
+                unit_or_program = UnitOrProgram.objects.get(name='Case Management')
+            elif department in ['Cottage Grove']:
+                unit_or_program = UnitOrProgram.objects.get(name='Cottage Grove')
+            elif department in ['Development']:
+                unit_or_program = UnitOrProgram.objects.get(name='Development')
+            elif department in ['DPG']:
+                unit_or_program = UnitOrProgram.objects.get(name='DPG')
+            elif department in ['Eligibility1', 'Eligibility 2', 'Eligibility 3']:
+                unit_or_program = UnitOrProgram.objects.get(name='Eligibility')
+            elif department in ['Facilities']:
+                unit_or_program = UnitOrProgram.objects.get(name='Facilities')
+            elif department in ['Finance & Budget', 'Finance & Budget 2']:
+                unit_or_program = UnitOrProgram.objects.get(name='Finance & Budget')
+            elif department in ['Florence']:
+                unit_or_program = UnitOrProgram.objects.get(name='Florence')
+            elif department in ['GIS']:
+                unit_or_program = UnitOrProgram.objects.get(name='GIS')
+            elif department in ['Human Resources', 'Human Resources 2']:
+                unit_or_program = UnitOrProgram.objects.get(name='Human Resources')
+            elif department in ['Information Services', 'Information Services 2', 'Information Services 3']:
+                unit_or_program = UnitOrProgram.objects.get(name='Information Services')
+            elif department in ['Leads']:
+                unit_or_program = UnitOrProgram.objects.get(name='Leads')
+            elif department in ['LGPS']:
+                unit_or_program = UnitOrProgram.objects.get(name='LGPS')
+            elif department in ['Metro TV']:
+                unit_or_program = UnitOrProgram.objects.get(name='Metro TV')
+            elif department in ['Minutes Recorder']:
+                unit_or_program = UnitOrProgram.objects.get(name='Minutes Recorder')
+            elif department in ['Planning']:
+                unit_or_program = UnitOrProgram.objects.get(name='Planning')
+            elif department in ['Program Management']:
+                unit_or_program = UnitOrProgram.objects.get(name='Program Management')
+            elif department in ['Senior Connections 1', 'Senior Connections 2']:
+                unit_or_program = UnitOrProgram.objects.get(name='Senior Connections')
+            elif department in ['Senior Meals']:
+                unit_or_program = UnitOrProgram.objects.get(name='Senior Meals')
+            elif department in ['Support 1', 'Support 2', 'Support 3']:
+                unit_or_program = UnitOrProgram.objects.get(name='Support')
+            elif department in ['Transportation']:
+                unit_or_program = UnitOrProgram.objects.get(name='Transportation')
+            elif department in ['Unit Managers 1', 'Unit Managers 2', 'Unit Managers 3', 'Unit Managers 4']:
+                unit_or_program = UnitOrProgram.objects.get(name='Unit Managers')
             else:
                 raise ValueError('Unknown department {}'.format(department))
 
@@ -270,79 +288,47 @@ class Command(BaseCommand):
             number = row[0]
             user = User.objects.get(employee__number=number)
             employee = Employee.objects.get(user=user)
-            department_col_pieces = row[5].split(' ')
-            if department_col_pieces[0] == 'PR':
-                department_col_pieces = department_col_pieces[1:]
-            if department_col_pieces[-1] == 'Admin':
-                department_col_pieces = department_col_pieces[0:-1]
-            if len(department_col_pieces) > 1:
-                if department_col_pieces[1] == 'Panduro' and department_col_pieces[2] == 'Melendez':
-                    # Deal with two last names
-                    manager_last_name = " ".join(department_col_pieces[-2:])
-                elif department_col_pieces[1] == 'Magana' and department_col_pieces[2] == 'Jr.':
-                    manager_last_name = department_col_pieces[1]
-                else:
-                    manager_last_name = department_col_pieces[-1]
-            else:
-                manager_last_name = None
-
-            if manager_last_name:
+            manager_number = row[7]
+            manager = None
+            if manager_number:
                 try:
-                    if manager_last_name == 'Blair':
-                        manager = Employee.objects.get(user__last_name='Blair', user__first_name='Deborah')
-                    elif manager_last_name == 'Campbell':
-                        manager = Employee.objects.get(user__last_name='Campbell', user__first_name='Laura')
-                    elif manager_last_name == 'Callister':
-                        manager = Employee.objects.get(user__last_name='Callister', user__first_name='Jacob')
-                    elif manager_last_name == 'Crowder':
-                        manager = Employee.objects.get(user__last_name='Crowder', user__first_name='Jordan')
-                    elif manager_last_name == 'Davies':
-                        manager = Employee.objects.get(user__last_name=manager_last_name, user__first_name='Nancy')
-                    elif manager_last_name == 'Goodman':
-                        manager = Employee.objects.get(user__last_name=manager_last_name, user__first_name='Micah')
-                    elif manager_last_name == 'Harris':
-                        manager = Employee.objects.get(user__last_name='Harris', user__first_name='Marian')
-                    elif manager_last_name == 'Johnson':
-                        manager = Employee.objects.get(user__last_name=manager_last_name, user__first_name='Lynn')
-                    elif manager_last_name == 'Moore':
-                        manager = Employee.objects.get(organization__name="LCOG", is_executive_director=True)
-                    elif manager_last_name == 'Newall': # Nicole Wilbur changed last name
-                        manager = Employee.objects.get(user__last_name='Wilbur', user__first_name='Nicole')
-                    elif manager_last_name == 'Quaempts':
-                        manager = Employee.objects.get(user__last_name='Quaempts', user__first_name='Joan')
-                    elif manager_last_name == 'Sheelar2': # ???
-                        manager = Employee.objects.get(user__last_name='Sheelar', user__first_name='Stephanie')
-                    elif manager_last_name == 'Sowards': # Sowards doesn't exist
-                        manager = Employee.objects.get(user__last_name='Sheelar', user__first_name='Stephanie')
-                    elif manager_last_name == 'Thompson':
-                        manager = Employee.objects.get(user__last_name='Thompson', user__first_name='Paul')
-                    elif manager_last_name == 'Wilson':
-                        manager = Employee.objects.get(user__last_name='Wilson', user__first_name='Daniel')
-                    elif manager_last_name == 'Wright':
-                        manager = Employee.objects.get(user__last_name='Wright', user__first_name='Vicki')
-                    else:
-                        try:
-                            manager = Employee.active_objects.get(user__last_name=manager_last_name)
-                        except Employee.MultipleObjectsReturned:
-                            self.stdout.write("vvvvvvvvvvvv EXCEPTION vvvvvvvvvvv")
-                            self.stdout.write(
-                                'Multiple managers with last name {}'.format(manager_last_name)
-                            )
-                            self.stdout.write("^^^^^^^^^^^^ EXCEPTION ^^^^^^^^^^^^")
-                            manager = Employee.objects.get(user__email='dwilson@lcog-or.gov')
-                    if employee.manager != manager:
-                        employee.manager = manager
-                        employee.save()
-                        self.stdout.write(
-                            'Added manager {} {} for employee {} {}'.format(manager.user.first_name, manager.user.last_name, employee.user.first_name, employee.user.last_name)
-                        )
+                    manager = Employee.objects.get(user__employee__number=manager_number)
                 except Employee.DoesNotExist:
-                    pass
+                    self.stdout.write("vvvvvvvvvvvv WARNING vvvvvvvvvvv")
+                    self.stdout.write(
+                        'No manager found for employee {} {}'.format(employee.user.first_name, employee.user.last_name)
+                    )
+                    self.stdout.write("^^^^^^^^^^^^ WARNING ^^^^^^^^^^^^")
             else:
-                self.stdout.write("vvvvvvvvvvvv WARNING vvvvvvvvvvv")
+                if number == '1430': # Brenda Moore
+                    pass
+                elif number in (
+                    '1552', # Stephanie Sheelar
+                    '1559', # Josh Burstein
+                    '1677', # Laura Campbell
+                    '1793', # Emily Farrell
+                    '1950', # Michael Wisth
+                    '2168', # Betty Nielsen
+                    '2206' # Matthew Brown
+                ):
+                    manager = Employee.objects.get(user__employee__number='1430') # Brenda
+                else:
+                    self.stdout.write("vvvvvvvvvvvv WARNING vvvvvvvvvvv")
+                    self.stdout.write(
+                        'No manager found for employee {} {}'.format(employee.user.first_name, employee.user.last_name)
+                    )
+                    self.stdout.write("^^^^^^^^^^^^ WARNING ^^^^^^^^^^^^")
+            if not manager:
+                employee.manager = None
+                employee.save()
                 self.stdout.write(
-                    'No manager found for employee {} {}'.format(employee.user.first_name, employee.user.last_name)
+                    'Removed manager for employee {} {}'.format(employee.user.first_name, employee.user.last_name)
                 )
-                self.stdout.write("^^^^^^^^^^^^ WARNING ^^^^^^^^^^^^")
+            elif employee.manager != manager:
+                employee.manager = manager
+                employee.save()
+                self.stdout.write(
+                    'Added manager {} {} for employee {} {}'.format(manager.user.first_name, manager.user.last_name, employee.user.first_name, employee.user.last_name)
+                )
         
         self.stdout.write(self.style.SUCCESS('Successfully imported users.'))
