@@ -34,6 +34,13 @@ class MemoryUsageMiddleware:
         
         mem_after = self.process.memory_info().rss / (1024 * 1024)   # MB
         mem_diff = mem_after - mem_before
+
+        # For debugging requests
+        # print(
+        #     f"---REQUEST MEMORY---: {request.method} {request.path} | "
+        #     f"Before: {mem_before:.2f}MB | After: {mem_after:.2f}MB | "
+        #     f"Delta: +{mem_diff:.2f}MB"
+        # )
         
         # Log requests that increase RSS memory by more than 50 MB
         # (adjust threshold as needed)

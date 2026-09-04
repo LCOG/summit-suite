@@ -42,16 +42,24 @@ class PhishReportViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
 
+        def get_phishreport_objects():
+            # For listviews, defer loading the 'message' field to improve
+            # performance as they can be large and tax the server memory
+            if self.action == 'list':
+                return PhishReport.objects.defer('message')
+            else:
+                return PhishReport.objects
+
         # Accept optional employee prop to get phish assignments
         # for a specific employee
         employee_pk = self.request.query_params.get('employee')
         if employee_pk:
             try:
                 employee = Employee.objects.get(pk=employee_pk)
-                return PhishReport.objects.for_employee(employee)\
+                return get_phishreport_objects().for_employee(employee)\
                     .filter(employee=employee).order_by('-pk')
             except Employee.DoesNotExist:
-                return PhishReport.objects.none()
+                return get_phishreport_objects().none()
 
         # If no employee specified, return all phish reports user can view
         if user.is_authenticated:
@@ -60,7 +68,7 @@ class PhishReportViewSet(viewsets.ModelViewSet):
             else:
                 employee = getattr(user, 'employee', None)
                 if employee and employee.can_view_secure_admin():
-                    return PhishReport.objects.for_employee(employee)
+                    return get_phishreport_objects().for_employee(employee)
                 else:
                     return PhishReport.objects.none()
         else:
