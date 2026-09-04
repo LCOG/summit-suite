@@ -378,10 +378,8 @@ async function refreshReports() {
   loading.value = true
   try {
     await phishStore.getAllReports()
-    submittedReports.value = phishStore.submittedReports.map((r: any) =>
-      ({ ...r, employee_name: r.employee?.name || '' }))
-    processedReports.value = phishStore.processedReports.map((r: any) =>
-      ({ ...r, employee_name: r.employee?.name || '' }))
+    submittedReports.value = phishStore.submittedReports
+    processedReports.value = phishStore.processedReports
   } finally {
     loading.value = false
   }

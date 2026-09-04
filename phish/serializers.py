@@ -25,10 +25,10 @@ class PhishReportSimpleSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = PhishReport
         fields = [
-            'pk', 'employee', 'created_at', 'status', 'processed'
+            'pk', 'employee_name', 'created_at', 'status', 'processed'
         ]
 
-    employee = SimpleEmployeeSerializer(required=False)
+    employee_name = serializers.CharField(source='employee.name', read_only=True)
 
 
 class PhishTaskSerializer(serializers.HyperlinkedModelSerializer):
