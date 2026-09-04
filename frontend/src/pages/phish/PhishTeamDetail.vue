@@ -228,7 +228,7 @@
                   dense 
                   round 
                   icon="visibility" 
-                  @click="viewReportDetails(props.row)"
+                  @click="viewReportDetails(props.row.pk)"
                 >
                   <q-tooltip>View Details</q-tooltip>
                 </q-btn>
@@ -565,10 +565,13 @@ function goBack() {
   router.push('/phish/admin/team')
 }
 
-function viewReportDetails(report: PhishReport) {
-  selectedReport.value = report
-  showRawJson.value = false
-  showReportDialog.value = true
+async function viewReportDetails(reportPk: number) {
+  await phishStore.getReport(reportPk)
+    .then((report) => {
+      selectedReport.value = report
+      showRawJson.value = false
+      showReportDialog.value = true
+    })
 }
 
 function reassignResource(assignment: TrainingAssignment) {
