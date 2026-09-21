@@ -398,7 +398,9 @@ let deleteDialogStatementNumber = ref('')
 let selectedFiles = ref(new File([''], ''))
 
 const pagination = {
-  rowsPerPage: 50
+  rowsPerPage: 50,
+  sortBy: 'ready_to_approve',
+  descending: false
 }
 
 const columns = [
@@ -408,14 +410,28 @@ const columns = [
   },
   {
     name: 'status', label: 'Status', field: 'status', sortable: true,
-    align: 'center'
+    align: 'center',
+    sort: (a: string, b: string) => {
+      const order = [
+        'approver_approved', 'approver_denied', 'submitted', 'fiscal_denied',
+        'fiscal_approved', 'draft'
+      ]
+      return order.indexOf(a) - order.indexOf(b)
+    }
   },
   {
     name: 'date', label: 'Date', align: 'center'
   },
   {
-    name: 'ready_to_approve', label: 'Ready to Approve', field: 'ready_to_approve',
-    sortable: true, align: 'center'
+    name: 'ready_to_approve', label: 'Ready to Approve',
+    field: (row: ExpenseMonth) => expenseMonthReadyToApprove(row),
+    sortable: true, align: 'center',
+    sort: (a: boolean, b: boolean) => {
+      if (a === b) return 0
+      if (a && !b) return -1
+      if (!a && b) return 1
+      return 0
+    }
   },
   {
     name: 'approved', label: 'Fiscal Approved', field: 'approved',

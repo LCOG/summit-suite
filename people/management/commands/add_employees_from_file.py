@@ -168,6 +168,8 @@ class Command(BaseCommand):
                 unit_or_program = UnitOrProgram.objects.get(name='Planning')
             elif department in ['Program Management']:
                 unit_or_program = UnitOrProgram.objects.get(name='Program Management')
+            elif department in ['Public Information']:
+                unit_or_program = UnitOrProgram.objects.get(name='Public Information')
             elif department in ['Senior Connections 1', 'Senior Connections 2']:
                 unit_or_program = UnitOrProgram.objects.get(name='Senior Connections')
             elif department in ['Senior Meals']:

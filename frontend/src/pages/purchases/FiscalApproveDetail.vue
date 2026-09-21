@@ -49,6 +49,9 @@
       <div class="text-bold q-mt-sm">
         Submitted Total: ${{ expenseMonthTotal(em) }}
       </div>
+      <div v-if="em.submitted_at">
+        Submitted on {{ readableDateTime(em.submitted_at) }}
+      </div>
       <div class="q-mt-sm">
         <div v-if="largeExpense(em)" class="text-h6 text-warning">
           Take Note! Expense of $1000 or more
