@@ -11,7 +11,9 @@ if ! command -v jq >/dev/null; then
 fi
 
 echo "Checking build system architecture..."
-arch=$(uname --machine)
+# `uname -m` is portable across macOS, Linux, and Git Bash on Windows.
+# Fall back to GNU long option when available.
+arch=$(uname -m 2>/dev/null || uname --machine)
 echo "Found $arch"
 if [[ $arch != x86_64 ]]; then
   echo "Looks like you are building the Docker image on an $arch architecture. The target platform is linux/x86_64. Make sure you have the virtual machine tools in place for building x86_64 images or build the image on a different system."
