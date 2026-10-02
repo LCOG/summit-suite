@@ -6,10 +6,24 @@ from django.utils.safestring import mark_safe
 
 from .models import (
     Division, Employee, JobTitle, PerformanceReview, PRFactor,
-    PRFactorResponseSet, PRForm, ReviewNote, Signature, SignatureReminder,
-    TeleworkApplication, TeleworkSignature, UnitOrProgram,
+    PRFactorResponseSet, PRForm, ReviewNote, Role, Signature,
+    SignatureReminder, TeleworkApplication, TeleworkSignature, UnitOrProgram,
     ViewedSecurityMessage
 )
+
+
+@admin.register(Role)
+class RoleAdmin(admin.ModelAdmin):
+    list_display = ("pk", "name", "description", "members_list")
+    filter_horizontal = ("members",)
+    
+    # Avoid many queries when getting members to display in list
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.prefetch_related('members')
+
+    def members_list(self, obj):
+        return ",\n".join([employee.name for employee in obj.members.all()])
 
 
 class EmployeeInline(admin.TabularInline):

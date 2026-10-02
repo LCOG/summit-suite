@@ -15,6 +15,24 @@ SHOW_REVIEW_TO_MANAGER_DAYS_BEFORE_DUE = 60
 # SHOW_REVIEW_TO_MANAGER_DAYS_BEFORE_DUE = 360
 
 
+class Role(models.Model):
+    class Meta:
+        ordering = ["name"]
+    
+    def __str__(self):
+        return self.name
+
+    organization = models.ForeignKey(
+        Organization, on_delete=models.CASCADE,
+        related_name="review_roles"
+    )
+    name = models.CharField(max_length=100)
+    description = models.CharField(max_length=300, blank=True)
+    members = models.ManyToManyField(
+        "people.Employee", related_name="review_roles", blank=True
+    )
+
+
 class Division(models.Model):
     class Meta:
         verbose_name = _("Division")

@@ -27,13 +27,13 @@ def send_manager_pr_notices():
         'employee__manager__manager__user',
     ).order_by('employee__manager_id', 'period_end_date', 'pk')
 
-    # CC 'PR Completed Employees' group on all emails
+    # CC 'Receive All Manager PR Notices' group on all emails
     cc_emails = list(
-        Group.objects.get(name='PR Completed Employees')
-        .user_set.exclude(email='')
-        .values_list('email', flat=True)
+        apps.get_model('people', 'Role').objects
+        .get(name="Receive All Manager PR Notices").members.all()
+        .values_list('user__email', flat=True)
     )
-
+    
     current_site = Site.objects.get_current()
     url = current_site.domain + '/reviews/dashboard'
 
