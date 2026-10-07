@@ -1,15 +1,21 @@
 from django.contrib import admin
 
 from .models import (
-    PhishConfiguration, PhishGroup, PhishReport, PhishReportTask,
-    PhishRiskProfile, PhishTask, SyntheticPhish, SyntheticPhishTemplate,
-    TrainingAssignment, TrainingTemplate
+    PhishConfiguration, PhishGroup, PhishReport, PhishReportAttachment,
+    PhishReportTask, PhishRiskProfile, PhishTask, SyntheticPhish,
+    SyntheticPhishTemplate, TrainingAssignment, TrainingTemplate
 )
 
 class PhishReportTaskInline(admin.TabularInline):
     model = PhishReportTask
     extra = 0
     readonly_fields = ('task', 'completed_at', 'completed_by')
+
+
+class PhishReportAttachmentInline(admin.TabularInline):
+    model = PhishReportAttachment
+    extra = 0
+    readonly_fields = ('filename', 'attachment')
 
     
 @admin.register(PhishReport)
@@ -21,7 +27,7 @@ class PhishReportAdmin(admin.ModelAdmin):
         'employee__user__email'
     )
     list_filter = ('employee__organization', 'created_at', 'status')
-    inlines = [PhishReportTaskInline]
+    inlines = [PhishReportTaskInline, PhishReportAttachmentInline]
 
 
 @admin.register(PhishTask)
