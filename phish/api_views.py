@@ -1,8 +1,10 @@
+import base64
 import re
 from rest_framework.permissions import AllowAny
 import traceback
 
 from django.conf import settings
+from django.core.files.base import ContentFile
 from django.contrib.sites.models import Site
 from django.db.models import (
     Case, CharField, Count, F, OuterRef, Q, Subquery, Value, When
@@ -17,9 +19,9 @@ from rest_framework.response import Response
 from mainsite.helpers import record_error, send_email
 from people.models import Employee
 from phish.models import (
-    PhishConfiguration, PhishReport, PhishReportTask, PhishRiskProfile,
-    PhishTask, SyntheticPhish, SyntheticPhishTemplate, TrainingAssignment,
-    TrainingTemplate
+    PhishConfiguration, PhishReport, PhishReportAttachment, PhishReportTask,
+    PhishRiskProfile, PhishTask, SyntheticPhish, SyntheticPhishTemplate,
+    TrainingAssignment, TrainingTemplate
 )
 from phish.serializers import (
     PhishGroupSerializer, PhishReportSerializer, PhishReportSimpleSerializer,
@@ -27,6 +29,64 @@ from phish.serializers import (
     SyntheticPhishSerializer, SyntheticPhishTemplateSerializer,
     TrainingAssignmentSerializer, TrainingTemplateSerializer
 )
+
+
+def _attachment_to_file(attachment):
+    """Normalize attachment payloads from Outlook add-ins and Django uploads."""
+    if attachment is None:
+        return None
+
+    if hasattr(attachment, 'read'):
+        return attachment
+
+    if not isinstance(attachment, dict):
+        return None
+
+    attachment_name = (
+        attachment.get('name') or
+        attachment.get('filename') or
+        'attachment'
+    )
+    raw_attachment = (
+        attachment.get('file') or
+        attachment.get('contentBytes') or
+        attachment.get('content') or
+        attachment.get('data')
+    )
+    if isinstance(raw_attachment, dict):
+        attachment_name = (
+            raw_attachment.get('name') or
+            raw_attachment.get('filename') or
+            attachment_name
+        )
+        raw_attachment = (
+            raw_attachment.get('contentBytes') or
+            raw_attachment.get('content') or
+            raw_attachment.get('data')
+        )
+
+    if raw_attachment is None:
+        return None
+
+    if hasattr(raw_attachment, 'read'):
+        raw_attachment = raw_attachment.read()
+
+    if isinstance(raw_attachment, str):
+        if raw_attachment.startswith('data:'):
+            _, _, raw_attachment = raw_attachment.partition(',')
+        try:
+            raw_attachment = base64.b64decode(raw_attachment, validate=False)
+        except (TypeError, ValueError):
+            raw_attachment = raw_attachment.encode('utf-8')
+    elif isinstance(raw_attachment, memoryview):
+        raw_attachment = raw_attachment.tobytes()
+    elif isinstance(raw_attachment, bytearray):
+        raw_attachment = bytes(raw_attachment)
+
+    if isinstance(raw_attachment, str):
+        raw_attachment = raw_attachment.encode('utf-8')
+
+    return ContentFile(raw_attachment, name=attachment_name)
 
 
 class PhishReportViewSet(viewsets.ModelViewSet):
@@ -86,6 +146,7 @@ class PhishReportViewSet(viewsets.ModelViewSet):
         employee_email = request.data.get('employee_email')
         email_message = request.data.get('email_message')
         additional_info = request.data.get('additional_info')
+        attachments = request.data.get('attachments')
         
         if not employee_email or not email_message:
             return Response(
@@ -164,6 +225,28 @@ class PhishReportViewSet(viewsets.ModelViewSet):
             message=email_message,
             additional_info=additional_info
         )
+        # Create attachments if included in the request
+        try:
+            if attachments:
+                for attachment in attachments:
+                    uploaded_attachment = _attachment_to_file(attachment)
+                    if uploaded_attachment is None:
+                        continue
+
+                    PhishReportAttachment.objects.create(
+                        report=phish_report,
+                        filename=(
+                            attachment.get('name') if isinstance(attachment, dict)
+                            else getattr(attachment, 'name', 'attachment')
+                        ),
+                        attachment=uploaded_attachment,
+                    )
+        except Exception as e:
+            record_error(
+                'Error creating phish report attachments',
+                e, request, traceback.format_exc()
+            )
+
         report_url = f'{Site.objects.get_current().domain}/phish/' + \
                      f'admin/reports/{phish_report.pk}'
 
