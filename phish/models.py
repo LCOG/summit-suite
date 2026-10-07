@@ -44,7 +44,8 @@ class PhishReportAttachment(models.Model):
     report = models.ForeignKey(
         PhishReport, related_name="attachments", on_delete=models.CASCADE
     )
-    attachments = models.FileField(
+    filename = models.CharField(max_length=255, blank=True, null=True)
+    attachment = models.FileField(
         upload_to="uploads/phish-attachments", blank=True, null=True
     )
 
