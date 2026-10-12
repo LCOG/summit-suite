@@ -10,13 +10,41 @@
         {{ selectedMessage?.subject || '(No subject)' }}
       </span>
     </div>
-    <div class="email-meta-row">
+    <div
+      class="email-meta-row row items-center"
+      v-on:mouseover="hoveringFrom = true"
+      v-on:mouseleave="hoveringFrom = false"
+    >
       <span class="email-meta-label">From</span>
       <span class="email-meta-value">{{ fromDisplay }}</span>
+      <q-btn
+        flat
+        dense
+        size='xs'
+        v-show="hoveringFrom"
+        icon="content_copy"
+        class="copy-icon"
+        @click="copyToClipboard(fromDisplay)"
+        :style="{ cursor: 'pointer' }"
+      />
     </div>
-    <div class="email-meta-row">
+    <div
+      class="email-meta-row row items-center"
+      v-on:mouseover="hoveringTo = true"
+      v-on:mouseleave="hoveringTo = false"
+    >
       <span class="email-meta-label">To</span>
       <span class="email-meta-value">{{ toDisplay }}</span>
+      <q-btn
+        flat
+        dense
+        size='xs'
+        v-show="hoveringTo"
+        icon="content_copy"
+        class="copy-icon"
+        @click="copyToClipboard(toDisplay)"
+        :style="{ cursor: 'pointer' }"
+      />
     </div>
     <div v-if="ccDisplay" class="email-meta-row">
       <span class="email-meta-label">CC</span>
@@ -42,7 +70,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
+
+const hoveringFrom = ref(false)
+const hoveringTo = ref(false)
 
 interface EmailAddress {
   name?: string
@@ -326,6 +357,15 @@ const prettyRawJson = computed(() => {
     return String(props.message)
   }
 })
+
+function copyToClipboard(text: string) {
+  // get text between brackets if present
+  const match = text.match(/\<(.*?)\>/)
+  if (match) {
+    text = match[1]
+  }
+  navigator.clipboard.writeText(text)
+}
 </script>
 
 <style lang="scss" scoped>
