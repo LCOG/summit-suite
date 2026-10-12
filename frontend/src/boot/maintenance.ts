@@ -1,5 +1,4 @@
 import { boot } from 'quasar/wrappers'
-import axios from 'axios'
 import { ref } from 'vue'
 
 // Create a global reactive state for maintenance mode
@@ -12,11 +11,11 @@ If the site isn't back after 10 minutes, please contact the help desk at <a href
 
 Uptime status: <a href="https://stats.uptimerobot.com/qimsVZG4tZ" target="_blank" rel="noopener noreferrer">https://api.team.lcog.org/uptime</a>`
 
-export default boot(async ({ app, router }) => {
+export default boot(async ({ router }) => {
   // Try to ping the backend to see if it's up using image ping (avoids CORS)
   try {
     const apiUrl = process.env.API_URL || 'https://api.team.lcog.org/'
-    
+
     // Use image ping to check connectivity - doesn't require CORS
     // This avoids preflight request issues
     await new Promise<void>((resolve, reject) => {
@@ -24,7 +23,7 @@ export default boot(async ({ app, router }) => {
       const timer = setTimeout(() => {
         reject(new Error('Timeout'))
       }, 5000)
-      
+
       img.onload = () => {
         clearTimeout(timer)
         resolve()
