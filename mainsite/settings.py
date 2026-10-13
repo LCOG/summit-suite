@@ -68,6 +68,7 @@ INSTALLED_APPS = [
     'phish',
     'purchases',
     'responsibilities',
+    'submissions',
     'timeoff',
     'workflows',
     

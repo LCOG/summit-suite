@@ -921,6 +921,78 @@ export interface EmployeeConflictingResponsibilities {
   responsibility_names: Array<string>
 }
 
+/////////////////////////////////////////////////////////////
+// Submissions Structure from Django Rest Framework //
+/////////////////////////////////////////////////////////////
+
+export interface MileageSubmissionRowCreate {
+  row_order?: number
+  date: string
+  purpose: string
+  contract_fund: string
+  odometer_start: number
+  odometer_finish: number
+}
+
+export interface MileageSubmissionCreate {
+  certification_statement?: string
+  reimbursement_rate?: string
+  approver_role_pk?: number
+  rows: Array<MileageSubmissionRowCreate>
+}
+
+export interface MileageSubmissionRowRetrieve {
+  pk: number
+  row_order: number
+  date: string
+  purpose: string
+  contract_fund: string
+  odometer_start: number
+  odometer_finish: number
+  miles: number
+}
+
+export interface MileageSubmissionLinkedSubmission {
+  pk: number
+  status: 'submitted' | 'approved'
+  form_type: string
+  approver_role_pk: number | null
+  approver_role_name: string
+  approved_by_name: string
+  submitted_at: string
+  approved_at: string | null
+}
+
+export interface MileageSubmissionRetrieve {
+  pk: number
+  submitter_pk: number
+  submitter_name: string
+  certification_statement: string
+  reimbursement_rate: string
+  rows: Array<MileageSubmissionRowRetrieve>
+  total_miles: number
+  total_reimbursement: string
+  created_at: string
+  updated_at: string
+  submission: MileageSubmissionLinkedSubmission | null
+}
+
+export interface SubmissionRetrieve {
+  pk: number
+  form_type: string
+  status: 'submitted' | 'approved'
+  submitter_pk: number
+  submitter_name: string
+  approver_role: number | null
+  approver_role_name: string
+  approved_by: number | null
+  approved_by_name: string
+  submitted_at: string
+  approved_at: string | null
+  updated_at: string
+  mileage_submission_pk: number | null
+}
+
 ////////////////////////////////////////////////////////////////
 // ViewedSecurityMessage Structure from Django Rest Framework //
 ////////////////////////////////////////////////////////////////

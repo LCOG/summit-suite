@@ -45,3 +45,14 @@ Windows `python .\manage.py runserver`
 # Install Elastic Beanstalk CLI
 https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/eb-cli3-install.html
 Manually install the CLI using pip. Modify environment variable PATH from instructions.
+
+## New submissions API (mileage reimbursement)
+
+The backend now includes a reusable submissions domain with mileage reimbursement as its first hard-coded form type.
+
+Primary endpoints:
+- `GET /api/v1/submission` - list submissions visible to the current user
+- `GET /api/v1/mileage-submission` - list mileage submissions
+- `POST /api/v1/mileage-submission` - create a mileage submission with rows
+- `PUT /api/v1/mileage-submission/<pk>/approve` - approve a submitted mileage request
+- `GET /api/v1/submission-role` - list configurable approval roles for the current organization

@@ -1,14 +1,15 @@
-export type AccessModule = 
-  'delegate' |  
+export type AccessModule =
+  'delegate' |
   'expense' |
   'process' |
   'reserve' |
   'review' |
   'schedule' |
-  'secure'
-  
+  'secure' |
+  'submit'
+
 export type AccessFlag =
-  | 'can_view_delegate'  
+  | 'can_view_delegate'
   | 'can_view_expense'
   | 'can_view_process'
   | 'can_view_reserve'
@@ -17,6 +18,7 @@ export type AccessFlag =
   | 'can_view_schedule'
   | 'can_view_secure'
   | 'can_view_secure_admin'
+  | 'can_view_submit'
   | 'is_manager'
   | 'is_is_employee'
   | 'is_fiscal_employee'
@@ -34,13 +36,14 @@ export interface AccessRule {
 export interface AccessProfile {
   can_view_delegate: boolean
   can_view_expense: boolean
-  can_view_schedule: boolean
-  can_view_secure: boolean
-  can_view_secure_admin: boolean
   can_view_process: boolean
   can_view_reserve: boolean
   can_view_reserve_admin: boolean
   can_view_review: boolean
+  can_view_schedule: boolean
+  can_view_secure: boolean
+  can_view_secure_admin: boolean
+  can_view_submit: boolean
   is_manager: boolean
   is_is_employee: boolean
   is_fiscal_employee: boolean
