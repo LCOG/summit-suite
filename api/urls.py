@@ -30,6 +30,9 @@ from purchases.api_views import (
 from responsibilities.api_views import (
     ResponsibilityViewSet, TagViewSet as ResponsibilityTagViewSet
 )
+from submissions.api_views import (
+    MileageSubmissionViewSet, SubmissionRoleViewSet, SubmissionViewSet
+)
 from timeoff.api_views import TimeOffRequestViewSet
 from workflows.api_views import (
     EmployeeTransitionViewSet, ProcessInstanceViewSet, ProcessViewSet,
@@ -111,6 +114,18 @@ router.register('v1/securitymessage', SecurityMessageViewSet)
 router.register('v1/viewedsecuritymessage', ViewedSecurityMessageViewSet)
 # Time Off
 router.register('v1/timeoffrequest', TimeOffRequestViewSet)
+# Submissions
+router.register(
+    'v1/submission-role',
+    SubmissionRoleViewSet,
+    basename='submission-role'
+)
+router.register('v1/submission', SubmissionViewSet, basename='submission')
+router.register(
+    'v1/mileage-submission',
+    MileageSubmissionViewSet,
+    basename='mileage-submission'
+)
 # Workflow
 router.register('v1/process', ProcessViewSet)
 router.register('v1/processinstance', ProcessInstanceViewSet)

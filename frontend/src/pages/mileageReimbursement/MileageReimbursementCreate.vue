@@ -63,8 +63,14 @@
           By clicking "Submit" below, I certify that all the expenses listed above are true and correct and were incurred on official LCOG business.
         </div>
         <div class="q-gutter-sm">
-          <q-btn label="Submit" type="submit" color="primary" />
-          <q-btn label="Reset" type="reset" color="primary" flat />
+          <q-btn
+            label="Submit"
+            type="submit"
+            color="primary"
+            :loading="submitting"
+            :disable="submitting"
+          />
+          <q-btn label="Reset" type="reset" color="primary" flat :disable="submitting" />
         </div>
       </div>
     </q-form>
@@ -94,6 +100,9 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { Notify } from 'quasar'
+import { useRouter } from 'vue-router'
+
+import { useSubmissionsStore } from 'src/stores/submissions'
 
 interface MileageRow {
   date: string
@@ -112,6 +121,11 @@ const emptyRow: MileageRow = {
 }
 
 const rows = ref<MileageRow[]>([{ ...emptyRow }])
+const router = useRouter()
+const submissionsStore = useSubmissionsStore()
+const reimbursementRate = 0.585
+const certificationStatement = 'By clicking "Submit" below, I certify that all the expenses listed above are true and correct and were incurred on official LCOG business.'
+const submitting = ref(false)
 
 function getRowMiles(row: MileageRow): number {
   const start = Number(row.start || 0)
@@ -128,13 +142,82 @@ const totalMiles = computed(() => {
   return rows.value.reduce((total, row) => total + getRowMiles(row), 0)
 })
 
+function hasAtLeastOneValidRow(): boolean {
+  return rows.value.some((row) => {
+    const start = Number(row.start)
+    const finish = Number(row.finish)
+    return (
+      !!row.date &&
+      !!row.purpose.trim() &&
+      !!row.subfund.trim() &&
+      Number.isFinite(start) &&
+      Number.isFinite(finish) &&
+      start >= 0 &&
+      finish >= start
+    )
+  })
+}
+
+function allRowsValid(): boolean {
+  return rows.value.every((row) => {
+    const start = Number(row.start)
+    const finish = Number(row.finish)
+    return (
+      !!row.date &&
+      !!row.purpose.trim() &&
+      !!row.subfund.trim() &&
+      Number.isFinite(start) &&
+      Number.isFinite(finish) &&
+      start >= 0 &&
+      finish >= start
+    )
+  })
+}
+
 function addRow(): void {
   rows.value.push({ ...emptyRow })
 }
 
 function formSubmit(): void {
-  Notify.create('Mileage reimbursement submitted')
-  formReset()
+  if (submitting.value) {
+    return
+  }
+  if (!hasAtLeastOneValidRow()) {
+    Notify.create('Please enter at least one complete mileage row')
+    return
+  }
+  if (!allRowsValid()) {
+    Notify.create('Please complete all rows before submitting')
+    return
+  }
+  submitting.value = true
+  submissionsStore.createMileageSubmission({
+    certification_statement: certificationStatement,
+    reimbursement_rate: reimbursementRate.toFixed(3),
+    rows: rows.value.map((row, index) => ({
+      row_order: index,
+      date: row.date,
+      purpose: row.purpose.trim(),
+      contract_fund: row.subfund.trim(),
+      odometer_start: Number(row.start),
+      odometer_finish: Number(row.finish)
+    }))
+  })
+    .then(() => {
+      Notify.create('Mileage reimbursement submitted')
+      formReset()
+      router.push({ name: 'mileage-reimbursement-list' })
+        .catch(e => {
+          console.error('Error navigating to mileage reimbursement list:', e)
+        })
+    })
+    .catch(e => {
+      console.error('Error creating mileage reimbursement submission:', e)
+      Notify.create('Unable to submit mileage reimbursement')
+    })
+    .finally(() => {
+      submitting.value = false
+    })
 }
 
 function formReset(): void {

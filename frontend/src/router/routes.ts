@@ -290,7 +290,7 @@ if (maintenanceMode) {
               meta: {
                 access: {module: 'secure', flag: 'can_view_secure_admin'}
               },
-            }, 
+            },
             {
               path: 'team/:pk',
               name: 'phish-team-detail',
@@ -394,9 +394,24 @@ if (maintenanceMode) {
             }
           ]
         },
-        //////////////////////////////
-        // MILEAGE REIMBURSEMENT //
-        //////////////////////////////
+        /////////////////
+        // SUBMISSIONS //
+        /////////////////
+        {
+          path: '/submit',
+          name: 'submit',
+          component: () => import('src/pages/submit/SubmitBase.vue'),
+          redirect: { name: 'all-submissions' },
+          children: [
+            {
+              path: 'all',
+              name: 'all-submissions',
+              component: () => import('src/pages/submit/AllSubmissions.vue')
+            },
+          ]
+        },
+
+
         {
           path: '/mileage-reimbursement',
           name: 'mileage-reimbursement',
@@ -533,7 +548,7 @@ if (maintenanceMode) {
             {
               path: 'transition',
               name: 'workflow-transition-form',
-              component: () => 
+              component: () =>
                 import('src/pages/workflows/EmployeeTransitionDetail.vue'),
               meta: { access: { module: 'process', flag: 'can_view_process' } }
             }

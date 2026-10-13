@@ -170,6 +170,13 @@ const navLinks: Array<LinkData> = [
     access: { module: 'reserve', flag: 'can_view_reserve' }
   },
   {
+    title: 'Submissions',
+    icon: 'edit_document',
+    link: '/submit',
+    id: 'nav-submissions',
+    access: { module: 'submit', flag: 'can_view_submit' }
+  },
+  {
     title: 'Meals on Wheels Map',
     icon: 'map',
     link: '/mow-map',
