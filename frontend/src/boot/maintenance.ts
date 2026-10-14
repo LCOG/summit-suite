@@ -1,5 +1,4 @@
 import { boot } from 'quasar/wrappers'
-import axios from 'axios'
 import { ref } from 'vue'
 
 // Create a global reactive state for maintenance mode
@@ -8,13 +7,15 @@ export const backendUnreachable = ref(false)
 
 const MAINTENANCE_MESSAGE = `The site is currently undergoing maintenance and will be back shortly. This page will automatically reload when maintenance is complete.
 
-If the site isn't back after 10 minutes, please contact the help desk at <a href="https://lcog-or.gov/help" target="_blank" rel="noopener noreferrer">https://lcog-or.gov/help</a>`
+If the site isn't back after 10 minutes, please contact the help desk at <a href="https://lcog-or.gov/help" target="_blank" rel="noopener noreferrer">https://lcog-or.gov/help</a>
 
-export default boot(async ({ app, router }) => {
+Uptime status: <a href="https://stats.uptimerobot.com/qimsVZG4tZ" target="_blank" rel="noopener noreferrer">https://api.team.lcog.org/uptime</a>`
+
+export default boot(async ({ router }) => {
   // Try to ping the backend to see if it's up using image ping (avoids CORS)
   try {
     const apiUrl = process.env.API_URL || 'https://api.team.lcog.org/'
-    
+
     // Use image ping to check connectivity - doesn't require CORS
     // This avoids preflight request issues
     await new Promise<void>((resolve, reject) => {
@@ -22,7 +23,7 @@ export default boot(async ({ app, router }) => {
       const timer = setTimeout(() => {
         reject(new Error('Timeout'))
       }, 5000)
-      
+
       img.onload = () => {
         clearTimeout(timer)
         resolve()
@@ -40,7 +41,7 @@ export default boot(async ({ app, router }) => {
     console.warn('Backend unreachable, showing maintenance page:', error)
     backendUnreachable.value = true
     maintenanceEnabled.value = true
-    
+
     // Redirect to maintenance page if not already there
     router.beforeEach((to, from, next) => {
       if (to.path !== '/maintenance') {

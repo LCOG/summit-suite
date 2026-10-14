@@ -255,15 +255,23 @@ class PhishReportViewSet(viewsets.ModelViewSet):
             config = employee.organization.phish_configuration
             if config.phish_report_notification_email:
                 subject = 'Phishing Report Submitted'
+                user_message_text = ''
+                user_message_html = ''
+                if additional_info:
+                    user_message_text = f'From Reporter: {additional_info}\n\n'
+                    user_message_html = \
+                        f'<p>From Reporter: {additional_info}</p>'
                 body = (
                     f'{employee.name} ({employee_email}) has submitted a '
                     f'phishing report.\n\n'
+                    f'{user_message_text}'
                     f'Report URL: {report_url}\n'
                 )
                 html_body = (
                     f'<p><strong>{employee.name}</strong> '
                     f'(<a href="mailto:{employee_email}">{employee_email}</a>)'
                     f' has submitted a phishing report.</p>'
+                    f'{user_message_html}'
                     f'<p>Report URL: <a href="{report_url}">'
                     f'{report_url}</a></p>'
                 )

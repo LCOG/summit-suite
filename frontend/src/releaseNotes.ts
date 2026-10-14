@@ -4,6 +4,16 @@
 
 export const releases = [
   {
+    version: '1.23.1',
+    date: new Date(2026, 9, 14),
+    changes: [
+      {
+        type: 'improved',
+        description: 'Minor improvements to Phish app.'
+      },
+    ]
+  },
+  {
     version: '1.23.0',
     date: new Date(2026, 9, 7),
     changes: [

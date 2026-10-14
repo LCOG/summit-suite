@@ -2,12 +2,6 @@ import { RouteLocationNormalized } from 'vue-router'
 
 import { useAuthStore } from 'src/stores/auth'
 import { useUserStore } from 'src/stores/user'
-import { hasAccessRule, type AccessRule } from 'src/utils/access'
-
-function canAccess (rule: AccessRule): boolean {
-  const userStore = useUserStore()
-  return hasAccessRule(userStore.accessProfile, rule)
-}
 
 export function isDivisionDirector() {
   const userStore = useUserStore()
