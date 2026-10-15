@@ -8,13 +8,16 @@
 // Configuration for your app
 // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js
 
+const { gitDescribeSync } = require('git-describe');
+import path from 'path'
+import svgLoader from 'vite-svg-loader'
 
-const { configure } = require('quasar/wrappers')
-const { gitDescribeSync } = require('git-describe')
-const svgLoader = require('vite-svg-loader')
-const path = require('path')
+export default function (ctx) {
 
-module.exports = configure(function (ctx) {
+  const isDev = ctx.dev;
+  const deployEnv = process.env.QCLI_DEPLOY_ENV;
+  const isStaging = !isDev && deployEnv === 'staging';
+
   return {
     eslint: {
       // fix: true,
@@ -70,14 +73,14 @@ module.exports = configure(function (ctx) {
 
       // rebuildCache: true, // rebuilds Vite/linter/etc cache on startup
 
-      // publicPath: '/',
+      publicPath: '/',
       // analyze: true,
       env: {
-        API_URL: ctx.dev ? 'http://localhost:8000/' : (ctx.debug ? 'https://api.team-staging.lcog.org/' : 'https://api.team.lcog.org/'),
+        API_URL: isDev ? 'http://localhost:8000/' : (isStaging ? 'https://api.team-staging.lcog.org/' : 'https://api.team.lcog.org/'),
         APP_VERSION_TAG: gitDescribeSync().tag,
-        DEPLOY_MODE: ctx.dev ? 'DEVELOPMENT' : (ctx.debug ? 'STAGING' : 'PRODUCTION'),
-        DASHBOARD_URL: ctx.dev ? 'http://localhost:9000/dashboard' : (ctx.debug ? 'https://app.team-staging.lcog.org/dashboard' : 'https://app.team.lcog.org/dashboard'),
-        WEBSOCKET_URL: ctx.dev ? 'ws://localhost:8000/' : (ctx.debug ? 'https://api.team-staging.lcog.org/' : 'ws://api.team.lcog.org/')
+        DEPLOY_MODE: isDev ? 'DEVELOPMENT' : (isStaging ? 'STAGING' : 'PRODUCTION'),
+        DASHBOARD_URL: isDev ? 'http://localhost:9000/dashboard' : (isStaging ? 'https://app.team-staging.lcog.org/dashboard' : 'https://app.team.lcog.org/dashboard'),
+        WEBSOCKET_URL: isDev ? 'ws://localhost:8000/' : (isStaging ? 'https://api.team-staging.lcog.org/' : 'ws://api.team.lcog.org/')
       },
       // rawDefine: {}
       // ignorePublicFolder: true,
@@ -89,14 +92,7 @@ module.exports = configure(function (ctx) {
       // viteVuePluginOptions: {},
 
       vitePlugins: [
-        ['@intlify/vite-plugin-vue-i18n', {
-          // if you want to use Vue I18n Legacy API, you need to set `compositionOnly: false`
-          // compositionOnly: false,
-
-          // if you want to use named tokens in your Vue I18n messages, such as 'Hello {name}',
-          // you need to set `runtimeOnly: false`
-          // runtimeOnly: false,
-
+        ['@intlify/unplugin-vue-i18n/vite', {
           // you need to set i18n resource including paths !
           include: path.resolve(__dirname, './src/i18n/**')
         }], svgLoader()
@@ -229,4 +225,4 @@ module.exports = configure(function (ctx) {
       // extendBexManifestJson (json) {}
     }
   }
-})
+}

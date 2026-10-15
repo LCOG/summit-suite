@@ -1,10 +1,10 @@
 import axios from 'axios'
 import { defineStore } from 'pinia'
 
-import { apiURL, handlePromiseError } from 'src/stores/index'
+import { apiURL, handlePromiseError } from '@/stores/index'
 import {
   EmployeeTransition, EmployeeTransitionUpdate, WorkflowInstance
-} from 'src/types'
+} from '@/types'
 
 export const useWorkflowsStore = defineStore('workflows', {
   state: () => ({

@@ -1,15 +1,15 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
 
-import { apiURL } from 'src/stores/index'
-import { useMealsStore } from 'src/stores/meals'
-import { usePeopleStore } from 'src/stores/people'
-import { usePurchaseStore } from 'src/stores/purchase'
-import { useResponsibilityStore } from 'src/stores/responsibility'
-import { useSecurityMessageStore } from 'src/stores/securitymessage'
-import { useTimeOffStore } from 'src/stores/timeoff'
-import { useUserStore } from 'src/stores/user'
-import { useWorkflowsStore } from 'src/stores/workflows'
+import { apiURL } from '@/stores/index'
+import { useMealsStore } from '@/stores/meals'
+import { usePeopleStore } from '@/stores/people'
+import { usePurchaseStore } from '@/stores/purchase'
+import { useResponsibilityStore } from '@/stores/responsibility'
+import { useSecurityMessageStore } from '@/stores/securitymessage'
+import { useTimeOffStore } from '@/stores/timeoff'
+import { useUserStore } from '@/stores/user'
+import { useWorkflowsStore } from '@/stores/workflows'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -33,7 +33,7 @@ export const useAuthStore = defineStore('auth', {
       return this.authenticate(user, `${ apiURL }api/api-token-auth/`)
     },
     authenticate(
-      user: { username: string, password: string } | 
+      user: { username: string, password: string } |
         { username: string, firstName: string, lastName: string },
       url: string
     ): Promise<string> {
@@ -93,7 +93,7 @@ export const useAuthStore = defineStore('auth', {
           .catch(err => console.log(err))
         workflowsStore.authLogout()
           .catch(err => console.log(err))
-        
+
         resolve('Successfully logged user out')
       })
     }

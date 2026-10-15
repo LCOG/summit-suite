@@ -53,5 +53,10 @@ npm run format
 quasar build
 ```
 
+### Build the app for staging
+```bash
+QCLI_DEPLOY_ENV=staging quasar build
+```
+
 ### Customize the configuration
 See [Configuring quasar.config.js](https://v2.quasar.dev/quasar-cli-vite/quasar-config-js).

@@ -1,4 +1,4 @@
-import { route } from 'quasar/wrappers'
+import { defineRouter } from '#q-app'
 import { RouteLocationNormalized } from 'vue-router'
 import {
   createMemoryHistory,
@@ -7,13 +7,13 @@ import {
   createWebHistory,
 } from 'vue-router'
 
-import routes from 'src/router/routes'
-import { useUserStore } from 'src/stores/user'
-import { hasAccessRule, type AccessRule } from 'src/utils/access'
+import routes from './routes'
+import { useUserStore } from '@/stores/user'
+import { hasAccessRule, type AccessRule } from '@/utils/access'
 
 import {
   canViewTimeOffRequest, isAuthenticated, isDivisionDirector, isExpenseApprover,
-  isExpenseSubmitter, isFiscal, isHROrDirector, isManager 
+  isExpenseSubmitter, isFiscal, isHROrDirector, isManager
 } from './guards'
 
 interface RouteMetaWithAccess {
@@ -41,10 +41,10 @@ function isPublicRoute (path: string): boolean {
  * with the Router instance.
  */
 
-export default route(function (/* { store, ssrContext } */) {
-  const createHistory = process.env.SERVER
+export default defineRouter(function (/* { store, ssrContext } */) {
+  const createHistory = import.meta.env.SERVER
     ? createMemoryHistory
-    : (process.env.VUE_ROUTER_MODE === 'history' ? createWebHistory : createWebHashHistory)
+    : (import.meta.env.VUE_ROUTER_MODE === 'history' ? createWebHistory : createWebHashHistory)
 
   const routerInstance = createRouter({
     scrollBehavior: () => ({ left: 0, top: 0 }),
@@ -53,7 +53,7 @@ export default route(function (/* { store, ssrContext } */) {
     // Leave this as is and make changes in quasar.conf.js instead!
     // quasar.conf.js -> build -> vueRouterMode
     // quasar.conf.js -> build -> publicPath
-    history: createHistory(process.env.VUE_ROUTER_BASE),
+    history: createHistory(import.meta.env.VUE_ROUTER_BASE),
   })
 
   routerInstance.beforeEach(async (to) => {

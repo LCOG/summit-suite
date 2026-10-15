@@ -1,7 +1,7 @@
 import { RouteLocationNormalized } from 'vue-router'
 
-import { useAuthStore } from 'src/stores/auth'
-import { useUserStore } from 'src/stores/user'
+import { useAuthStore } from '@/stores/auth'
+import { useUserStore } from '@/stores/user'
 
 export function isDivisionDirector() {
   const userStore = useUserStore()

@@ -1,11 +1,11 @@
 import axios from 'axios'
 import { defineStore } from 'pinia'
 
-import { apiURL, handlePromiseError } from 'src/stores/index'
+import { apiURL, handlePromiseError } from '@/stores/index'
 import {
   Expense, ExpenseCreate, ExpenseMonth, ExpenseMonthCreate, ExpenseMonthLock,
   ExpenseMonthLockCreate, ExpenseStatement, GL, SimpleEmployeeRetrieve
-} from 'src/types'
+} from '@/types'
 
 export const usePurchaseStore = defineStore('purchase', {
   state: () => ({
@@ -28,14 +28,14 @@ export const usePurchaseStore = defineStore('purchase', {
       }
     },
     fiscalEMsDetails: [] as Array<ExpenseMonth>,
-    
+
     expenseStatements: {} as {
       [year: number]: {
         [month: number]: Array<ExpenseStatement>
       }
     },
     expenseStatementDetails: [] as Array<ExpenseStatement>,
-    
+
     numEMsToResubmit: 0,
     numExpenseGLsToApprove: 0,
     numExpensesDirectorToApprove: 0,
@@ -218,7 +218,7 @@ export const usePurchaseStore = defineStore('purchase', {
           })
       })
     },
-    
+
     /////////////////
     /// Submitter ///
     /////////////////
@@ -383,7 +383,7 @@ export const usePurchaseStore = defineStore('purchase', {
               }
               expenseGLs.push(gl)
             }
-            
+
             // Set active month: The first month that has unapproved GLs
             unapprovedGLs = unapprovedGLs.sort(
               (a: GL, b: GL) => {
@@ -394,7 +394,7 @@ export const usePurchaseStore = defineStore('purchase', {
             if (unapprovedGLs.length > 0) {
               this.setMonth(unapprovedGLs[0].em_month, unapprovedGLs[0].em_year)
             }
-            
+
             this.approvalExpenseGLs = expenseGLs
             this.numExpenseGLsToApprove = unapprovedGLs.length
             resolve(resp.data.results)
@@ -505,7 +505,7 @@ export const usePurchaseStore = defineStore('purchase', {
         })
           .then(resp => {
             const ems: ExpenseMonth[] = resp.data.results
-            
+
             // Set active month if any ems this month are unapproved.
             const emsFiscalToApprove = ems.filter(
               em => {
@@ -515,7 +515,7 @@ export const usePurchaseStore = defineStore('purchase', {
             if (emsFiscalToApprove.length > 0) {
               this.setMonth(monthInt, yearInt)
             }
-            
+
             if (!this.fiscalExpenseMonths[yearInt]) {
               this.fiscalExpenseMonths[yearInt] = {};
             }
@@ -651,8 +651,8 @@ export const usePurchaseStore = defineStore('purchase', {
               handlePromiseError(reject, 'Error unlocking expense month', e)
             })
         }
-        
-        
+
+
       })
     },
 

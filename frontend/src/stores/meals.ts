@@ -1,8 +1,8 @@
 import axios from 'axios'
 import { defineStore } from 'pinia'
 
-import { apiURL, handlePromiseError } from 'src/stores/index'
-import { LatLong, MealStateInterface, Stop } from 'src/types'
+import { apiURL, handlePromiseError } from '@/stores/index'
+import { LatLong, MealStateInterface, Stop } from '@/types'
 
 export const useMealsStore = defineStore('meals', {
   state: (): MealStateInterface => ({

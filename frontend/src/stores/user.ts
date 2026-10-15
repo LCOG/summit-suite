@@ -2,8 +2,8 @@ import axios from 'axios'
 import { defineStore } from 'pinia'
 import { useCookies } from 'vue3-cookies'
 
-import { apiURL, handlePromiseError } from 'src/stores/index'
-import { useSecurityMessageStore } from 'src/stores/securitymessage'
+import { apiURL, handlePromiseError } from '@/stores/index'
+import { useSecurityMessageStore } from '@/stores/securitymessage'
 import {
   ClientError, EmployeeRetrieve, OrganizationRetrieve,
   SimpleEmployeeRetrieve, WorkflowOption

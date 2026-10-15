@@ -1,4 +1,4 @@
-import { store } from 'quasar/wrappers'
+import { defineStore } from '#q-app'
 import { createPinia } from 'pinia'
 import { Router } from 'vue-router'
 import { AxiosError } from 'axios'
@@ -23,7 +23,7 @@ declare module 'pinia' {
  * with the Store instance.
  */
 
-export default store((/* { ssrContext } */) => {
+export default defineStore((/* { ssrContext } */) => {
   const pinia = createPinia()
 
   // You can add Pinia plugins here
@@ -52,5 +52,5 @@ export function handlePromiseError(
   reject(errorMessage)
 }
 
-export const apiURL = process.env.API_URL ?
-  process.env.API_URL : 'https://api.team.lcog.org/'
+export const apiURL = import.meta.env.API_URL ?
+  import.meta.env.API_URL : 'https://api.team.lcog.org/'

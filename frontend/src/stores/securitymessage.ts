@@ -1,8 +1,8 @@
 import axios from 'axios'
 import { defineStore } from 'pinia'
 
-import { apiURL, handlePromiseError } from 'src/stores/index'
-import { SecurityMessage, ViewedSecurityMessageCreate } from 'src/types'
+import { apiURL, handlePromiseError } from '@/stores/index'
+import { SecurityMessage, ViewedSecurityMessageCreate } from '@/types'
 
 export const useSecurityMessageStore = defineStore('securitymessage', {
   state: () => ({
@@ -40,7 +40,7 @@ export const useSecurityMessageStore = defineStore('securitymessage', {
     },
     getViewedSecurityMessages() {
       return new Promise((resolve, reject) => {
-        axios({ url: `${ process.env.API_URL }api/v1/viewedsecuritymessage` })
+        axios({ url: `${ apiURL }api/v1/viewedsecuritymessage` })
           .then(resp => {
             this.viewedSecurityMessages = resp.data.results
             resolve('Successfully got viewed security messages')
@@ -52,7 +52,7 @@ export const useSecurityMessageStore = defineStore('securitymessage', {
     },
     setViewedSecurityMessage(viewedSecurityMessage: ViewedSecurityMessageCreate) {
       return new Promise((resolve, reject) => {
-        axios({ url: `${ process.env.API_URL }api/v1/viewedsecuritymessage`, data: viewedSecurityMessage, method: 'POST' })
+        axios({ url: `${ apiURL }api/v1/viewedsecuritymessage`, data: viewedSecurityMessage, method: 'POST' })
           .then(() => {
             Promise.all([
               this.getViewedLatestSecurityMessage(),  this.getViewedSecurityMessages()

@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { defineStore } from 'pinia'
 
-import { apiURL, handlePromiseError } from 'src/stores/index'
+import { apiURL, handlePromiseError } from '@/stores/index'
 import {
   EmployeeEmailRetrieve, EmployeeRetrieve, EmployeeUpdatePartial,
   SimpleEmployeeRetrieve, Title, Unit

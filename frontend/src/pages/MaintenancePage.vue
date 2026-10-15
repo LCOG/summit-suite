@@ -27,8 +27,8 @@
 
 <script lang="ts">
 import { defineComponent, ref, onMounted, onUnmounted } from 'vue'
-import { MAINTENANCE_MESSAGE } from 'src/boot/maintenance'
-import summitImg from 'src/assets/summit.png'
+import { MAINTENANCE_MESSAGE } from '@/boot/maintenance'
+import summitImg from '@/assets/summit.png'
 
 export default defineComponent({
   name: 'MaintenancePage',
@@ -39,7 +39,7 @@ export default defineComponent({
     // Check every 5 seconds if backend is back up
     const checkBackendStatus = async () => {
       try {
-        const apiUrl = process.env.API_URL || 'http://localhost:8000/'
+        const apiUrl = import.meta.env.API_URL || 'http://localhost:8000/'
         // Use an image load to check connectivity - doesn't require CORS
         // Images can be loaded cross-origin without CORS headers
         // Add cache busting to avoid stale cached responses
@@ -48,7 +48,7 @@ export default defineComponent({
           const timer = setTimeout(() => {
             reject(new Error('Timeout'))
           }, 5000)
-          
+
           img.onload = () => {
             clearTimeout(timer)
             resolve()
@@ -60,7 +60,7 @@ export default defineComponent({
           // Point to any static file that exists on the backend
           img.src = `${apiUrl}static/admin/img/icon-yes.svg?t=${Date.now()}`
         })
-        
+
         // Backend is back up, reload the page to get back to normal app
         window.location.href = '/'
       } catch (error) {

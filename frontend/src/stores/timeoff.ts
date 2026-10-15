@@ -1,13 +1,13 @@
 import axios from 'axios'
 import { defineStore } from 'pinia'
 
-import { apiURL, handlePromiseError } from 'src/stores/index'
-import { useUserStore } from 'src/stores/user'
-import { 
+import { apiURL, handlePromiseError } from '@/stores/index'
+import { useUserStore } from '@/stores/user'
+import {
   EmployeeConflictingResponsibilities, TimeOffRequestAcknowledge,
   TimeOffRequestCreate, TimeOffRequestDates, TimeOffRequestRetrieve,
   TimeOffRequestUpdate
-} from 'src/types'
+} from '@/types'
 
 export const useTimeOffStore = defineStore('timeoff', {
   state: () => ({
