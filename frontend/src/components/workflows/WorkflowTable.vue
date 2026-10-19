@@ -827,7 +827,7 @@ function navigateToWorkflowProcesses(pk: number): void {
 
 watch(
   [() => pagination.value?.sortBy, () => pagination.value?.descending],
-  ([sortBy, descending], [oldSortBy, oldDescending]) => {
+  ([sortBy, descending], [oldSortBy]) => {
     if (oldSortBy === undefined) {
       return // Page init
     }
