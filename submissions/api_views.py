@@ -79,19 +79,39 @@ class SubmissionViewSet(viewsets.ReadOnlyModelViewSet):
                 return self.queryset
             if hasattr(user, "employee"):
                 employee = user.employee
-                organization_submissions = Submission.objects.filter(
-                    organization=employee.organization
-                ).select_related(
-                    "submitter",
-                    "approver_role",
-                    "approved_by",
-                    "mileage_submission",
-                )
-                if Role.objects.filter(
-                    organization=employee.organization, members=employee
-                ).exists():
-                    return organization_submissions
-                return organization_submissions.filter(submitter=employee)
+                import pdb; pdb.set_trace()
+                if self.request.GET.get("for_employee"):
+                    return Submission.objects.filter(
+                        submitter=employee
+                    ).select_related(
+                        "submitter",
+                        "approver_role",
+                        "approved_by",
+                        "mileage_submission",
+                    )
+                elif self.request.GET.get("to_approve"):
+                    return Submission.objects.filter(
+                        approver_role__members=employee
+                    ).select_related(
+                        "submitter",
+                        "approver_role",
+                        "approved_by",
+                        "mileage_submission",
+                    )
+                else:
+                    organization_submissions = Submission.objects.filter(
+                        organization=employee.organization
+                    ).select_related(
+                        "submitter",
+                        "approver_role",
+                        "approved_by",
+                        "mileage_submission",
+                    )
+                    if Role.objects.filter(
+                        organization=employee.organization, members=employee
+                    ).exists():
+                        return organization_submissions
+                    return organization_submissions.filter(submitter=employee)
         return Submission.objects.none()
 
 
