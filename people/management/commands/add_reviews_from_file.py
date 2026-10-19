@@ -45,7 +45,10 @@ class Command(BaseCommand):
                     '(representing the time from November 21, 2023 to January 22, 2024) from July 12, 2024 to September 12, 2024.',
                     'bonus\n\n04/12/2024 03:06 PM - clid1559',
                     'once.\n\n03/16/2025 01:55 PM - clid1559',
-                    'of GSAM Range 31 Step 10).  There is no change in pay connected to this; this is just for your documentation and the auditors.\n\nJosh\n\n06/09/2024 12:03 PM - clid1559'
+                    'of GSAM Range 31 Step 10).  There is no change in pay connected to this; this is just for your documentation and the auditors.\n\nJosh\n\n06/09/2024 12:03 PM - clid1559',
+                    'two $500 top-step bonuses (EA member).',
+                    '7.\n\n06/12/2019 05:57 PM - clid1559',
+                    'Planning\n\n06/09/2024 12:14 PM - clid1559',
                 ]:
                     continue
                 if row[0]:
