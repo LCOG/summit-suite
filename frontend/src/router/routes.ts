@@ -427,6 +427,11 @@ if (maintenanceMode) {
               path: 'list',
               name: 'mileage-reimbursement-list',
               component: () => import('src/pages/mileageReimbursement/MileageReimbursementList.vue')
+            },
+            {
+              path: 'approve',
+              name: 'mileage-reimbursement-approve',
+              component: () => import('src/pages/mileageReimbursement/MileageReimbursementApprove.vue')
             }
           ]
         },

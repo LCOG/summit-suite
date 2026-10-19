@@ -15,10 +15,10 @@ export const useSubmissionsStore = defineStore('submissions', {
   }),
 
   actions: {
-    getMileageSubmissions() {
+    getAllMileageSubsForEmployee(pk: number) {
       return new Promise((resolve, reject) => {
         axios({
-          url: `${apiURL}api/v1/mileage-submission`
+          url: `${apiURL}api/v1/mileage-submission?for_employee=${pk}`
         })
           .then(resp => {
             this.mileageSubmissions = resp.data.results
@@ -28,6 +28,24 @@ export const useSubmissionsStore = defineStore('submissions', {
             handlePromiseError(
               reject,
               'Error getting mileage submissions',
+              e
+            )
+          })
+      })
+    },
+
+    getAllMileageSubsToApprove(pk: number) {
+      return new Promise((resolve, reject) => {
+        axios({
+          url: `${apiURL}api/v1/mileage-submission?to_approve=${pk}`
+        })
+          .then(resp => {
+            resolve(resp.data.results)
+          })
+          .catch(e => {
+            handlePromiseError(
+              reject,
+              'Error getting mileage submissions to approve',
               e
             )
           })

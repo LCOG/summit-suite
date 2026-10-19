@@ -1,4 +1,3 @@
-<!-- Not converted from Quasar 1/Vue 2 -->
 <template>
   <q-page class="q-pa-md">
     <div class="text-h4">Mileage Reimbursement</div>
@@ -10,7 +9,7 @@
           rounded
           color="primary"
           icon="directions_car"
-          label="Request Reimbursement"
+          :label="$q.screen.xs ? 'Submit' : 'Request Reimbursement'"
         />
         <q-btn
           :to="{ name: 'mileage-reimbursement-list' }"
@@ -18,7 +17,15 @@
           rounded
           color="primary"
           icon="list"
-          label="View Requests"
+          :label="$q.screen.xs ? 'List' : 'My Requests'"
+        />
+        <q-btn
+          :to="{ name: 'mileage-reimbursement-approve' }"
+          unelevated
+          rounded
+          color="primary"
+          icon="check"
+          :label="$q.screen.xs ? 'Approve' : 'Approve Requests'"
         />
       </q-btn-group>
     </div>

@@ -3,6 +3,7 @@ import { RouteLocationNormalizedLoaded } from 'vue-router'
 import { handlePromiseError } from 'src/stores'
 import { useAuthStore } from 'src/stores/auth'
 import { useUserStore } from 'src/stores/user'
+import { EmployeeRetrieve } from './types'
 
 const authStore = useAuthStore()
 const userStore = useUserStore()
@@ -32,7 +33,7 @@ export function getRouteQuery(
   }
 }
 
-export function getCurrentUser(): Promise<any> {
+export function getCurrentUser(): Promise<EmployeeRetrieve> {
   // Get the current user from the store. If the user is not authenticated,
   // reject the promise.
   return new Promise((resolve, reject) => {
