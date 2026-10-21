@@ -52,8 +52,8 @@ def send_manager_pr_notices():
         html_body.write('</ul>')
 
         # Add a note that recent changes may not be reflected in the data
-        body.write('\nPlease note that recent changes may not yet be reflected in the data.')
-        html_body.write('<p>Please note that recent changes may not yet be reflected in the data.</p>')
+        body.write('\nPlease note that recent changes may not yet be reflected in the data. If someone had a review in the last week or two, they will probably not appear in the list.')
+        html_body.write('<p>Please note that recent changes may not yet be reflected in the data. If someone had a review in the last week or two, they will probably not appear in the list.</p>')
         # Add a note to email me if there are any errors with the review data
         body.write('\nIf you notice any errors, please send an email to webupdates@lcog-or.gov.')
         html_body.write(
