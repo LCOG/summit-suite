@@ -58,9 +58,29 @@
       <span class="email-meta-label">Received</span>
       <span class="email-meta-value">{{ receivedDisplay }}</span>
     </div>
-    <div class="email-meta-row">
+    <div class="email-meta-row" v-if="!props.attachments?.length">
       <span class="email-meta-label">Has Attachments</span>
-      <span class="email-meta-value">{{ hasAttachments ? 'Yes' : 'No' }}</span>
+      <span class="email-meta-value">No</span>
+    </div>
+    <div v-else class="email-meta-row row items-center">
+      <q-btn
+        flat dense class="text-bold"
+        :label="showAttachments ? 'Hide Attachments' : 'Show Attachments'"
+        :icon="showAttachments ? 'expand_less' : 'expand_more'"
+        @click="showAttachments = !showAttachments"
+      />
+      <q-icon name="info" size="sm" color="primary" >
+        <q-tooltip class="text-body2">
+          Attachments are rendered using a secure viewer to reduce risk.
+        </q-tooltip>
+      </q-icon>
+    </div>
+    <div v-if="props.attachments?.length && showAttachments">
+      <div v-for="(attachment, index) in props.attachments" :key="index">
+        <q-card class="q-mt-md">
+          <phish-report-attachment-viewer :attachment="attachment" />
+        </q-card>
+      </div>
     </div>
 
     <q-separator class="q-my-md" />
@@ -70,10 +90,14 @@
 </template>
 
 <script setup lang="ts">
+import { PhishReportAttachment } from 'src/types';
+import PhishReportAttachmentViewer from
+  'src/components/phish/PhishReportAttachmentViewer.vue';
 import { computed, ref } from 'vue'
 
 const hoveringFrom = ref(false)
 const hoveringTo = ref(false)
+const showAttachments = ref(false)
 
 interface EmailAddress {
   name?: string
@@ -106,6 +130,7 @@ interface OutlookMessage {
 
 const props = withDefaults(defineProps<{
   message: unknown | null
+  attachments?: PhishReportAttachment[]
   showRawJson?: boolean
 }>(), {
   showRawJson: false

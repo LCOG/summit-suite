@@ -12,7 +12,7 @@
       />
     </div>
   </div>
-  
+
   <!-- PROCESSED, JUNK -->
   <q-card flat bordered class="q-mb-md" v-if="showJunk">
     <q-card-section>
@@ -65,8 +65,8 @@
         </template>
         <template v-slot:body-cell-has_attachments="props">
           <q-td :props="props">
-            <q-icon 
-              :name="props.value ? 'check_circle' : 'cancel'" 
+            <q-icon
+              :name="props.value ? 'check_circle' : 'cancel'"
               :color="props.value ? 'negative' : 'primary'"
               size="sm"
             />
@@ -107,7 +107,7 @@
       </q-table>
     </q-card-section>
   </q-card>
-    
+
   <q-dialog v-model="showMessageDialog" @hide="onDialogClose()">
     <q-card style="min-width: 50vw; max-width: 90vw;">
       <q-card-section class="row">
@@ -149,6 +149,7 @@
       <q-card-section>
         <phish-report-message-viewer
           :message="dialogMessage"
+          :attachments="dialogReport?.attachments"
           :show-raw-json="showRawJson"
         />
       </q-card-section>
@@ -230,7 +231,7 @@ import { QTableProps } from 'quasar'
 import PhishReportMessageViewer from
   'src/components/phish/PhishReportMessageViewer.vue'
 import { usePhishStore } from 'src/stores/phish'
-import { PhishReport, PhishTask } from 'src/types'
+import { PhishReport, PhishReportAttachment, PhishTask } from 'src/types'
 import { computed, ref, onMounted, Ref } from 'vue'
 import { useRoute } from 'vue-router'
 

@@ -301,7 +301,7 @@ export interface ReviewRetrieve {
   form: {
     'longResponses': [],
     'factorsResponseSet': [],
-    'factors': PRFormFactor[], 
+    'factors': PRFormFactor[],
     'anyNotApplicable': boolean
   }
   data: {[name: string]: string}
@@ -381,6 +381,14 @@ export interface PhishReport {
   additional_info: string
   processed: boolean
   status: 'reported' | 'phish' | 'not_phish' | 'training'
+  attachments: PhishReportAttachment[]
+}
+
+export interface PhishReportAttachment {
+  pk: number
+  report: number
+  filename: string
+  attachment: string
 }
 
 export interface PhishTask {
@@ -552,7 +560,7 @@ export interface GL {
 }
 
 export interface GLWithApprover extends GL {
-  approver: SimpleEmployeeRetrieve  
+  approver: SimpleEmployeeRetrieve
 }
 
 export interface ExpenseCard {
