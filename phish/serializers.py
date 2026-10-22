@@ -2,11 +2,18 @@ from rest_framework import serializers
 
 from people.serializers import SimpleEmployeeSerializer
 from phish.models import (
-    PhishGroup, PhishReport, PhishReportTask, PhishRiskProfile, PhishTask,
-    SyntheticPhish,
-    SyntheticPhishTemplate, TrainingAssignment, TrainingTemplate
+    PhishGroup, PhishReport, PhishReportAttachment, PhishReportTask,
+    PhishRiskProfile, PhishTask, SyntheticPhish, SyntheticPhishTemplate,
+    TrainingAssignment, TrainingTemplate
 )
-    
+
+
+class PhishReportAttachmentSerializer(serializers.HyperlinkedModelSerializer):
+
+    class Meta:
+        model = PhishReportAttachment
+        fields = ['pk', 'report', 'filename', 'attachment']
+
 
 class PhishReportSerializer(serializers.HyperlinkedModelSerializer):
     
@@ -14,10 +21,11 @@ class PhishReportSerializer(serializers.HyperlinkedModelSerializer):
         model = PhishReport
         fields = [
             'pk', 'employee', 'created_at', 'message', 'additional_info',
-            'status', 'processed'
+            'status', 'processed', 'attachments'
         ]
 
     employee = SimpleEmployeeSerializer(required=False)
+    attachments = PhishReportAttachmentSerializer(many=True, read_only=True)
 
 
 class PhishReportSimpleSerializer(serializers.HyperlinkedModelSerializer):
@@ -29,7 +37,9 @@ class PhishReportSimpleSerializer(serializers.HyperlinkedModelSerializer):
             'status', 'processed'
         ]
 
-    employee_name = serializers.CharField(source='employee.name', read_only=True)
+    employee_name = serializers.CharField(
+        source='employee.name', read_only=True
+    )
 
 
 class PhishTaskSerializer(serializers.HyperlinkedModelSerializer):
@@ -70,7 +80,9 @@ class SyntheticPhishTemplateSerializer(serializers.HyperlinkedModelSerializer):
 
 class SyntheticPhishSerializer(serializers.HyperlinkedModelSerializer):
     
-    template_name = serializers.CharField(source='template.name', read_only=True)
+    template_name = serializers.CharField(
+        source='template.name', read_only=True
+    )
 
     class Meta:
         model = SyntheticPhish
@@ -93,7 +105,9 @@ class TrainingTemplateSerializer(serializers.HyperlinkedModelSerializer):
 
 class TrainingAssignmentSerializer(serializers.HyperlinkedModelSerializer):
     
-    training_name = serializers.CharField(source='template.name', read_only=True)
+    training_name = serializers.CharField(
+        source='template.name', read_only=True
+    )
     template = TrainingTemplateSerializer(read_only=True)
 
     class Meta:
