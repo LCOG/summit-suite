@@ -172,7 +172,7 @@ const navLinks: Array<LinkData> = [
   {
     title: 'Secure',
     icon: 'phishing',
-    link: '/phish',
+    link: '/phish/dashboard',
     access: { module: 'secure', flag: 'can_view_secure' }
   },
   // {
