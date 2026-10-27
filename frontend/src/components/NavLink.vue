@@ -11,7 +11,7 @@
       <q-icon :name="icon" />
     </q-item-section>
 
-    <q-item-section>
+    <q-item-section v-if="showLabel">
       <q-item-label>{{ title }}</q-item-label>
     </q-item-section>
   </q-item>
@@ -40,7 +40,12 @@ export default defineComponent({
     id: {
       type: String,
       required: false
-    }
+    },
+    showLabel: {
+      type: Boolean,
+      required: false,
+      default: true
+    },
   }
 })
 </script>

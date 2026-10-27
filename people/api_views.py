@@ -172,6 +172,8 @@ class EmployeeViewSet(viewsets.ModelViewSet):
         Updates the employee's display name and other preferences.
         """
         employee = Employee.objects.get(pk=pk)
+        if request.data.get('left_drawer_full') is not None:
+            employee.left_drawer_full = request.data['left_drawer_full']
         if request.data.get('display_name') is not None:
             employee.display_name = request.data['display_name']
         if request.data.get('email_opt_out_all') is not None:

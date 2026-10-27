@@ -33,6 +33,7 @@ export const useUserStore = defineStore('user', {
       is_division_director: false,
       is_executive_director: false,
       viewed_security_message: false,
+      left_drawer_full: true,
       prs_can_view: [] as Array<number>,
       notes_can_view: [] as Array<number>,
       telework_applications_can_view: [] as Array<number>,
@@ -107,6 +108,7 @@ export const useUserStore = defineStore('user', {
             this.profile.is_executive_director = resp.data.is_executive_director
             this.profile.viewed_security_message =
               resp.data.viewed_security_message
+            this.profile.left_drawer_full = resp.data.left_drawer_full
             this.profile.prs_can_view = resp.data.prs_can_view
             this.profile.notes_can_view = resp.data.notes_can_view
             this.profile.telework_applications_can_view =

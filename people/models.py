@@ -142,6 +142,9 @@ class Employee(models.Model):
     number = models.IntegerField("number", unique=True, blank=True, null=True)
     
     # User Profile Preferences
+    left_drawer_full = models.BooleanField(
+        _("left drawer full"), default=True
+    )
     display_name = models.CharField(
         _("display name"), max_length=100, blank=True, null=True
     )

@@ -118,6 +118,7 @@ export interface EmployeeRetrieve {
   is_division_director: boolean
   is_executive_director: boolean
   viewed_security_message: boolean
+  left_drawer_full: boolean
   is_eligible_for_telework_application: boolean
   can_view_seating_charts: boolean
   can_edit_seating_charts: boolean
@@ -195,6 +196,7 @@ export interface EmployeeEmailRetrieve {
 
 // For updating employee profile
 export interface EmployeeUpdatePartial {
+  left_drawer_full?: boolean
   display_name?: string
   email_opt_out_all?: boolean
   email_opt_out_expenses_all?: boolean

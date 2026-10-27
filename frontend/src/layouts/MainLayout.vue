@@ -25,10 +25,9 @@
 
     <q-drawer
       v-model="leftDrawerOpen"
-      show-if-above
       bordered
       content-class="bg-grey-1"
-      :width="210"
+      :width="leftDrawerFull ? 180 : 73"
     >
       <q-list>
         <q-item
@@ -43,7 +42,7 @@
               style="width: 30px;"
             />
           </q-item-section>
-          <q-item-section>
+          <q-item-section v-if="leftDrawerFull">
             <q-item-label>Summit Suite</q-item-label>
           </q-item-section>
         </q-item>
@@ -69,6 +68,7 @@
             :key="link.title"
             v-bind="link"
             :id="link.id"
+            :show-label="leftDrawerFull"
           />
         </div>
         <q-item
@@ -79,7 +79,7 @@
           <q-item-section avatar>
             <q-icon name='west' />
           </q-item-section>
-          <q-item-section>
+          <q-item-section v-if="leftDrawerFull">
             <q-item-label>Log Out</q-item-label>
           </q-item-section>
         </q-item>
@@ -104,16 +104,19 @@ import { useRouter } from 'vue-router'
 import NavLink from 'components/NavLink.vue'
 import useEventBus from 'src/eventBus'
 import { useAuthStore } from 'src/stores/auth'
+import { usePeopleStore } from 'src/stores/people'
 import { useUserStore } from 'src/stores/user'
 import { getCurrentUser } from 'src/utils'
 import { hasAccessRule, type AccessRule } from 'src/utils/access'
 
 const authStore = useAuthStore()
+const peopleStore = usePeopleStore()
 const userStore = useUserStore()
 const router = useRouter()
 const bus = useEventBus()
 
-let leftDrawerOpen = ref(false)
+let leftDrawerOpen = ref(true)
+let leftDrawerFull = ref(true)
 
 interface LinkData {
   title: string
@@ -125,57 +128,58 @@ interface LinkData {
 
 const navLinks: Array<LinkData> = [
   {
-    title: 'Time Off',
-    icon: 'schedule',
-    link: '/timeoff',
-    id: 'nav-timeoff',
-    access: { module: 'schedule', flag: 'can_view_schedule' }
-  },
-  {
-    title: 'Responsibilities',
+    title: 'Delegate',
     icon: 'hardware',
     link: '/responsibilities',
     id: 'nav-responsibilities',
     access: { module: 'delegate', flag: 'can_view_delegate' }
   },
   {
-    title: 'Workflows',
-    icon: 'double_arrow',
-    link: '/workflows',
-    access: { module: 'process', flag: 'can_view_process' }
-  },
-  {
-    title: 'Credit Card Expenses',
+    title: 'Expense',
     icon: 'credit_card',
     link: '/expenses',
     access: { module: 'expense', flag: 'can_view_expense' }
   },
   {
-    title: 'Performance Reviews',
-    icon: 'assignment_turned_in',
-    link: '/reviews',
-    access: { module: 'review', flag: 'can_view_review' }
+    title: 'Process',
+    icon: 'double_arrow',
+    link: '/workflows',
+    access: { module: 'process', flag: 'can_view_process' }
   },
   {
-    title: 'Phishing',
-    icon: 'phishing',
-    link: '/phish',
-    access: { module: 'secure', flag: 'can_view_secure' }
-  },
-  {
-    title: 'Schaefers Desk Reservation',
+    title: 'Reserve',
     icon: 'laptop',
     link: '/desk-reservation/schaefers/1',
     id: 'nav-schaefers-desk-reservation',
     access: { module: 'reserve', flag: 'can_view_reserve' }
   },
   {
-    title: 'Meals on Wheels Map',
-    icon: 'map',
-    link: '/mow-map',
-    id: 'nav-mow',
-    access: { flag: 'can_view_mow_routes' }
+    title: 'Review',
+    icon: 'assignment_turned_in',
+    link: '/reviews',
+    access: { module: 'review', flag: 'can_view_review' }
   },
+  {
+    title: 'Schedule',
+    icon: 'schedule',
+    link: '/timeoff',
+    id: 'nav-timeoff',
+    access: { module: 'schedule', flag: 'can_view_schedule' }
+  },
+  {
+    title: 'Secure',
+    icon: 'phishing',
+    link: '/phish',
+    access: { module: 'secure', flag: 'can_view_secure' }
+  },
+
+  // {
+  //   title: 'Meals on Wheels Map',
+  //   icon: 'map',
+  //   link: '/mow-map',
+  //   id: 'nav-mow',
+  //   access: { flag: 'can_view_mow_routes' }
+  // },
   // {
   //   title: 'My Telework Application',
   //   icon: 'home_work',
@@ -233,7 +237,13 @@ const loginRequest = {
 }
 
 function toggleLeftDrawer () {
-  leftDrawerOpen.value = !leftDrawerOpen.value
+  leftDrawerFull.value = !leftDrawerFull.value
+  if (isAuthenticated()) {
+    peopleStore.updatePartialEmployee(
+      userStore['getEmployeeProfile'].employee_pk.toString(),
+      { left_drawer_full: leftDrawerFull.value }
+    )
+  }
 }
 
 function appVersionTag() {
@@ -290,6 +300,12 @@ function logout() {
 onMounted(() => {
   getCurrentUser().then(() => {
     bus.emit('gotUserProfile', Math.random())
+    userStore.simpleUserRequest()
+      .then((employee) => {
+        if (employee && employee.left_drawer_full !== undefined) {
+          leftDrawerFull.value = employee.left_drawer_full
+        }
+      })
   })
   .catch(e => {
     console.log(e)
