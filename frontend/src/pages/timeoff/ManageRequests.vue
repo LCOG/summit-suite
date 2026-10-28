@@ -9,13 +9,7 @@
     >
       <template v-slot:body-cell-dates="props">
         <q-td key="dates" :props="props">
-          <div v-if="$q.screen.gt.xs">
-            {{ startDateTime(props.row) }} - {{ endDateTime(props.row) }}
-          </div>
-          <div v-if="$q.screen.xs">
-            <div>{{ startDateTime(props.row) }}</div>
-            <div>{{ endDateTime(props.row) }}</div>
-          </div>
+          <div>{{ displayRequestDate(props.row) }}</div>
         </q-td>
       </template>
       <template v-slot:body-cell-notes="props">
@@ -180,7 +174,7 @@
 
 import { ref } from 'vue'
 import { QTableProps } from 'quasar'
-import { readableDateNEW, readableDateTimeNEW } from 'src/filters'
+import { readableDateNEW, readableDateTimeNEW, readableTime } from 'src/filters'
 import { useTimeOffStore } from 'src/stores/timeoff'
 import { TimeOffRequestRetrieve } from 'src/types'
 
@@ -218,12 +212,18 @@ function displayDateTime(date: string, time: string | undefined): string {
   return readableDateNEW(date)
 }
 
-function startDateTime(row: TimeOffRequestRetrieve): string {
-  return displayDateTime(row.start_date.toString(), row.start_time)
-}
-
-function endDateTime(row: TimeOffRequestRetrieve): string {
-  return displayDateTime(row.end_date.toString(), row.end_time)
+function displayRequestDate(row: TimeOffRequestRetrieve): string {
+  if (row.start_date === row.end_date) {
+    if (!!row.start_time && !!row.end_time) {
+      return `${readableDateNEW(row.start_date.toString())}
+        ${readableTime(row.start_time)} - ${readableTime(row.end_time)}`
+    } else {
+      return readableDateNEW(row.start_date.toString())
+    }
+  } else {
+    return `${displayDateTime(row.start_date.toString(), row.start_time)} -
+      ${displayDateTime(row.end_date.toString(), row.end_time)}`
+  }
 }
 
 function managedTimeOffRequests() {
