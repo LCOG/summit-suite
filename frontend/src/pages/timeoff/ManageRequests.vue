@@ -1,15 +1,21 @@
 <template>
   <div>
     <q-table
+      :dense="$q.screen.lt.sm"
       :rows="managedTimeOffRequests()"
       :columns="columns"
       :pagination="tablePagination"
       row-key="pk"
-      :grid="$q.screen.lt.md"
     >
       <template v-slot:body-cell-dates="props">
         <q-td key="dates" :props="props">
-          {{ props.row.start_date }} - {{ props.row.end_date }}
+          <div v-if="$q.screen.gt.xs">
+            {{ startDateTime(props.row) }} - {{ endDateTime(props.row) }}
+          </div>
+          <div v-if="$q.screen.xs">
+            <div>{{ startDateTime(props.row) }}</div>
+            <div>{{ endDateTime(props.row) }}</div>
+          </div>
         </q-td>
       </template>
       <template v-slot:body-cell-notes="props">
@@ -29,8 +35,8 @@
         </q-td>
       </template>
       <template v-slot:body-cell-acknowledge="props">
-        <q-td :props="props" class="row justify-center items-center">
-          <q-btn 
+        <q-td key="acknowledge" :props="props" class="row justify-center items-center">
+          <q-btn
             dense round color="red" icon="close"
             :outline="props.row.acknowledged == null ||
               props.row.acknowledged == true"
@@ -84,7 +90,7 @@
                 <div class="q-table__grid-item-row">
                   <div class="q-table__grid-item-title">{{ col.label }}</div>
                   <div
-                    v-if="col.name == 'notes'"  
+                    v-if="col.name == 'notes'"
                     class="q-table__grid-item-value"
                   >
                     <span v-if="props.row.note && !props.row.private_note">
@@ -102,13 +108,13 @@
                     </span>
                   </div>
                   <div
-                    v-else-if="col.name != 'acknowledge'"  
+                    v-else-if="col.name != 'acknowledge'"
                     class="q-table__grid-item-value"
                   >
                     {{ col.value }}
                   </div>
                   <div class="q-table__grid-item-value row q-gutter-sm" v-else>
-                    <q-btn 
+                    <q-btn
                       dense round color="red" icon="close"
                       :outline="props.row.acknowledged == null ||
                         props.row.acknowledged == true"
@@ -174,7 +180,9 @@
 
 import { ref } from 'vue'
 import { QTableProps } from 'quasar'
+import { readableDateNEW, readableDateTimeNEW } from 'src/filters'
 import { useTimeOffStore } from 'src/stores/timeoff'
+import { TimeOffRequestRetrieve } from 'src/types'
 
 const timeOffStore = useTimeOffStore()
 
@@ -201,6 +209,22 @@ const tablePagination = {
 }
 
 const canAcknowledge = ref(true)
+
+function displayDateTime(date: string, time: string | undefined): string {
+  if (time) {
+    // return `${date} ${time}`
+    return readableDateTimeNEW(`${date} ${time}`)
+  }
+  return readableDateNEW(date)
+}
+
+function startDateTime(row: TimeOffRequestRetrieve): string {
+  return displayDateTime(row.start_date.toString(), row.start_time)
+}
+
+function endDateTime(row: TimeOffRequestRetrieve): string {
+  return displayDateTime(row.end_date.toString(), row.end_time)
+}
 
 function managedTimeOffRequests() {
   return timeOffStore.managedTimeOffRequests

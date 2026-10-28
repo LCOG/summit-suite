@@ -15,10 +15,12 @@
       </template>
       <template v-slot:body-cell-dates="props">
         <q-td key="dates" :props="props" :data-past="props.row.past">
-          <div v-if="$q.screen.gt.xs">{{ props.row.start_date }} - {{ props.row.end_date }}</div>
+          <div v-if="$q.screen.gt.xs">
+            {{ startDateTime(props.row) }} - {{ endDateTime(props.row) }}
+          </div>
           <div v-if="$q.screen.xs">
-            <div>{{ props.row.start_date }}</div>
-            <div>{{ props.row.end_date }}</div>
+            <div>{{ startDateTime(props.row) }}</div>
+            <div>{{ endDateTime(props.row) }}</div>
           </div>
         </q-td>
       </template>
@@ -64,12 +66,12 @@
             <q-icon v-if="props.row.acknowledged==false" color="red" name="cancel" size="lg">
               <q-tooltip content-style="font-size: 16px">
                 Your manager has indicated an issue with this request.
-              </q-tooltip>  
+              </q-tooltip>
             </q-icon>
             <q-icon v-if="props.row.acknowledged && props.row.acknowledged==true" color="green" name="check_circle" size="lg">
               <q-tooltip content-style="font-size: 16px">
                 Your manager has acknowledged this request.
-              </q-tooltip>  
+              </q-tooltip>
             </q-icon>
           </div>
         </q-td>
@@ -129,6 +131,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { QTableProps, useQuasar } from 'quasar'
 
+import { readableDateNEW, readableDateTimeNEW } from 'src/filters'
 import { useTimeOffStore } from 'src/stores/timeoff'
 import { TimeOffRequestRetrieve } from 'src/types'
 
@@ -157,6 +160,22 @@ let deleteDialogVisible = ref(false)
 let deleteDialogDatesText = ref('')
 let deleteDialogNoteText = ref('')
 let rowPkToDelete = ref('')
+
+function displayDateTime(date: string, time: string | undefined): string {
+  if (time) {
+    // return `${date} ${time}`
+    return readableDateTimeNEW(`${date} ${time}`)
+  }
+  return readableDateNEW(date)
+}
+
+function startDateTime(row: TimeOffRequestRetrieve): string {
+  return displayDateTime(row.start_date.toString(), row.start_time)
+}
+
+function endDateTime(row: TimeOffRequestRetrieve): string {
+  return displayDateTime(row.end_date.toString(), row.end_time)
+}
 
 function myTimeOffRequests() {
   return timeOffStore.myTimeOffRequests

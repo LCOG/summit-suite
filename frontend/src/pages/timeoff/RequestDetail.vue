@@ -1,7 +1,44 @@
 <template>
   <div>
-    <div class="q-gutter-md row">
+    <div>
       <q-date v-model="dates" range @update:model-value="dateChanged()"/>
+      <div class="row items-center q-mt-md q-gutter-md">
+        <q-checkbox v-model="showTimes" label="Partial Day" class="q-mt-none" />
+        <q-input v-if="showTimes" filled v-model="startTime" mask="time" :rules="['time']">
+          <template #append>
+            <q-icon name="access_time" class="cursor-pointer">
+              <q-popup-proxy
+                cover
+                transition-show="scale"
+                transition-hide="scale"
+              >
+                <q-time v-model="startTime">
+                  <div class="row items-center justify-end">
+                    <q-btn v-close-popup label="Close" color="primary" flat />
+                  </div>
+                </q-time>
+              </q-popup-proxy>
+            </q-icon>
+          </template>
+        </q-input>
+        <q-input v-if="showTimes" filled v-model="endTime" mask="time" :rules="['time']">
+          <template #append>
+            <q-icon name="access_time" class="cursor-pointer">
+              <q-popup-proxy
+                cover
+                transition-show="scale"
+                transition-hide="scale"
+              >
+                <q-time v-model="endTime">
+                  <div class="row items-center justify-end">
+                    <q-btn v-close-popup label="Close" color="primary" flat />
+                  </div>
+                </q-time>
+              </q-popup-proxy>
+            </q-icon>
+          </template>
+        </q-input>
+      </div>
       <div v-if="conflictingResponsibilities().length != 0">
         <q-icon color="orange" name="warning" size="xl" class="q-ml-sm" />
         <div>
@@ -17,7 +54,7 @@
               >
                 {{ tor.name }}
               </router-link>
-              : 
+              :
               <span v-for="(name, idx) of tor.responsibility_names" :key="idx">
                 <span v-if="idx==0">{{ name }}</span>
                 <span v-else>, {{ name }}</span>
@@ -28,9 +65,9 @@
       </div>
     </div>
     <q-input
-        v-model="note"
-        label="Public Note (visible to team members)"
-        class="q-pb-md"
+      v-model="note"
+      label="Public Note (visible to team members)"
+      class="q-pb-md"
     />
     <q-input
       v-model="privateNote"
@@ -54,7 +91,8 @@ import { useRoute, useRouter } from 'vue-router'
 
 import { getRoutePk } from 'src/utils'
 import {
-  EmployeeConflictingResponsibilities, TimeOffRequestDates
+  EmployeeConflictingResponsibilities, TimeOffRequestDates,
+  TimeOffRequestUpdate
 } from 'src/types'
 import { useTimeOffStore } from 'src/stores/timeoff'
 
@@ -64,6 +102,9 @@ const timeOffStore = useTimeOffStore()
 
 const pk = getRoutePk(route)
 let dates: Ref<TimeOffRequestDates> = ref({'from': '', 'to': ''})
+let showTimes = ref(false)
+let startTime = ref('08:00')
+let endTime = ref('17:00')
 let note = ref('')
 let privateNote = ref('')
 
@@ -109,6 +150,9 @@ function retrieveRequest(): void {
       } else {
         dates.value = {'from': startDate, 'to': endDate}
       }
+      showTimes.value = !!(tor.start_time || tor.end_time)
+      startTime.value = tor.start_time ?? '08:00'
+      endTime.value = tor.end_time ?? '17:00'
       note.value = tor.note
       privateNote.value = tor.private_note
       dateChanged()
@@ -123,12 +167,17 @@ function updateTimeOffRequest(): void {
     console.error('No pk provided to update time off request')
     return
   }
-  timeOffStore.updateTimeOffRequest({
-    pk: pk,
-    dates: dates.value,
-    note: note.value,
-    privateNote: privateNote.value
-  })
+  let request: TimeOffRequestUpdate = {
+    pk: pk, dates: dates.value, note: note.value, privateNote: privateNote.value
+  }
+  if (showTimes.value) {
+    request.startTime = startTime.value
+    request.endTime = endTime.value
+  } else {
+    request.startTime = undefined
+    request.endTime = undefined
+  }
+  timeOffStore.updateTimeOffRequest(request)
     .then(() => {
       router.push({ name: 'timeoff-my-requests'})
         .catch(e => {

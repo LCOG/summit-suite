@@ -14,9 +14,9 @@
     size="xl"
   />
   <div v-else class="q-mt-lg">
-    <div v-for="day of teamTimeOff()" :key="day.date">
+    <div v-for="day of teamTimeOff()" :key="day.formattedDate">
       <div class="text-h5">
-        <span>{{day.date}}</span><span v-if="day.isToday"> (Today)</span>
+        <span>{{day.formattedDate}}</span><span v-if="day.isToday"> (Today)</span>
       </div>
       <ul>
         <div v-for="request of day.requests" :key="request.pk">
@@ -46,6 +46,7 @@
           >
             {{ request.employee_name }}
           </router-link>
+          {{ timespan(request, day.date) }}
           <q-icon
             v-if="request.conflicts.length != 0"
             color="orange"
@@ -87,9 +88,11 @@
 import { onMounted, ref } from 'vue'
 import { TimeOffRequestRetrieve } from 'src/types'
 import { useTimeOffStore } from 'src/stores/timeoff'
+import { readableTime } from 'src/filters'
 
 type TimeOffCalendarData = Array<{
-  date: string, isToday: boolean, requests: Array<TimeOffRequestRetrieve>
+  date: Date, formattedDate: string, isToday: boolean,
+  requests: Array<TimeOffRequestRetrieve>
 }>
 
 const timeOffStore = useTimeOffStore()
@@ -109,6 +112,33 @@ function calendarLoaded() {
   return (viewingThisWeek() && thisWeekLoaded.value) || allDatesLoaded.value
 }
 
+function timespan(request: TimeOffRequestRetrieve, todayDate: Date): string {
+  const startDate = new Date(request.start_date.replace(/-/g, '\/'))
+  const endDate = new Date(request.end_date.replace(/-/g, '\/'))
+  const startTime = request.start_time
+  const endTime = request.end_time
+  if (!startTime || !endTime) {
+    return ''
+  }
+  const startDay = startDate.setHours(0,0,0,0)
+  const endDay = endDate.setHours(0,0,0,0)
+  const todayDay = todayDate.setHours(0,0,0,0)
+
+  if (startDay === endDay) {
+    return '(Out from ' + readableTime(startTime) + ' - ' + readableTime(endTime) + ')'
+  }
+  if (startDay < todayDay && todayDay < endDay) {
+    return ''
+  }
+  if (startDay === todayDay) {
+    return '(Out starting at ' + readableTime(startTime) + ')'
+  }
+  if (endDay === todayDay) {
+    return '(Out until ' + readableTime(endTime) + ')'
+  }
+  return ''
+}
+
 function teamTimeOff(): TimeOffCalendarData {
   const apiResults = timeOffStore.teamTimeOffRequests
   let sortedTimeOff: TimeOffCalendarData = []
@@ -117,18 +147,17 @@ function teamTimeOff(): TimeOffCalendarData {
       let d = new Date(selectedMonday.value.getTime() + i*(1000 * 60 * 60 * 24))
       let isToday = d.setHours(0,0,0,0) === today.value.setHours(0,0,0,0)
       sortedTimeOff.push({
-        date: d.toLocaleDateString(
+        date: d,
+        formattedDate: d.toLocaleDateString(
           'en-us', { weekday: 'long', month: 'long', day: 'numeric' }
         ),
         isToday: isToday,
         requests: apiResults.filter(request => {
           const targetDateMS = d.setHours(0,0,0,0)
-          
           const fromDate = new Date(request.start_date)
           const fromTZOffset = fromDate.getTimezoneOffset() * 60000
           const fromDateMS = new Date(fromDate.getTime() + fromTZOffset)
             .setHours(0,0,0,0)
-          
           const toDate = new Date(request.end_date)
           const toTZOffset = toDate.getTimezoneOffset() * 60000
           const toDateMS = new Date(toDate.getTime() + toTZOffset)

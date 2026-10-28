@@ -26,7 +26,7 @@ export function readableDateNEW(d: string): string {
   }
 }
 
-export function readableDateTimeNEW(d: Date): string {
+export function readableDateTimeNEW(d: Date | string): string {
   // d should be a string in the format 'YYYY-MM-DDTHH:MM:SSZ' or similar
   if (!d) {
     return 'Date not set'
@@ -42,6 +42,20 @@ export function readableDateTimeNEW(d: Date): string {
   }
   catch (e) {
     return 'Date ' + d + ' incorrectly formatted: ' + e
+  }
+}
+
+export function readableTime(t: string): string {
+  if (!t) {
+    return 'Time not set'
+  }
+  try {
+    const hours = t.split(':')[0]
+    const minutes = t.split(':')[1].padStart(2, '0')
+    return `${hours}:${minutes}` // 'HH:MM'
+  }
+  catch (e) {
+    return 'Time ' + t + ' incorrectly formatted: ' + e
   }
 }
 

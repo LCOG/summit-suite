@@ -112,12 +112,15 @@ class TimeOffRequestViewSet(viewsets.ModelViewSet):
         else:
             start_date = request.data['dates'].replace('/', '-')
             end_date = request.data['dates'].replace('/', '-')
+        start_time = request.data.get('startTime', None)
+        end_time = request.data.get('endTime', None)
         note = request.data['note']
         private_note = request.data['privateNote']
         employee = request.user.employee
         timeoffrequest = TimeOffRequest.objects.create(
             start_date=start_date, end_date=end_date, note=note,
-            private_note=private_note, employee=employee
+            private_note=private_note, start_time=start_time, end_time=end_time,
+            employee=employee
         )
         send_manager_new_timeoff_request_notification(timeoffrequest)
         serialized_timeoffrequest = TimeOffRequestPrivateSerializer(
@@ -132,6 +135,8 @@ class TimeOffRequestViewSet(viewsets.ModelViewSet):
         else:
             start_date = request.data['dates'].replace('/', '-')
             end_date = request.data['dates'].replace('/', '-')
+        tor.start_time = request.data.get('startTime', None)
+        tor.end_time = request.data.get('endTime', None)
         tor.note = request.data['note']
         tor.private_note = request.data['privateNote']
         if start_date != str(tor.start_date) or end_date != str(tor.end_date):
