@@ -4,6 +4,16 @@
 
 export const releases = [
   {
+    version: '1.24.0',
+    date: new Date(2026, 9, 28),
+    changes: [
+      {
+        type: 'improved',
+        description: 'Time off requests now support partial day requests.'
+      },
+    ]
+  },
+  {
     version: '1.23.2',
     date: new Date(2026, 9, 22),
     changes: [

@@ -1,7 +1,44 @@
 <template>
   <div>
-    <div class="q-gutter-md row">
+    <div>
       <q-date v-model="dates" range @update:model-value="dateChanged()"/>
+      <div class="row items-center q-mt-md q-gutter-md">
+        <q-checkbox v-model="showTimes" label="Partial Day" class="q-mt-none" />
+        <q-input v-if="showTimes" filled v-model="startTime" mask="time" :rules="['time']">
+          <template #append>
+            <q-icon name="access_time" class="cursor-pointer">
+              <q-popup-proxy
+                cover
+                transition-show="scale"
+                transition-hide="scale"
+              >
+                <q-time v-model="startTime">
+                  <div class="row items-center justify-end">
+                    <q-btn v-close-popup label="Close" color="primary" flat />
+                  </div>
+                </q-time>
+              </q-popup-proxy>
+            </q-icon>
+          </template>
+        </q-input>
+        <q-input v-if="showTimes" filled v-model="endTime" mask="time" :rules="['time']">
+          <template #append>
+            <q-icon name="access_time" class="cursor-pointer">
+              <q-popup-proxy
+                cover
+                transition-show="scale"
+                transition-hide="scale"
+              >
+                <q-time v-model="endTime">
+                  <div class="row items-center justify-end">
+                    <q-btn v-close-popup label="Close" color="primary" flat />
+                  </div>
+                </q-time>
+              </q-popup-proxy>
+            </q-icon>
+          </template>
+        </q-input>
+      </div>
       <div v-if="touchedCalendar && conflictingResponsibilities().length != 0">
         <q-icon color="orange" name="warning" size="xl" class="q-ml-sm" />
         <div>
@@ -17,7 +54,7 @@
               >
                 {{ tor.name }}
               </router-link>
-              : 
+              :
               <span v-for="(name, idx) of tor.responsibility_names" :key="idx">
                 <span v-if="idx==0">{{ name }}</span>
                 <span v-else>, {{ name }}</span>
@@ -54,7 +91,7 @@ import { useRouter } from 'vue-router'
 
 import { useQuasar } from 'quasar'
 import {
-  EmployeeConflictingResponsibilities, TimeOffRequestDates
+  EmployeeConflictingResponsibilities, TimeOffRequestCreate, TimeOffRequestDates
 } from 'src/types'
 import { useTimeOffStore } from 'src/stores/timeoff'
 
@@ -72,6 +109,9 @@ const newRequestMessages = [
 
 let touchedCalendar = ref(false)
 let dates: Ref<TimeOffRequestDates> = ref({'from': '', 'to': ''})
+let showTimes = ref(false)
+let startTime = ref('08:00')
+let endTime = ref('17:00')
 let note = ref('')
 let privateNote = ref('')
 
@@ -111,10 +151,15 @@ function randomChoice(array: Array<string>) {
 function createTimeOffRequest(): void {
   if (typeof dates.value != 'string' && dates.value.from == '') {
     return
-  }    
-  timeOffStore.createTimeOffRequest(
-    { dates: dates.value, note: note.value, privateNote: privateNote.value }
-  )
+  }
+  let request: TimeOffRequestCreate = {
+    dates: dates.value, note: note.value, privateNote: privateNote.value
+  }
+  if (showTimes.value) {
+    request.startTime = startTime.value
+    request.endTime = endTime.value
+  }
+  timeOffStore.createTimeOffRequest(request)
     .then(() => {
       quasar.notify(
         `Time off successfully recorded. ${randomChoice(newRequestMessages)}`

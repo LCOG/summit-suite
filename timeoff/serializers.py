@@ -17,8 +17,8 @@ class TimeOffRequestSerializerBase(serializers.HyperlinkedModelSerializer):
         model = TimeOffRequest
         fields = [
             'url', 'pk', 'employee_pk', 'employee_name', 'manager_pk',
-            'start_date', 'end_date', 'past', 'note', 'acknowledged',
-            'created_at', 'acknowledged_at', 'conflicts'
+            'start_date', 'end_date', 'start_time', 'end_time', 'past', 'note',
+            'acknowledged', 'created_at', 'acknowledged_at', 'conflicts'
         ]
 
     @staticmethod
@@ -39,8 +39,9 @@ class TimeOffRequestPrivateSerializer(TimeOffRequestSerializerBase):
         model = TimeOffRequest
         fields = [
             'url', 'pk', 'employee_pk', 'employee_name', 'manager_pk',
-            'start_date', 'end_date', 'past', 'note', 'private_note',
-            'acknowledged', 'created_at', 'acknowledged_at', 'conflicts'
+            'start_date', 'end_date', 'start_time', 'end_time', 'past', 'note',
+            'private_note', 'acknowledged', 'created_at', 'acknowledged_at',
+            'conflicts'
         ]
 
 

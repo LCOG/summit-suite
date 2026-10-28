@@ -878,6 +878,8 @@ export interface TimeOffRequestRetrieve {
   manager_pk: number
   start_date: Date
   end_date: Date
+  start_time?: string
+  end_time?: string
   past: boolean
   note: string
   private_note: string
@@ -889,6 +891,8 @@ export type TimeOffRequestDates = {from: string; to: string} | string
 
 export interface TimeOffRequestCreate {
   dates: TimeOffRequestDates
+  startTime?: string
+  endTime?: string
   note: string
   privateNote: string
 }
@@ -901,6 +905,8 @@ export interface TimeOffRequestAcknowledge {
 export interface TimeOffRequestUpdate {
   pk: string
   dates: TimeOffRequestDates
+  startTime?: string
+  endTime?: string
   note: string
   privateNote: string
 }

@@ -8,12 +8,12 @@
           round
           icon="menu"
           aria-label="Menu"
-          @click="toggleLeftDrawer"
+          @click="toggleDrawer"
         />
 
         <q-toolbar-title>
-          <div v-if="emplayeeName()">
-            Hi {{ emplayeeName() }}
+          <div v-if="employeeName()">
+            Hi {{ employeeName() }}
           </div>
         </q-toolbar-title>
 
@@ -24,11 +24,16 @@
     </q-header>
 
     <q-drawer
-      v-model="leftDrawerOpen"
+      v-model="drawerOpen"
       show-if-above
+      :mini="drawerMini"
+      @mouseenter="drawerMini = false"
+      @mouseleave="drawerMini = true"
+      mini-to-overlay
       bordered
       content-class="bg-grey-1"
-      :width="210"
+      :width="180"
+      :breakpoint="1023"
     >
       <q-list>
         <q-item
@@ -113,7 +118,8 @@ const userStore = useUserStore()
 const router = useRouter()
 const bus = useEventBus()
 
-let leftDrawerOpen = ref(false)
+let drawerOpen = ref(false)
+let drawerMini = ref(true)
 
 interface LinkData {
   title: string
@@ -125,57 +131,57 @@ interface LinkData {
 
 const navLinks: Array<LinkData> = [
   {
-    title: 'Time Off',
-    icon: 'schedule',
-    link: '/timeoff',
-    id: 'nav-timeoff',
-    access: { module: 'schedule', flag: 'can_view_schedule' }
-  },
-  {
-    title: 'Responsibilities',
+    title: 'Delegate',
     icon: 'hardware',
     link: '/responsibilities',
     id: 'nav-responsibilities',
     access: { module: 'delegate', flag: 'can_view_delegate' }
   },
   {
-    title: 'Workflows',
-    icon: 'double_arrow',
-    link: '/workflows',
-    access: { module: 'process', flag: 'can_view_process' }
-  },
-  {
-    title: 'Credit Card Expenses',
+    title: 'Expense',
     icon: 'credit_card',
     link: '/expenses',
     access: { module: 'expense', flag: 'can_view_expense' }
   },
   {
-    title: 'Performance Reviews',
-    icon: 'assignment_turned_in',
-    link: '/reviews',
-    access: { module: 'review', flag: 'can_view_review' }
+    title: 'Process',
+    icon: 'double_arrow',
+    link: '/workflows',
+    access: { module: 'process', flag: 'can_view_process' }
   },
   {
-    title: 'Phishing',
-    icon: 'phishing',
-    link: '/phish',
-    access: { module: 'secure', flag: 'can_view_secure' }
-  },
-  {
-    title: 'Schaefers Desk Reservation',
+    title: 'Reserve',
     icon: 'laptop',
     link: '/desk-reservation/schaefers/1',
     id: 'nav-schaefers-desk-reservation',
     access: { module: 'reserve', flag: 'can_view_reserve' }
   },
   {
-    title: 'Meals on Wheels Map',
-    icon: 'map',
-    link: '/mow-map',
-    id: 'nav-mow',
-    access: { flag: 'can_view_mow_routes' }
+    title: 'Review',
+    icon: 'assignment_turned_in',
+    link: '/reviews',
+    access: { module: 'review', flag: 'can_view_review' }
   },
+  {
+    title: 'Schedule',
+    icon: 'schedule',
+    link: '/timeoff',
+    id: 'nav-timeoff',
+    access: { module: 'schedule', flag: 'can_view_schedule' }
+  },
+  {
+    title: 'Secure',
+    icon: 'phishing',
+    link: '/phish/dashboard',
+    access: { module: 'secure', flag: 'can_view_secure' }
+  },
+  // {
+  //   title: 'Meals on Wheels Map',
+  //   icon: 'map',
+  //   link: '/mow-map',
+  //   id: 'nav-mow',
+  //   access: { flag: 'can_view_mow_routes' }
+  // },
   // {
   //   title: 'My Telework Application',
   //   icon: 'home_work',
@@ -232,8 +238,8 @@ const loginRequest = {
   scopes: ['openid', 'profile', 'User.Read']
 }
 
-function toggleLeftDrawer () {
-  leftDrawerOpen.value = !leftDrawerOpen.value
+function toggleDrawer () {
+  drawerOpen.value = !drawerOpen.value
 }
 
 function appVersionTag() {
@@ -244,7 +250,7 @@ function isAuthenticated(): boolean {
   return authStore['isAuthenticated']
 }
 
-function emplayeeName(): string {
+function employeeName(): string {
   return userStore['getEmployeeProfile'].name
 }
 

@@ -17,6 +17,12 @@ class TimeOffRequest(models.Model):
     employee = models.ForeignKey("people.Employee", on_delete=models.CASCADE)
     start_date = models.DateField(auto_now=False, auto_now_add=False)
     end_date = models.DateField(auto_now=False, auto_now_add=False)
+    start_time = models.TimeField(
+        auto_now=False, auto_now_add=False, blank=True, null=True
+    )
+    end_time = models.TimeField(
+        auto_now=False, auto_now_add=False, blank=True, null=True
+    )
     note = models.TextField(blank=True, null=True,
         help_text="Visible to team members")
     private_note = models.TextField(blank=True, null=True,
