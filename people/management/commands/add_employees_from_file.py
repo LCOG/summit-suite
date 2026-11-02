@@ -320,7 +320,7 @@ class Command(BaseCommand):
                         'No manager found for employee {} {}'.format(employee.user.first_name, employee.user.last_name)
                     )
                     self.stdout.write("^^^^^^^^^^^^ WARNING ^^^^^^^^^^^^")
-            if not manager:
+            if not manager and employee.manager is not None:
                 employee.manager = None
                 employee.save()
                 self.stdout.write(
