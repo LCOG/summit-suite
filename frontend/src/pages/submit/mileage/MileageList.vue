@@ -49,7 +49,7 @@ import { onMounted, ref } from 'vue'
 import { Notify } from 'quasar'
 
 import { readableDateNEW } from 'src/filters'
-import { useSubmissionsStore } from 'src/stores/submissions'
+import { useSubmitStore } from 'src/stores/submit'
 import { MileageSubmissionRetrieve } from 'src/types'
 import { getCurrentUser } from 'src/utils'
 
@@ -65,7 +65,7 @@ interface MileageRequestListRow {
   miles: number
 }
 
-const submissionsStore = useSubmissionsStore()
+const submissionsStore = useSubmitStore()
 const rows = ref<MileageRequestListRow[]>([])
 const loading = ref(false)
 

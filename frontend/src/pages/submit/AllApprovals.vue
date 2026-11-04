@@ -17,7 +17,7 @@
         <tr v-for="(row, index) in rows" :key="index">
           <td>{{ row.submissionType }}</td>
           <td>{{ row.submitterName }}</td>
-          <td>{{ row.statusDisplay }}</td>
+          <td v-html="row.statusDisplay.outerHTML"></td>
           <td>{{ readableDateTimeNEW(row.createdAt) }}</td>
         </tr>
       </tbody>
@@ -53,7 +53,7 @@ import { onMounted, ref } from 'vue'
 import { Notify } from 'quasar'
 
 import { readableDateTimeNEW } from 'src/filters'
-import { useSubmissionsStore } from 'src/stores/submissions'
+import { useSubmitStore } from 'src/stores/submit'
 import { SubmissionRetrieve } from 'src/types'
 import { getCurrentUser } from 'src/utils'
 
@@ -61,18 +61,29 @@ interface SubmissionListRow {
   submissionPk: number
   submissionType: string
   status: 'submitted' | 'approved'
-  statusDisplay: string
+  statusDisplay: HTMLElement
   submitterName: string
   createdAt: string
 }
 
-const submissionsStore = useSubmissionsStore()
+const submissionsStore = useSubmitStore()
 const rows = ref<SubmissionListRow[]>([])
 const loading = ref(false)
 const currentUserPk = ref<number>(-1)
 
-function toStatusDisplay(status: 'submitted' | 'approved'): string {
-  return status === 'approved' ? 'Approved' : 'Submitted'
+function toStatusDisplay(submission: SubmissionRetrieve): HTMLElement {
+  const el = document.createElement('div')
+  if (submission.status === 'approved') {
+    el.textContent = 'Approved'
+  } else {
+    el.textContent = 'Submitted'
+    const link = document.createElement('a')
+    link.textContent = '(Approve)'
+    link.href = '/submit/mileage/approve'
+    link.style.marginLeft = '4px'
+    el.appendChild(link)
+  }
+  return el
 }
 
 function mapRows(data: Array<SubmissionRetrieve>): Array<SubmissionListRow> {
@@ -82,7 +93,7 @@ function mapRows(data: Array<SubmissionRetrieve>): Array<SubmissionListRow> {
       submissionPk: submission.pk,
       submissionType: submission.type,
       status: submission.status,
-      statusDisplay: toStatusDisplay(submission.status),
+      statusDisplay: toStatusDisplay(submission),
       submitterName: submission.submitter_name,
       createdAt: submission.created_at,
     })

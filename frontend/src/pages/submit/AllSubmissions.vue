@@ -45,7 +45,7 @@ import { onMounted, ref } from 'vue'
 import { Notify } from 'quasar'
 
 import { readableDateTimeNEW } from 'src/filters'
-import { useSubmissionsStore } from 'src/stores/submissions'
+import { useSubmitStore } from 'src/stores/submit'
 import { SubmissionRetrieve } from 'src/types'
 import { getCurrentUser } from 'src/utils'
 
@@ -58,7 +58,7 @@ interface SubmissionListRow {
   date: string
 }
 
-const submissionsStore = useSubmissionsStore()
+const submissionsStore = useSubmitStore()
 const rows = ref<SubmissionListRow[]>([])
 const loading = ref(false)
 

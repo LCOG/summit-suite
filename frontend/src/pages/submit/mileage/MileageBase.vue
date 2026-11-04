@@ -26,7 +26,11 @@
           color="primary"
           icon="check"
           :label="$q.screen.xs ? 'Approve' : 'Approve Requests'"
-        />
+        >
+          <q-badge v-if="numMileageToApprove()" rounded color="red" floating>
+            {{ numMileageToApprove() }}
+          </q-badge>
+        </q-btn>
       </q-btn-group>
     </div>
     <router-view :key="$route.path" />
@@ -34,4 +38,11 @@
 </template>
 
 <script setup lang="ts">
+import { useSubmitStore } from 'src/stores/submit'
+
+const submitStore = useSubmitStore()
+
+function numMileageToApprove(): number {
+  return submitStore.numMileageToApprove
+}
 </script>

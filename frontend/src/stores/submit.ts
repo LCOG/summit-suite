@@ -8,10 +8,13 @@ import {
   SubmissionRetrieve
 } from 'src/types'
 
-export const useSubmissionsStore = defineStore('submissions', {
+export const useSubmitStore = defineStore('submissions', {
   state: () => ({
     submissions: [] as Array<SubmissionRetrieve>,
     mileageSubmissions: [] as Array<MileageSubmissionRetrieve>,
+
+    numToApprove: 0,
+    numMileageToApprove: 0,
   }),
 
   actions: {
@@ -59,6 +62,9 @@ export const useSubmissionsStore = defineStore('submissions', {
           url: `${apiURL}api/v1/submission?to_approve=${pk}`
         })
           .then(resp => {
+            this.numToApprove = resp.data.results.filter(
+              (sub: SubmissionRetrieve) => sub.status === 'submitted'
+            ).length
             resolve(resp.data.results)
           })
           .catch(e => {
@@ -77,6 +83,11 @@ export const useSubmissionsStore = defineStore('submissions', {
           url: `${apiURL}api/v1/mileage-submission?to_approve=${pk}`
         })
           .then(resp => {
+            this.numMileageToApprove = resp.data.results.filter(
+              (sub: MileageSubmissionRetrieve) => {
+                return sub.submission?.status === 'submitted'
+              }
+            ).length
             resolve(resp.data.results)
           })
           .catch(e => {

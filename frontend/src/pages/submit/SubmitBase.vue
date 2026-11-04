@@ -10,11 +10,7 @@
           color="primary"
           icon="book"
           :label="$q.screen.xs ? 'All' : 'All Submissions'"
-        >
-          <q-badge v-if="numEMsToResubmit()" rounded color="red" floating>
-            {{ numEMsToResubmit() }}
-          </q-badge>
-        </q-btn>
+        />
         <q-btn
           :to="{ name: 'all-approvals' }"
           unelevated
@@ -23,8 +19,8 @@
           icon="bookmark_added"
           :label="$q.screen.xs ? 'Approve' : 'All Approvals'"
         >
-          <q-badge v-if="numExpenseGLsToApprove()" rounded color="red" floating>
-            {{ numExpenseGLsToApprove() }}
+          <q-badge v-if="numToApprove()" rounded color="red" floating>
+            {{ numToApprove() }}
           </q-badge>
         </q-btn>
       </q-btn-group>
@@ -36,11 +32,7 @@
           color="primary"
           icon="airport_shuttle"
           label="Mileage Reimbursement"
-        >
-          <q-badge v-if="numEMsToResubmit()" rounded color="red" floating>
-            {{ numEMsToResubmit() }}
-          </q-badge>
-        </q-btn>
+        />
       </q-btn-group>
     </div>
     <q-icon
@@ -118,56 +110,19 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { usePurchaseStore } from 'src/stores/purchase'
-import { useRoute, useRouter } from 'vue-router'
-import { useUserStore } from 'src/stores/user'
+import { useRouter } from 'vue-router'
+
+import { useSubmitStore } from 'src/stores/submit'
 
 const purchaseStore = usePurchaseStore()
-const userStore = useUserStore()
+const submitStore = useSubmitStore()
 
 const router = useRouter()
-const route = useRoute()
 
 let showHelp = ref(false)
 
-function isExpenseSubmitter() {
-  return userStore.isExpenseSubmitter
-}
-
-function isExpenseApprover() {
-  return userStore.isExpenseApprover
-}
-
-function isDirector() {
-  return userStore.isDivisionDirector
-}
-
-function isFiscal() {
-  return userStore.isFiscal
-}
-
-function hasMultipleRoles(): boolean {
-  let sum = 0
-  if (userStore.isExpenseSubmitter) sum++
-  if (userStore.isExpenseApprover) sum++
-  if (userStore.isDivisionDirector) sum++
-  if (userStore.isFiscal) sum++
-  return sum > 1
-}
-
-function numEMsToResubmit(): number {
-  return purchaseStore.numEMsToResubmit
-}
-
-function numExpenseGLsToApprove(): number {
-  return purchaseStore.numExpenseGLsToApprove
-}
-
-function numExpensesDirectorToApprove(): number {
-  return purchaseStore.numExpensesDirectorToApprove
-}
-
-function numExpensesFiscalToApprove(): number {
-  return purchaseStore.numExpensesFiscalToApprove
+function numToApprove(): number {
+  return submitStore.numToApprove
 }
 
 onMounted(() => {

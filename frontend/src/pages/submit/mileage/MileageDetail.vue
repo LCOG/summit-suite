@@ -103,7 +103,7 @@ import { computed, ref, watch } from 'vue'
 import { Notify } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 
-import { useSubmissionsStore } from 'src/stores/submissions'
+import { useSubmitStore } from 'src/stores/submit'
 import { useUserStore } from 'src/stores/user'
 import { MileageSubmissionRetrieve } from 'src/types'
 
@@ -126,7 +126,7 @@ const emptyRow: MileageRow = {
 const props = defineProps<{ pk?: number | string | null }>()
 const route = useRoute()
 const router = useRouter()
-const submissionsStore = useSubmissionsStore()
+const submissionsStore = useSubmitStore()
 const userStore = useUserStore()
 
 const organizationName = computed(() => userStore.getEmployeeProfile?.organization?.name ?? '')
