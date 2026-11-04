@@ -60,11 +60,11 @@
 
       <div>
         <div class="text-subtitle1 q-mb-sm">
-          By clicking "Submit" below, I certify that all the expenses listed above are true and correct and were incurred on official LCOG business.
+          By clicking "{{ isUpdateMode ? 'Update' : 'Submit' }}" below, I certify that all the expenses listed above are true and correct and were incurred on official {{ organizationName }} business.
         </div>
         <div class="q-gutter-sm">
           <q-btn
-            label="Submit"
+            :label="isUpdateMode ? 'Update' : 'Submit'"
             type="submit"
             color="primary"
             :loading="submitting"
@@ -98,11 +98,14 @@
 </style>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+
+import { computed, ref, watch } from 'vue'
 import { Notify } from 'quasar'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 import { useSubmissionsStore } from 'src/stores/submissions'
+import { useUserStore } from 'src/stores/user'
+import { MileageSubmissionRetrieve } from 'src/types'
 
 interface MileageRow {
   date: string
@@ -120,12 +123,29 @@ const emptyRow: MileageRow = {
   finish: ''
 }
 
-const rows = ref<MileageRow[]>([{ ...emptyRow }])
+const props = defineProps<{ pk?: number | string | null }>()
+const route = useRoute()
 const router = useRouter()
 const submissionsStore = useSubmissionsStore()
+const userStore = useUserStore()
+
+const organizationName = computed(() => userStore.getEmployeeProfile?.organization?.name ?? '')
+
+const rows = ref<MileageRow[]>([{ ...emptyRow }])
 const reimbursementRate = 0.585
-const certificationStatement = 'By clicking "Submit" below, I certify that all the expenses listed above are true and correct and were incurred on official LCOG business.'
 const submitting = ref(false)
+
+const submissionPk = computed<number | null>(() => {
+  const rawPk = props.pk ?? route.params.pk
+  if (rawPk === undefined || rawPk === null || rawPk === '') {
+    return null
+  }
+
+  const parsed = Number(rawPk)
+  return Number.isFinite(parsed) ? parsed : null
+})
+
+const isUpdateMode = computed(() => submissionPk.value !== null)
 
 function getRowMiles(row: MileageRow): number {
   const start = Number(row.start || 0)
@@ -178,6 +198,53 @@ function addRow(): void {
   rows.value.push({ ...emptyRow })
 }
 
+function rowFromApi(row: any): MileageRow {
+  return {
+    date: row.date ?? '',
+    purpose: row.purpose ?? '',
+    subfund: row.contract_fund ?? '',
+    start: row.odometer_start !== undefined && row.odometer_start !== null ? String(row.odometer_start) : '',
+    finish: row.odometer_finish !== undefined && row.odometer_finish !== null ? String(row.odometer_finish) : ''
+  }
+}
+
+function formPayload() {
+  return {
+    reimbursement_rate: reimbursementRate.toFixed(3),
+    rows: rows.value.map((row, index) => ({
+      row_order: index,
+      date: row.date,
+      purpose: row.purpose.trim(),
+      contract_fund: row.subfund.trim(),
+      odometer_start: Number(row.start),
+      odometer_finish: Number(row.finish)
+    }))
+  }
+}
+
+async function loadMileageSubmission(pk: number): Promise<void> {
+  try {
+    const submission = await submissionsStore.getMileageSubmission(pk) as MileageSubmissionRetrieve
+    rows.value = submission.rows.map(rowFromApi)
+  } catch (e) {
+    console.error('Error loading mileage submission:', e)
+    Notify.create('Unable to load mileage request')
+  }
+}
+
+watch(
+  submissionPk,
+  (pk) => {
+    if (pk === null) {
+      rows.value = [{ ...emptyRow }]
+      return
+    }
+
+    void loadMileageSubmission(pk)
+  },
+  { immediate: true }
+)
+
 function formSubmit(): void {
   if (submitting.value) {
     return
@@ -190,30 +257,29 @@ function formSubmit(): void {
     Notify.create('Please complete all rows before submitting')
     return
   }
+
   submitting.value = true
-  submissionsStore.createMileageSubmission({
-    certification_statement: certificationStatement,
-    reimbursement_rate: reimbursementRate.toFixed(3),
-    rows: rows.value.map((row, index) => ({
-      row_order: index,
-      date: row.date,
-      purpose: row.purpose.trim(),
-      contract_fund: row.subfund.trim(),
-      odometer_start: Number(row.start),
-      odometer_finish: Number(row.finish)
-    }))
-  })
+
+  const payload = formPayload()
+
+  const request = isUpdateMode.value && submissionPk.value !== null
+    ? submissionsStore.updateMileageSubmission(submissionPk.value, payload)
+    : submissionsStore.createMileageSubmission(payload)
+
+  request
     .then(() => {
-      Notify.create('Mileage reimbursement submitted')
-      formReset()
-      router.push({ name: 'mileage-reimbursement-list' })
-        .catch(e => {
-          console.error('Error navigating to mileage reimbursement list:', e)
-        })
+      Notify.create(
+        isUpdateMode.value ? 'Mileage reimbursement updated' : 'Mileage reimbursement submitted'
+      )
+      router.push({ name: 'mileage-list' }).catch((e) => {
+        console.error('Error navigating to mileage reimbursement list:', e)
+      })
     })
-    .catch(e => {
-      console.error('Error creating mileage reimbursement submission:', e)
-      Notify.create('Unable to submit mileage reimbursement')
+    .catch((e) => {
+      console.error('Error saving mileage reimbursement submission:', e)
+      Notify.create(
+        isUpdateMode.value ? 'Unable to update mileage reimbursement' : 'Unable to submit mileage reimbursement'
+      )
     })
     .finally(() => {
       submitting.value = false
@@ -221,6 +287,11 @@ function formSubmit(): void {
 }
 
 function formReset(): void {
+  if (isUpdateMode.value && submissionPk.value !== null) {
+    void loadMileageSubmission(submissionPk.value)
+    return
+  }
+
   rows.value = [{ ...emptyRow }]
 }
 </script>

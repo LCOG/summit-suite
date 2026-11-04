@@ -79,15 +79,13 @@ class SubmissionViewSet(viewsets.ReadOnlyModelViewSet):
                 return self.queryset
             if hasattr(user, "employee"):
                 employee = user.employee
-                import pdb; pdb.set_trace()
                 if self.request.GET.get("for_employee"):
                     return Submission.objects.filter(
                         submitter=employee
                     ).select_related(
                         "submitter",
                         "approver_role",
-                        "approved_by",
-                        "mileage_submission",
+                        "approved_by"
                     )
                 elif self.request.GET.get("to_approve"):
                     return Submission.objects.filter(
@@ -95,8 +93,7 @@ class SubmissionViewSet(viewsets.ReadOnlyModelViewSet):
                     ).select_related(
                         "submitter",
                         "approver_role",
-                        "approved_by",
-                        "mileage_submission",
+                        "approved_by"
                     )
                 else:
                     organization_submissions = Submission.objects.filter(
@@ -104,8 +101,7 @@ class SubmissionViewSet(viewsets.ReadOnlyModelViewSet):
                     ).select_related(
                         "submitter",
                         "approver_role",
-                        "approved_by",
-                        "mileage_submission",
+                        "approved_by"
                     )
                     if Role.objects.filter(
                         organization=employee.organization, members=employee
@@ -133,25 +129,19 @@ class MileageSubmissionViewSet(viewsets.ModelViewSet):
                 if Role.objects.filter(
                     organization=employee.organization, members=employee
                 ).exists():
-                    mileage_pks = submissions.values_list("mileage_submission_id", flat=True)
+                    mileage_pks = submissions.values_list("mileage_submission", flat=True)
                 else:
                     mileage_pks = submissions.filter(
                         submitter=employee
-                    ).values_list("mileage_submission_id", flat=True)
+                    ).values_list("mileage_submission", flat=True)
                 return MileageSubmission.objects.filter(pk__in=mileage_pks).prefetch_related(
-                    "rows", "submissions__approver_role", "submissions__approved_by"
+                    "rows", "submission__approver_role", "submission__approved_by"
                 )
         return MileageSubmission.objects.none()
 
     def create(self, request, *args, **kwargs):
         if not hasattr(request.user, "employee"):
             return Response(status=status.HTTP_403_FORBIDDEN)
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        mileage_submission = serializer.save(
-            organization=request.user.employee.organization,
-            submitter=request.user.employee,
-        )
         approver_role = None
         approver_role_pk = request.data.get("approver_role_pk")
         if approver_role_pk:
@@ -167,15 +157,17 @@ class MileageSubmissionViewSet(viewsets.ModelViewSet):
             form_type=Submission.FORM_TYPE_MILEAGE,
             status=Submission.STATUS_SUBMITTED,
             approver_role=approver_role,
-            mileage_submission=mileage_submission,
         )
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        mileage_submission = serializer.save(submission=submission)
         send_mileage_submission_created_notification(submission)
         output = self.get_serializer(mileage_submission)
         return Response(output.data, status=status.HTTP_201_CREATED)
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
-        submission = instance.submissions.first()
+        submission = instance.submission
         if not submission:
             return Response(
                 data="Submission record is missing for this mileage submission.",
@@ -190,7 +182,7 @@ class MileageSubmissionViewSet(viewsets.ModelViewSet):
 
     def partial_update(self, request, *args, **kwargs):
         instance = self.get_object()
-        submission = instance.submissions.first()
+        submission = instance.submission
         if not submission:
             return Response(
                 data="Submission record is missing for this mileage submission.",
@@ -208,7 +200,7 @@ class MileageSubmissionViewSet(viewsets.ModelViewSet):
         if not hasattr(request.user, "employee"):
             return Response(status=status.HTTP_403_FORBIDDEN)
         mileage_submission = self.get_object()
-        submission = mileage_submission.submissions.first()
+        submission = mileage_submission.submission
         if not submission:
             return Response(
                 data="Submission record is missing for this mileage submission.",

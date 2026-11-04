@@ -30,22 +30,14 @@ class MileageSubmission(models.Model):
     class Meta:
         ordering = ["-pk"]
 
-    organization = models.ForeignKey(
-        Organization,
-        on_delete=models.CASCADE,
-        related_name="mileage_submissions",
-    )
-    submitter = models.ForeignKey(
-        Employee,
-        on_delete=models.CASCADE,
-        related_name="mileage_submissions",
-    )
-    certification_statement = models.TextField(blank=True)
     reimbursement_rate = models.DecimalField(
-        max_digits=6, decimal_places=3, default=Decimal("0.585")
+        max_digits=6, decimal_places=3
     )
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    submission = models.OneToOneField(
+        "Submission",
+        on_delete=models.CASCADE,
+        related_name="mileage_submission",
+    )
 
     @property
     def total_miles(self):
@@ -97,21 +89,7 @@ class Submission(models.Model):
     )
 
     class Meta:
-        ordering = ["-submitted_at", "-pk"]
-        constraints = [
-            models.CheckConstraint(
-                condition=(
-                    Q(form_type="mileage", mileage_submission__isnull=False)
-                    | ~Q(form_type="mileage")
-                ),
-                name="submission_requires_mileage_when_mileage_type",
-            ),
-            models.UniqueConstraint(
-                fields=["mileage_submission"],
-                condition=Q(form_type="mileage"),
-                name="unique_submission_per_mileage_submission",
-            ),
-        ]
+        ordering = ["-created_at", "-pk"]
 
     organization = models.ForeignKey(
         Organization, on_delete=models.CASCADE, related_name="submissions"
@@ -137,16 +115,9 @@ class Submission(models.Model):
         null=True,
         related_name="approved_submissions",
     )
-    submitted_at = models.DateTimeField(auto_now_add=True)
-    approved_at = models.DateTimeField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    mileage_submission = models.ForeignKey(
-        MileageSubmission,
-        on_delete=models.CASCADE,
-        blank=True,
-        null=True,
-        related_name="submissions",
-    )
+    approved_at = models.DateTimeField(blank=True, null=True)
 
     def can_edit(self, employee):
         return (

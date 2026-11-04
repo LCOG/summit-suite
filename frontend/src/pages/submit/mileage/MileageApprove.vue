@@ -13,7 +13,7 @@
             </td>
             <td>Submitter</td>
             <td>Status</td>
-            <td>Date</td>
+            <td>Travel Date</td>
             <td>Purpose/Destination</td>
             <td>Subfund &amp; Contract</td>
             <td>Miles</td>

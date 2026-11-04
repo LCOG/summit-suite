@@ -10,11 +10,30 @@ import {
 
 export const useSubmissionsStore = defineStore('submissions', {
   state: () => ({
+    submissions: [] as Array<SubmissionRetrieve>,
     mileageSubmissions: [] as Array<MileageSubmissionRetrieve>,
-    submissions: [] as Array<SubmissionRetrieve>
   }),
 
   actions: {
+    getAllSubsForEmployee(pk: number) {
+      return new Promise((resolve, reject) => {
+        axios({
+          url: `${apiURL}api/v1/submission?for_employee=${pk}`
+        })
+          .then(resp => {
+            this.submissions = resp.data.results
+            resolve(resp.data.results)
+          })
+          .catch(e => {
+            handlePromiseError(
+              reject,
+              'Error getting submissions for employee',
+              e
+            )
+          })
+      })
+    },
+
     getAllMileageSubsForEmployee(pk: number) {
       return new Promise((resolve, reject) => {
         axios({
@@ -28,6 +47,24 @@ export const useSubmissionsStore = defineStore('submissions', {
             handlePromiseError(
               reject,
               'Error getting mileage submissions',
+              e
+            )
+          })
+      })
+    },
+
+    getAllSubsToApprove(pk: number) {
+      return new Promise((resolve, reject) => {
+        axios({
+          url: `${apiURL}api/v1/submission?to_approve=${pk}`
+        })
+          .then(resp => {
+            resolve(resp.data.results)
+          })
+          .catch(e => {
+            handlePromiseError(
+              reject,
+              'Error getting submissions to approve',
               e
             )
           })
@@ -92,29 +129,48 @@ export const useSubmissionsStore = defineStore('submissions', {
       })
     },
 
-    getSubmissions() {
+    authLogout() {
+      return new Promise((resolve) => {
+        this.$reset()
+        resolve('Successfully triggered logout')
+      })
+    },
+
+    getMileageSubmission(pk: number) {
       return new Promise((resolve, reject) => {
         axios({
-          url: `${apiURL}api/v1/submission`
+          url: `${apiURL}api/v1/mileage-submission/${pk}`
         })
           .then(resp => {
-            this.submissions = resp.data.results
-            resolve(resp.data.results)
+            resolve(resp.data)
           })
           .catch(e => {
             handlePromiseError(
               reject,
-              'Error getting submissions',
+              'Error getting mileage submission',
               e
             )
           })
       })
     },
 
-    authLogout() {
-      return new Promise((resolve) => {
-        this.$reset()
-        resolve('Successfully triggered logout')
+    updateMileageSubmission(pk: number, data: MileageSubmissionCreate) {
+      return new Promise((resolve, reject) => {
+        axios({
+          url: `${apiURL}api/v1/mileage-submission/${pk}`,
+          method: 'PUT',
+          data
+        })
+          .then(resp => {
+            resolve(resp.data)
+          })
+          .catch(e => {
+            handlePromiseError(
+              reject,
+              'Error updating mileage submission',
+              e
+            )
+          })
       })
     }
   }

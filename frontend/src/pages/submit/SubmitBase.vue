@@ -30,7 +30,7 @@
       </q-btn-group>
       <q-btn-group rounded class="q-ml-sm">
         <q-btn
-          :to="{ name: 'mileage-reimbursement-list' }"
+          :to="{ name: 'mileage-list' }"
           unelevated
           rounded
           color="primary"

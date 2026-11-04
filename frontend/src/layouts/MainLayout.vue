@@ -175,6 +175,12 @@ const navLinks: Array<LinkData> = [
     link: '/phish/dashboard',
     access: { module: 'secure', flag: 'can_view_secure' }
   },
+  {
+    title: 'Submit',
+    icon: 'send',
+    link: '/submit',
+    access: { module: 'submit', flag: 'can_view_submit' }
+  },
   // {
   //   title: 'Meals on Wheels Map',
   //   icon: 'map',

@@ -6,9 +6,8 @@
   <table class="full-width mileage-table">
     <thead>
       <tr class="text-weight-bold">
-        <td>Submitter</td>
         <td>Status</td>
-        <td>Date</td>
+        <td>Travel Date</td>
         <td>Purpose/Destination</td>
         <td>Subfund &amp; Contract</td>
         <td>Miles</td>
@@ -16,9 +15,8 @@
     </thead>
     <tbody>
       <tr v-for="(row, index) in rows" :key="index">
-        <td>{{ row.submitterName }}</td>
-        <td>{{ row.statusDisplay }}</td>
-        <td>{{ row.date }}</td>
+        <td v-html="row.statusDisplay.outerHTML"></td>
+        <td>{{ readableDateNEW(row.date) }}</td>
         <td>{{ row.purpose }}</td>
         <td>{{ row.subfund }}</td>
         <td>{{ getMileage(row) }}</td>
@@ -50,6 +48,7 @@
 import { onMounted, ref } from 'vue'
 import { Notify } from 'quasar'
 
+import { readableDateNEW } from 'src/filters'
 import { useSubmissionsStore } from 'src/stores/submissions'
 import { MileageSubmissionRetrieve } from 'src/types'
 import { getCurrentUser } from 'src/utils'
@@ -57,8 +56,7 @@ import { getCurrentUser } from 'src/utils'
 interface MileageRequestListRow {
   submissionPk: number
   status: 'submitted' | 'approved'
-  statusDisplay: string
-  submitterName: string
+  statusDisplay: HTMLElement
   date: string
   purpose: string
   subfund: string
@@ -76,8 +74,19 @@ function getMileage(row: MileageRequestListRow): number {
   return row.miles
 }
 
-function toStatusDisplay(status: 'submitted' | 'approved'): string {
-  return status === 'approved' ? 'Approved' : 'Submitted'
+function toStatusDisplay(submission: MileageSubmissionRetrieve): HTMLElement {
+  const el = document.createElement('div')
+  if (submission.submission?.status === 'approved') {
+    el.textContent = 'Approved'
+  } else {
+    el.textContent = 'Submitted'
+    const link = document.createElement('a')
+    link.textContent = '(Edit)'
+    link.href = `/submit/mileage/${submission.pk}`
+    link.style.marginLeft = '4px'
+    el.appendChild(link)
+  }
+  return el
 }
 
 function mapRows(data: Array<MileageSubmissionRetrieve>): Array<MileageRequestListRow> {
@@ -89,8 +98,7 @@ function mapRows(data: Array<MileageSubmissionRetrieve>): Array<MileageRequestLi
       mappedRows.push({
         submissionPk: submission.pk,
         status: submissionMeta.status,
-        statusDisplay: toStatusDisplay(submissionMeta.status),
-        submitterName: submission.submitter_name,
+        statusDisplay: toStatusDisplay(submission),
         date: row.date,
         purpose: row.purpose,
         subfund: row.contract_fund,

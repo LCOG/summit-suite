@@ -4,7 +4,7 @@
     <div class="q-my-md">
       <q-btn-group rounded>
         <q-btn
-          :to="{ name: 'mileage-reimbursement-create' }"
+          :to="{ name: 'mileage-create' }"
           unelevated
           rounded
           color="primary"
@@ -12,7 +12,7 @@
           :label="$q.screen.xs ? 'Submit' : 'Request Reimbursement'"
         />
         <q-btn
-          :to="{ name: 'mileage-reimbursement-list' }"
+          :to="{ name: 'mileage-list' }"
           unelevated
           rounded
           color="primary"
@@ -20,7 +20,7 @@
           :label="$q.screen.xs ? 'List' : 'My Requests'"
         />
         <q-btn
-          :to="{ name: 'mileage-reimbursement-approve' }"
+          :to="{ name: 'mileage-approve' }"
           unelevated
           rounded
           color="primary"

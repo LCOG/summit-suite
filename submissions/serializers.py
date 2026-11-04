@@ -37,18 +37,16 @@ class SubmissionSerializer(serializers.ModelSerializer):
     approved_by_name = serializers.CharField(
         source="approved_by.name", default="", read_only=True
     )
-    mileage_submission_pk = serializers.IntegerField(
-        source="mileage_submission.pk", read_only=True
-    )
     approver_role_name = serializers.CharField(
         source="approver_role.name", default="", read_only=True
     )
+    type = serializers.SerializerMethodField()
 
     class Meta:
         model = Submission
         fields = [
             "pk",
-            "form_type",
+            "type",
             "status",
             "submitter_pk",
             "submitter_name",
@@ -56,17 +54,18 @@ class SubmissionSerializer(serializers.ModelSerializer):
             "approver_role_name",
             "approved_by",
             "approved_by_name",
-            "submitted_at",
-            "approved_at",
+            "created_at",
             "updated_at",
-            "mileage_submission_pk",
+            "approved_at",
         ]
 
+    def get_type(self, obj):
+        return obj.get_form_type_display()
 
 class MileageSubmissionSerializer(serializers.ModelSerializer):
     rows = MileageSubmissionRowSerializer(many=True)
-    submitter_pk = serializers.IntegerField(source="submitter.pk", read_only=True)
-    submitter_name = serializers.CharField(source="submitter.name", read_only=True)
+    submitter_pk = serializers.IntegerField(source="submission.submitter.pk", read_only=True)
+    submitter_name = serializers.CharField(source="submission.submitter.name", read_only=True)
     total_miles = serializers.IntegerField(read_only=True)
     total_reimbursement = serializers.DecimalField(
         max_digits=10, decimal_places=2, read_only=True
@@ -79,19 +78,16 @@ class MileageSubmissionSerializer(serializers.ModelSerializer):
             "pk",
             "submitter_pk",
             "submitter_name",
-            "certification_statement",
             "reimbursement_rate",
             "rows",
             "total_miles",
             "total_reimbursement",
-            "created_at",
-            "updated_at",
             "submission",
         ]
 
     @staticmethod
     def get_submission(mileage_submission):
-        submission = mileage_submission.submissions.first()
+        submission = mileage_submission.submission
         if not submission:
             return None
         return {
@@ -107,9 +103,11 @@ class MileageSubmissionSerializer(serializers.ModelSerializer):
             "approved_by_name": submission.approved_by.name
             if submission.approved_by
             else "",
-            "submitted_at": submission.submitted_at,
+            "created_at": submission.created_at,
             "approved_at": submission.approved_at,
         }
+    
+
 
     def create(self, validated_data):
         rows = validated_data.pop("rows", [])
@@ -132,7 +130,6 @@ class MileageSubmissionSerializer(serializers.ModelSerializer):
             for index, row in enumerate(rows):
                 MileageSubmissionRow.objects.create(
                     mileage_submission=instance,
-                    row_order=row.get("row_order", index),
                     **row,
                 )
 

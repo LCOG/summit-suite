@@ -408,31 +408,40 @@ if (maintenanceMode) {
               name: 'all-submissions',
               component: () => import('src/pages/submit/AllSubmissions.vue')
             },
-          ]
-        },
-
-
-        {
-          path: '/mileage-reimbursement',
-          name: 'mileage-reimbursement',
-          component: () => import('src/pages/mileageReimbursement/MileageReimbursement.vue'),
-          redirect: { name: 'mileage-reimbursement-create' },
-          children: [
-            {
-              path: 'create',
-              name: 'mileage-reimbursement-create',
-              component: () => import('src/pages/mileageReimbursement/MileageReimbursementCreate.vue')
-            },
-            {
-              path: 'list',
-              name: 'mileage-reimbursement-list',
-              component: () => import('src/pages/mileageReimbursement/MileageReimbursementList.vue')
-            },
             {
               path: 'approve',
-              name: 'mileage-reimbursement-approve',
-              component: () => import('src/pages/mileageReimbursement/MileageReimbursementApprove.vue')
-            }
+              name: 'all-approvals',
+              component: () => import('src/pages/submit/AllApprovals.vue')
+            },
+            {
+              path: 'mileage',
+              name: 'mileage',
+              component: () => import('src/pages/submit/mileage/MileageBase.vue'),
+              redirect: { name: 'mileage-create' },
+              children: [
+                {
+                  path: 'create',
+                  name: 'mileage-create',
+                  component: () => import('src/pages/submit/mileage/MileageDetail.vue')
+                },
+                {
+                  path: ':pk',
+                  name: 'mileage-detail',
+                  component: () => import('src/pages/submit/mileage/MileageDetail.vue'),
+                  props: true
+                },
+                {
+                  path: 'list',
+                  name: 'mileage-list',
+                  component: () => import('src/pages/submit/mileage/MileageList.vue')
+                },
+                {
+                  path: 'approve',
+                  name: 'mileage-approve',
+                  component: () => import('src/pages/submit/mileage/MileageApprove.vue')
+                }
+              ]
+            },
           ]
         },
 

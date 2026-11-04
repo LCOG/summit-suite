@@ -979,7 +979,7 @@ export interface MileageSubmissionRetrieve {
 
 export interface SubmissionRetrieve {
   pk: number
-  form_type: string
+  type: string
   status: 'submitted' | 'approved'
   submitter_pk: number
   submitter_name: string
@@ -987,9 +987,9 @@ export interface SubmissionRetrieve {
   approver_role_name: string
   approved_by: number | null
   approved_by_name: string
-  submitted_at: string
-  approved_at: string | null
+  created_at: string
   updated_at: string
+  approved_at: string | null
   mileage_submission_pk: number | null
 }
 

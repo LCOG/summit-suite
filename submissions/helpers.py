@@ -21,7 +21,7 @@ def send_mileage_submission_created_notification(submission: Submission):
     if not recipients:
         return 0
     current_site = Site.objects.get_current()
-    url = f"{current_site.domain}/mileage-reimbursement/list"
+    url = f"{current_site.domain}/submit/mileage/list"
     subject = f"Mileage reimbursement submitted by {submission.submitter.name}"
     text_body = (
         f"{submission.submitter.name} submitted a mileage reimbursement request.\n"
@@ -46,7 +46,7 @@ def send_mileage_submission_approved_notification(submission: Submission):
     if not submission.submitter.user.email:
         return 0
     current_site = Site.objects.get_current()
-    url = f"{current_site.domain}/mileage-reimbursement/list"
+    url = f"{current_site.domain}/submit/mileage/list"
     subject = "Mileage reimbursement approved"
     text_body = (
         "Your mileage reimbursement request has been approved.\n"
