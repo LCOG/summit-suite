@@ -24,12 +24,12 @@
             <td>
               <q-checkbox
                 v-model="row.checked"
-                :disable="row.status !== 'submitted'"
+                v-if="row.status === 'submitted'"
               />
             </td>
             <td>{{ row.submitterName }}</td>
             <td>{{ row.statusDisplay }}</td>
-            <td>{{ row.date }}</td>
+            <td>{{ readableDateNEW(row.date) }}</td>
             <td>{{ row.purpose }}</td>
             <td>{{ row.subfund }}</td>
             <td>{{ getMileage(row) }}</td>
@@ -77,6 +77,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { Notify } from 'quasar'
 
+import { readableDateNEW } from 'src/filters'
 import { useSubmitStore } from 'src/stores/submit'
 import { MileageSubmissionRetrieve } from 'src/types'
 import { getCurrentUser } from 'src/utils'
