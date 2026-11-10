@@ -66,6 +66,7 @@ class MileageSubmissionSerializer(serializers.ModelSerializer):
     rows = MileageSubmissionRowSerializer(many=True)
     submitter_pk = serializers.IntegerField(source="submission.submitter.pk", read_only=True)
     submitter_name = serializers.CharField(source="submission.submitter.name", read_only=True)
+    travel_dates = serializers.CharField(read_only=True)
     total_miles = serializers.IntegerField(read_only=True)
     total_reimbursement = serializers.DecimalField(
         max_digits=10, decimal_places=2, read_only=True
@@ -80,6 +81,7 @@ class MileageSubmissionSerializer(serializers.ModelSerializer):
             "submitter_name",
             "reimbursement_rate",
             "rows",
+            "travel_dates",
             "total_miles",
             "total_reimbursement",
             "submission",

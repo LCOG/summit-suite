@@ -970,6 +970,7 @@ export interface MileageSubmissionRetrieve {
   certification_statement: string
   reimbursement_rate: string
   rows: Array<MileageSubmissionRowRetrieve>
+  travel_dates: string
   total_miles: number
   total_reimbursement: string
   created_at: string

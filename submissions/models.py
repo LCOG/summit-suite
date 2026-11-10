@@ -1,7 +1,7 @@
 from decimal import Decimal
 
 from django.db import models
-from django.db.models import Q, Sum
+from django.db.models import Min, Max, Sum
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 
@@ -43,6 +43,16 @@ class MileageSubmission(models.Model):
     def total_miles(self):
         total = self.rows.aggregate(total=Sum("miles"))["total"]
         return total or 0
+
+    @property
+    def travel_dates(self):
+        dates = self.rows.aggregate(
+            start=Min("date"),
+            end=Max("date")
+        )
+        if dates["start"] and dates["end"]:
+            return f"{dates['start']} - {dates['end']}"
+        return "" 
 
     @property
     def total_reimbursement(self):

@@ -1,53 +1,28 @@
 <!-- Not converted from Quasar 1/Vue 2 -->
 <template>
-  <q-card class="q-pa-md list-card">
     <q-inner-loading :showing="loading">
       <q-spinner color="primary" size="2em" />
     </q-inner-loading>
-    <q-form @submit.prevent="formSubmit" class="q-gutter-md">
       <table class="full-width mileage-table">
         <thead>
           <tr class="text-weight-bold">
-            <td>
-              <q-checkbox :model-value="allChecked" @update:model-value="toggleAll" />
-            </td>
             <td>Submitter</td>
             <td>Status</td>
-            <td>Travel Date</td>
-            <td>Purpose/Destination</td>
-            <td>Subfund &amp; Contract</td>
-            <td>Miles</td>
+            <td>Travel Dates</td>
+            <td>Total Miles</td>
           </tr>
         </thead>
         <tbody>
           <tr v-for="(row, index) in rows" :key="index">
-            <td>
-              <q-checkbox
-                v-model="row.checked"
-                v-if="row.status === 'submitted'"
-              />
-            </td>
             <td>{{ row.submitterName }}</td>
-            <td>{{ row.statusDisplay }}</td>
-            <td>{{ readableDateNEW(row.date) }}</td>
-            <td>{{ row.purpose }}</td>
-            <td>{{ row.subfund }}</td>
+            <td v-html="row.statusDisplay.outerHTML"></td>
+            <td>
+              {{ row.travelDates.split(' - ').map(date => readableDateNEW(date)).join(' - ') }}
+            </td>
             <td>{{ getMileage(row) }}</td>
           </tr>
         </tbody>
       </table>
-
-      <div>
-        <q-btn
-          label="Approve all checked"
-          type="submit"
-          color="primary"
-          :loading="submitting"
-          :disable="loading || submitting"
-        />
-      </div>
-    </q-form>
-  </q-card>
 </template>
 
 <style scoped lang="scss">
@@ -74,7 +49,7 @@
 </style>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { Notify } from 'quasar'
 
 import { readableDateNEW } from 'src/filters'
@@ -86,33 +61,34 @@ interface MileageRequestListRow {
   checked: boolean
   submissionPk: number
   status: 'submitted' | 'approved'
-  statusDisplay: string
+  statusDisplay: HTMLElement
   submitterName: string
-  date: string
-  purpose: string
-  subfund: string
-  start: number
-  finish: number
+  travelDates: string
   miles: number
 }
 
 const submissionsStore = useSubmitStore()
 const rows = ref<MileageRequestListRow[]>([])
 const loading = ref(false)
-const submitting = ref(false)
 const currentUserPk = ref<number>(-1)
-
-const allChecked = computed(() => {
-  const selectableRows = rows.value.filter((row) => row.status === 'submitted')
-  return selectableRows.length > 0 && selectableRows.every((row) => row.checked)
-})
 
 function getMileage(row: MileageRequestListRow): number {
   return row.miles
 }
 
-function toStatusDisplay(status: 'submitted' | 'approved'): string {
-  return status === 'approved' ? 'Approved' : 'Submitted'
+function toStatusDisplay(submission: MileageSubmissionRetrieve): HTMLElement {
+  const el = document.createElement('div')
+  if (submission.submission?.status === 'approved') {
+    el.textContent = 'Approved'
+  } else {
+    el.textContent = 'Submitted'
+    const link = document.createElement('a')
+    link.textContent = '(Edit)'
+    link.href = `/submit/mileage/${submission.pk}`
+    link.style.marginLeft = '4px'
+    el.appendChild(link)
+  }
+  return el
 }
 
 function mapRows(data: Array<MileageSubmissionRetrieve>): Array<MileageRequestListRow> {
@@ -120,20 +96,14 @@ function mapRows(data: Array<MileageSubmissionRetrieve>): Array<MileageRequestLi
   data.forEach((submission) => {
     const submissionMeta = submission.submission
     if (!submissionMeta) return
-    submission.rows.forEach((row) => {
-      mappedRows.push({
-        checked: false,
-        submissionPk: submission.pk,
-        status: submissionMeta.status,
-        statusDisplay: toStatusDisplay(submissionMeta.status),
-        submitterName: submission.submitter_name,
-        date: row.date,
-        purpose: row.purpose,
-        subfund: row.contract_fund,
-        start: row.odometer_start,
-        finish: row.odometer_finish,
-        miles: row.miles
-      })
+    mappedRows.push({
+      checked: false,
+      submissionPk: submission.pk,
+      status: submissionMeta.status,
+      statusDisplay: toStatusDisplay(submission),
+      submitterName: submission.submitter_name,
+      travelDates: submission.travel_dates,
+      miles: submission.total_miles
     })
   })
   return mappedRows
@@ -151,49 +121,6 @@ function loadMileageSubmissions(pk: number): void {
     })
     .finally(() => {
       loading.value = false
-    })
-}
-
-function toggleAll(checked: boolean): void {
-  rows.value.forEach((row) => {
-    if (row.status !== 'submitted') {
-      row.checked = false
-      return
-    }
-    row.checked = checked
-  })
-}
-
-function formSubmit(): void {
-  if (loading.value || submitting.value) {
-    return
-  }
-  const selectedSubmissionPks = Array.from(
-    new Set(
-      rows.value
-        .filter((row) => row.checked && row.status === 'submitted')
-        .map((row) => row.submissionPk)
-    )
-  )
-  if (!selectedSubmissionPks.length) {
-    Notify.create('No mileage requests selected')
-    return
-  }
-  submitting.value = true
-  Promise.all(
-    selectedSubmissionPks.map((pk) => submissionsStore.approveMileageSubmission(pk))
-  )
-    .then(() => {
-      Notify.create(`Approved ${selectedSubmissionPks.length} mileage request(s)`)
-      loadMileageSubmissions(currentUserPk.value)
-    })
-    .catch((e) => {
-      console.error('Error approving mileage submissions:', e)
-      Notify.create('Unable to approve one or more requests')
-      loadMileageSubmissions(currentUserPk.value)
-    })
-    .finally(() => {
-      submitting.value = false
     })
 }
 

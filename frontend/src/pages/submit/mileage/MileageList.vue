@@ -7,19 +7,15 @@
     <thead>
       <tr class="text-weight-bold">
         <td>Status</td>
-        <td>Travel Date</td>
-        <td>Purpose/Destination</td>
-        <td>Subfund &amp; Contract</td>
+        <td>Travel Dates</td>
         <td>Miles</td>
       </tr>
     </thead>
     <tbody>
       <tr v-for="(row, index) in rows" :key="index">
         <td v-html="row.statusDisplay.outerHTML"></td>
-        <td>{{ readableDateNEW(row.date) }}</td>
-        <td>{{ row.purpose }}</td>
-        <td>{{ row.subfund }}</td>
-        <td>{{ getMileage(row) }}</td>
+        <td>{{ row.travelDates.split(' - ').map(date => readableDateNEW(date)).join(' - ') }}</td>
+        <td>{{ row.totalMiles }}</td>
       </tr>
     </tbody>
   </table>
@@ -57,22 +53,13 @@ interface MileageRequestListRow {
   submissionPk: number
   status: 'submitted' | 'approved'
   statusDisplay: HTMLElement
-  date: string
-  purpose: string
-  subfund: string
-  start: number
-  finish: number
-  miles: number
+  totalMiles: number
+  travelDates: string
 }
 
 const submissionsStore = useSubmitStore()
 const rows = ref<MileageRequestListRow[]>([])
 const loading = ref(false)
-
-
-function getMileage(row: MileageRequestListRow): number {
-  return row.miles
-}
 
 function toStatusDisplay(submission: MileageSubmissionRetrieve): HTMLElement {
   const el = document.createElement('div')
@@ -94,18 +81,12 @@ function mapRows(data: Array<MileageSubmissionRetrieve>): Array<MileageRequestLi
   data.forEach((submission) => {
     const submissionMeta = submission.submission
     if (!submissionMeta) return
-    submission.rows.forEach((row) => {
-      mappedRows.push({
-        submissionPk: submission.pk,
-        status: submissionMeta.status,
-        statusDisplay: toStatusDisplay(submission),
-        date: row.date,
-        purpose: row.purpose,
-        subfund: row.contract_fund,
-        start: row.odometer_start,
-        finish: row.odometer_finish,
-        miles: row.miles
-      })
+    mappedRows.push({
+      submissionPk: submission.pk,
+      status: submissionMeta.status,
+      statusDisplay: toStatusDisplay(submission),
+      totalMiles: submission.total_miles,
+      travelDates: submission.travel_dates
     })
   })
   return mappedRows
