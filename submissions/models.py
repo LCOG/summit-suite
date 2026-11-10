@@ -91,9 +91,11 @@ class Submission(models.Model):
         (FORM_TYPE_MILEAGE, "Mileage Reimbursement"),
     )
 
+    STATUS_DRAFT = "draft"
     STATUS_SUBMITTED = "submitted"
     STATUS_APPROVED = "approved"
     STATUS_CHOICES = (
+        (STATUS_DRAFT, "Draft"),
         (STATUS_SUBMITTED, "Submitted"),
         (STATUS_APPROVED, "Approved"),
     )
@@ -141,3 +143,14 @@ class Submission(models.Model):
         self.approved_by = approver
         self.approved_at = timezone.now()
         self.save()
+
+
+class SubmissionSignature(models.Model):
+    submission = models.ForeignKey(
+        Submission, on_delete=models.CASCADE, related_name="signatures"
+    )
+    signer = models.ForeignKey(
+        Employee, on_delete=models.CASCADE,
+        related_name="submission_signatures"
+    )
+    signed_at = models.DateTimeField(auto_now_add=True)

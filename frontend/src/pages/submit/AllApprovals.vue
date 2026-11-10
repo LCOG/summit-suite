@@ -1,28 +1,30 @@
 <!-- Not converted from Quasar 1/Vue 2 -->
 <template>
-  <div>
-    <q-inner-loading :showing="loading">
-      <q-spinner color="primary" size="2em" />
-    </q-inner-loading>
-    <table class="full-width submission-table">
-      <thead>
-        <tr class="text-weight-bold">
-          <td>Type</td>
-          <td>Submitter</td>
-          <td>Status</td>
-          <td>Submitted</td>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="(row, index) in rows" :key="index">
-          <td>{{ row.submissionType }}</td>
-          <td>{{ row.submitterName }}</td>
-          <td v-html="row.statusDisplay.outerHTML"></td>
-          <td>{{ readableDateTimeNEW(row.createdAt) }}</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+<q-inner-loading :showing="loading">
+  <q-spinner color="primary" size="2em" />
+</q-inner-loading>
+<q-table
+  :rows="rows"
+  row-key="submissionPk"
+  :columns="[
+    { name: 'submissionType', label: 'Type', field: 'submissionType', align: 'left' },
+    { name: 'submitterName', label: 'Submitter', field: 'submitterName', align: 'left' },
+    { name: 'status', label: 'Status', field: 'status', align: 'left' },
+    { name: 'createdAt', label: 'Submitted', field: 'createdAt', align: 'left' }
+  ]"
+  :pagination="{ rowsPerPage: 50 }"
+>
+  <template v-slot:body="props">
+    <q-tr :props="props" @click="navigateToDetail(props.row.submissionPk)" class="submission-row">
+      <q-td v-for="col in props.cols" :key="col.name" :props="props">
+        <span v-if="col.name === 'status'" v-html="props.row.statusDisplay.outerHTML"></span>
+        <span v-else-if="col.name === 'submissionType'">{{ props.row.submissionType }}</span>
+        <span v-else-if="col.name === 'submitterName'">{{ props.row.submitterName }}</span>
+        <span v-else-if="col.name === 'createdAt'">{{ readableDateTimeNEW(props.row.createdAt) }}</span>
+      </q-td>
+    </q-tr>
+  </template>
+</q-table>
 </template>
 
 <style scoped lang="scss">
@@ -114,6 +116,10 @@ function loadSubmissions(pk: number): void {
     .finally(() => {
       loading.value = false
     })
+}
+
+function navigateToDetail(submissionPk: number): void {
+  window.location.href = `/submit/mileage/${submissionPk}`
 }
 
 onMounted(() => {

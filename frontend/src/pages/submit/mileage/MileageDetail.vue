@@ -54,11 +54,11 @@
         </tfoot>
       </table>
 
-      <div class="row items-center q-gutter-sm">
+      <div class="row items-center q-gutter-sm" v-if="canEdit">
         <q-btn unelevated rounded color="primary" icon="add" label="Add Row" @click="addRow" />
       </div>
 
-      <div>
+      <div v-if="canEdit">
         <div class="text-subtitle1 q-mb-sm">
           By clicking "{{ isUpdateMode ? 'Update' : 'Submit' }}" below, I certify that all the expenses listed above are true and correct and were incurred on official {{ organizationName }} business.
         </div>
@@ -74,6 +74,10 @@
         </div>
       </div>
     </q-form>
+
+    <div v-if="canApprove" class="q-mt-md">
+      <q-btn unelevated rounded color="primary" icon="check" label="Approve" @click="approveSubmission" />
+    </div>
   </q-card>
 </template>
 
@@ -105,7 +109,6 @@ import { useRoute, useRouter } from 'vue-router'
 
 import { useSubmitStore } from 'src/stores/submit'
 import { useUserStore } from 'src/stores/user'
-import { MileageSubmissionRetrieve } from 'src/types'
 
 interface MileageRow {
   date: string
@@ -134,6 +137,9 @@ const organizationName = computed(() => userStore.getEmployeeProfile?.organizati
 const rows = ref<MileageRow[]>([{ ...emptyRow }])
 const reimbursementRate = 0.585
 const submitting = ref(false)
+const submitterPk = ref<number | null>(null)
+const submissionStatus = ref<string>("draft")
+const allowedApprovers = ref<Array<number>>([])
 
 const submissionPk = computed<number | null>(() => {
   const rawPk = props.pk ?? route.params.pk
@@ -146,6 +152,30 @@ const submissionPk = computed<number | null>(() => {
 })
 
 const isUpdateMode = computed(() => submissionPk.value !== null)
+
+const canEdit = computed(() => {
+  if (submissionStatus.value === 'approved') {
+    return false
+  }
+  if (!isUpdateMode.value) {
+    return true
+  } else {
+    if (userStore.getEmployeeProfile?.employee_pk === submitterPk.value) {
+      return true
+    }
+    return false
+  }
+})
+
+const canApprove = computed(() => {
+  if (submissionStatus.value !== 'submitted') {
+    return false
+  }
+  const employeePk = userStore.getEmployeeProfile?.employee_pk ?? -1
+  return isUpdateMode.value &&
+    // employeePk !== submitterPk.value &&
+    allowedApprovers.value?.indexOf(employeePk) !== -1
+})
 
 function getRowMiles(row: MileageRow): number {
   const start = Number(row.start || 0)
@@ -224,7 +254,10 @@ function formPayload() {
 
 async function loadMileageSubmission(pk: number): Promise<void> {
   try {
-    const submission = await submissionsStore.getMileageSubmission(pk) as MileageSubmissionRetrieve
+    const submission = await submissionsStore.getMileageSubmission(pk)
+    submitterPk.value = submission.submitter_pk
+    submissionStatus.value = submission.submission.status
+    allowedApprovers.value = submission.submission.allowed_approvers
     rows.value = submission.rows.map(rowFromApi)
   } catch (e) {
     console.error('Error loading mileage submission:', e)
@@ -293,5 +326,27 @@ function formReset(): void {
   }
 
   rows.value = [{ ...emptyRow }]
+}
+
+function approveSubmission(): void {
+  if (submitting.value || !submissionPk.value) {
+    return
+  }
+  submitting.value = true
+
+  submissionsStore.approveMileageSubmission(submissionPk.value)
+    .then(() => {
+      Notify.create('Mileage reimbursement approved')
+      router.push({ name: 'mileage-list' }).catch((e) => {
+        console.error('Error navigating to mileage reimbursement list:', e)
+      })
+    })
+    .catch((e) => {
+      console.error('Error approving mileage reimbursement submission:', e)
+      Notify.create('Unable to approve mileage reimbursement')
+    })
+    .finally(() => {
+      submitting.value = false
+    })
 }
 </script>

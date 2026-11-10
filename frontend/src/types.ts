@@ -96,7 +96,7 @@ export interface OrganizationRetrieve {
 
 export interface EmployeeRetrieve {
   url: string
-  pk: number
+  employee_pk: number
   name: string
   legal_name: string
   user: Url
@@ -952,17 +952,6 @@ export interface MileageSubmissionRowRetrieve {
   miles: number
 }
 
-export interface MileageSubmissionLinkedSubmission {
-  pk: number
-  status: 'submitted' | 'approved'
-  form_type: string
-  approver_role_pk: number | null
-  approver_role_name: string
-  approved_by_name: string
-  submitted_at: string
-  approved_at: string | null
-}
-
 export interface MileageSubmissionRetrieve {
   pk: number
   submitter_pk: number
@@ -975,7 +964,7 @@ export interface MileageSubmissionRetrieve {
   total_reimbursement: string
   created_at: string
   updated_at: string
-  submission: MileageSubmissionLinkedSubmission | null
+  submission: SubmissionRetrieve
 }
 
 export interface SubmissionRetrieve {
@@ -986,6 +975,7 @@ export interface SubmissionRetrieve {
   submitter_name: string
   approver_role: number | null
   approver_role_name: string
+  allowed_approvers: Array<number>
   approved_by: number | null
   approved_by_name: string
   created_at: string

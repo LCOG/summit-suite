@@ -40,7 +40,9 @@ class SubmissionSerializer(serializers.ModelSerializer):
     approver_role_name = serializers.CharField(
         source="approver_role.name", default="", read_only=True
     )
+    allowed_approvers = serializers.SerializerMethodField()
     type = serializers.SerializerMethodField()
+    signatures = serializers.SerializerMethodField()
 
     class Meta:
         model = Submission
@@ -52,8 +54,10 @@ class SubmissionSerializer(serializers.ModelSerializer):
             "submitter_name",
             "approver_role",
             "approver_role_name",
+            "allowed_approvers",
             "approved_by",
             "approved_by_name",
+            "signatures",
             "created_at",
             "updated_at",
             "approved_at",
@@ -61,6 +65,21 @@ class SubmissionSerializer(serializers.ModelSerializer):
 
     def get_type(self, obj):
         return obj.get_form_type_display()
+
+    def get_allowed_approvers(self, obj):
+        if obj.approver_role:
+            return list(obj.approver_role.members.values_list("pk", flat=True))
+        return []
+
+    def get_signatures(self, obj):
+        return [
+            {
+                "signer_pk": signature.signer.pk,
+                "signer_name": signature.signer.name,
+                "signed_at": signature.signed_at,
+            }
+            for signature in obj.signatures.all()
+        ]
 
 class MileageSubmissionSerializer(serializers.ModelSerializer):
     rows = MileageSubmissionRowSerializer(many=True)

@@ -4,14 +4,6 @@
     <div class="q-my-md">
       <q-btn-group rounded>
         <q-btn
-          :to="{ name: 'mileage-create' }"
-          unelevated
-          rounded
-          color="primary"
-          icon="directions_car"
-          :label="$q.screen.xs ? 'Submit' : 'Request Reimbursement'"
-        />
-        <q-btn
           :to="{ name: 'mileage-list' }"
           unelevated
           rounded

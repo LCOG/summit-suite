@@ -147,7 +147,7 @@ export const useSubmitStore = defineStore('submissions', {
       })
     },
 
-    getMileageSubmission(pk: number) {
+    getMileageSubmission(pk: number): Promise<MileageSubmissionRetrieve> {
       return new Promise((resolve, reject) => {
         axios({
           url: `${apiURL}api/v1/mileage-submission/${pk}`

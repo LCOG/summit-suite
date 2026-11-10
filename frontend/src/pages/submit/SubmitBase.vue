@@ -101,9 +101,13 @@
 </q-page>
 </template>
 
-<style scoped lang="scss">
+<style lang="scss">
 #help-dialog {
   max-width: 700px;
+}
+
+.submission-row {
+  cursor: pointer;
 }
 </style>
 

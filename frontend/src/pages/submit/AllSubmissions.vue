@@ -1,47 +1,34 @@
 <template>
-<div>
-  <q-inner-loading :showing="loading">
-    <q-spinner color="primary" size="2em" />
-  </q-inner-loading>
-  <table class="full-width submissions-table">
-    <thead>
-      <tr class="text-weight-bold">
-        <td>Type</td>
-        <td>Status</td>
-        <td>Last Updated</td>
-      </tr>
-    </thead>
-    <tbody>
-      <tr v-for="(row, index) in rows" :key="index">
-        <td>{{ row.submissionType }}</td>
-        <td v-html="row.statusDisplay.outerHTML"></td>
-        <td>{{ readableDateTimeNEW(row.date) }}</td>
-      </tr>
-    </tbody>
-  </table>
-</div>
+<q-inner-loading :showing="loading">
+  <q-spinner color="primary" size="2em" />
+</q-inner-loading>
+<q-table
+  :rows="rows"
+  :loading="loading"
+  :columns="[
+    { name: 'submissionType', label: 'Type', field: 'submissionType', align: 'left' },
+    { name: 'status', label: 'Status', field: 'status', align: 'left' },
+    { name: 'date', label: 'Last Updated', field: 'date', align: 'left' }
+  ]"
+>
+  <template v-slot:body="props">
+    <q-tr :props="props" @click="navigateToDetail(props.row.submissionPk)" class="submission-row">
+      <q-td v-for="col in props.cols" :key="col.name" :props="props">
+        <span v-if="col.name === 'submissionType'">{{ props.row.submissionType }}</span>
+        <span v-else-if="col.name === 'status'">{{ props.row.statusDisplay }}</span>
+        <span v-else-if="col.name === 'date'">{{ readableDateTimeNEW(props.row.date) }}</span>
+      </q-td>
+    </q-tr>
+  </template>
+</q-table>
 </template>
 
 <style scoped lang="scss">
-.submissions-table {
-  border-collapse: collapse;
-
-  thead,
-  tbody {
-    td {
-      border: 1px solid rgba(0, 0, 0, 0.12);
-      padding: 8px 10px;
-    }
-  }
-
-  thead td {
-    font-weight: 600;
-  }
-}
 </style>
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { Notify } from 'quasar'
 
 import { readableDateTimeNEW } from 'src/filters'
@@ -53,28 +40,22 @@ interface SubmissionListRow {
   submissionPk: number
   submissionType: string
   status: 'submitted' | 'approved'
-  statusDisplay: HTMLElement
+  statusDisplay: string
   submitterName: string
   date: string
 }
 
+const router = useRouter()
 const submissionsStore = useSubmitStore()
 const rows = ref<SubmissionListRow[]>([])
 const loading = ref(false)
 
-function toStatusDisplay(submission: SubmissionRetrieve): HTMLElement {
-  const el = document.createElement('div')
-  if (submission.status === 'approved') {
-    el.textContent = 'Approved'
-  } else {
-    el.textContent = 'Submitted'
-    const link = document.createElement('a')
-    link.textContent = '(Edit)'
-    link.href = `/submit/mileage/${submission.pk}`
-    link.style.marginLeft = '4px'
-    el.appendChild(link)
-  }
-  return el
+function toStatusText(status: 'submitted' | 'approved'): string {
+  return status ? status.charAt(0).toUpperCase() + status.slice(1) : ''
+}
+
+function navigateToDetail(submissionPk: number): void {
+  router.push(`/submit/mileage/${submissionPk}`)
 }
 
 function loadSubmissions(pk: number): void {
@@ -85,7 +66,7 @@ function loadSubmissions(pk: number): void {
         submissionPk: submission.pk,
         submissionType: submission.type,
         status: submission.status,
-        statusDisplay: toStatusDisplay(submission),
+        statusDisplay: toStatusText(submission.status),
         submitterName: submission.submitter_name,
         date: submission.updated_at
       }))
