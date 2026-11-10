@@ -1,7 +1,7 @@
 <!-- Not converted from Quasar 1/Vue 2 -->
 <template>
   <q-card class="q-pa-md">
-    <q-form @submit.prevent="formSubmit" @reset.prevent="formReset" class="q-gutter-md">
+    <q-form @submit.prevent="formSubmit(false)" class="q-gutter-md">
       <table class="full-width mileage-table">
         <thead>
           <tr>
@@ -56,21 +56,31 @@
 
       <div class="row items-center q-gutter-sm" v-if="canEdit">
         <q-btn unelevated rounded color="primary" icon="add" label="Add Row" @click="addRow" />
+        <EmployeeSelect
+          class="q-ml-md"
+          name="approver"
+          label="Approver"
+          :employee="selectedApprover"
+          :useLegalName="true"
+          v-on:input="selectedApprover=$event"
+          v-on:clear="selectedApprover=emptyEmployee"
+          :readOnly=false
+        />
       </div>
 
       <div v-if="canEdit">
         <div class="text-subtitle1 q-mb-sm">
-          By clicking "{{ isUpdateMode ? 'Update' : 'Submit' }}" below, I certify that all the expenses listed above are true and correct and were incurred on official {{ organizationName }} business.
+          By clicking "{{ isDraft ? 'Submit' : 'Resubmit' }}" below, I certify that all the expenses listed above are true and correct and were incurred on official {{ organizationName }} business.
         </div>
         <div class="q-gutter-sm">
           <q-btn
-            :label="isUpdateMode ? 'Update' : 'Submit'"
+            :label="isDraft ? 'Submit' : 'Resubmit'"
             type="submit"
             color="primary"
             :loading="submitting"
             :disable="submitting"
           />
-          <q-btn label="Reset" type="reset" color="primary" flat :disable="submitting" />
+          <q-btn label="Save" color="primary" flat :disable="submitting" @click="saveSubmission" />
         </div>
       </div>
     </q-form>
@@ -103,12 +113,14 @@
 
 <script setup lang="ts">
 
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { Notify } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 
+import EmployeeSelect from 'src/components/EmployeeSelect.vue'
 import { useSubmitStore } from 'src/stores/submit'
 import { useUserStore } from 'src/stores/user'
+import { emptyEmployee, SimpleEmployee, SimpleEmployeeRetrieve } from 'src/types'
 
 interface MileageRow {
   date: string
@@ -138,6 +150,7 @@ const rows = ref<MileageRow[]>([{ ...emptyRow }])
 const reimbursementRate = 0.585
 const submitting = ref(false)
 const submitterPk = ref<number | null>(null)
+const selectedApprover = ref<SimpleEmployee>(emptyEmployee)
 const submissionStatus = ref<string>("draft")
 const allowedApprovers = ref<Array<number>>([])
 
@@ -152,6 +165,7 @@ const submissionPk = computed<number | null>(() => {
 })
 
 const isUpdateMode = computed(() => submissionPk.value !== null)
+const isDraft = computed(() => submissionStatus.value === 'draft')
 
 const canEdit = computed(() => {
   if (submissionStatus.value === 'approved') {
@@ -238,8 +252,9 @@ function rowFromApi(row: any): MileageRow {
   }
 }
 
-function formPayload() {
+function formPayload(draft: boolean) {
   return {
+    draft: draft,
     reimbursement_rate: reimbursementRate.toFixed(3),
     rows: rows.value.map((row, index) => ({
       row_order: index,
@@ -262,6 +277,9 @@ async function loadMileageSubmission(pk: number): Promise<void> {
   } catch (e) {
     console.error('Error loading mileage submission:', e)
     Notify.create('Unable to load mileage request')
+    router.push({ name: 'mileage-list' }).catch((e) => {
+      console.error('Error navigating to mileage reimbursement list:', e)
+    })
   }
 }
 
@@ -278,7 +296,7 @@ watch(
   { immediate: true }
 )
 
-function formSubmit(): void {
+function formSubmit(draft=false): void {
   if (submitting.value) {
     return
   }
@@ -292,8 +310,7 @@ function formSubmit(): void {
   }
 
   submitting.value = true
-
-  const payload = formPayload()
+  const payload = formPayload(draft)
 
   const request = isUpdateMode.value && submissionPk.value !== null
     ? submissionsStore.updateMileageSubmission(submissionPk.value, payload)
@@ -319,13 +336,11 @@ function formSubmit(): void {
     })
 }
 
-function formReset(): void {
-  if (isUpdateMode.value && submissionPk.value !== null) {
-    void loadMileageSubmission(submissionPk.value)
+function saveSubmission(): void {
+  if (submitting.value) {
     return
   }
-
-  rows.value = [{ ...emptyRow }]
+  formSubmit(true)
 }
 
 function approveSubmission(): void {
@@ -349,4 +364,11 @@ function approveSubmission(): void {
       submitting.value = false
     })
 }
+
+onMounted(() => {
+  debugger
+  if (!selectedApprover.value.pk && userStore.profile.manager) {
+    selectedApprover.value = userStore.profile.manager
+  }
+})
 </script>

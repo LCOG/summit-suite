@@ -38,6 +38,13 @@ class MileageSubmission(models.Model):
         on_delete=models.CASCADE,
         related_name="mileage_submission",
     )
+    selected_approver = models.ForeignKey(
+        Employee,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="selected_approver_for_mileage_submissions",
+    )
 
     @property
     def total_miles(self):

@@ -142,6 +142,7 @@ class MileageSubmissionViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         if not hasattr(request.user, "employee"):
             return Response(status=status.HTTP_403_FORBIDDEN)
+        draft = request.data.get("draft", False)
         approver_role = None
         approver_role_pk = request.data.get("approver_role_pk")
         if approver_role_pk:
@@ -155,7 +156,7 @@ class MileageSubmissionViewSet(viewsets.ModelViewSet):
             organization=request.user.employee.organization,
             submitter=request.user.employee,
             form_type=Submission.FORM_TYPE_MILEAGE,
-            status=Submission.STATUS_SUBMITTED,
+            status=Submission.STATUS_DRAFT if draft else Submission.STATUS_SUBMITTED,
             approver_role=approver_role,
         )
         serializer = self.get_serializer(data=request.data)
@@ -167,6 +168,7 @@ class MileageSubmissionViewSet(viewsets.ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
+        draft = request.data.get("draft", False)
         submission = instance.submission
         if not submission:
             return Response(
@@ -178,6 +180,9 @@ class MileageSubmissionViewSet(viewsets.ModelViewSet):
                 data="Only the submitter can edit before approval.",
                 status=status.HTTP_403_FORBIDDEN,
             )
+        if not draft and submission.status == Submission.STATUS_DRAFT:
+            submission.status = Submission.STATUS_SUBMITTED
+            submission.save()
         return super().update(request, *args, **kwargs)
 
     def partial_update(self, request, *args, **kwargs):
