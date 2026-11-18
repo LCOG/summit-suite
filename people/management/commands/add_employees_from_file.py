@@ -134,7 +134,7 @@ class Command(BaseCommand):
                 unit_or_program = UnitOrProgram.objects.get(name='ADRC')
             elif department in ['APS1', 'APS2', 'APS3', 'APS4']:
                 unit_or_program = UnitOrProgram.objects.get(name='APS')
-            elif department in ['Case Management 1', 'Case Management 2', 'Case Management 3', 'Case Management 4', 'Case Management 5', 'Case Management 6']:
+            elif department in ['Case Management 1', 'Case Management 2', 'Case Management 3', 'Case Management 4', 'Case Management 5', 'Case Management 6', 'Case Management 7']:
                 unit_or_program = UnitOrProgram.objects.get(name='Case Management')
             elif department in ['Cottage Grove']:
                 unit_or_program = UnitOrProgram.objects.get(name='Cottage Grove')
@@ -156,7 +156,7 @@ class Command(BaseCommand):
                 unit_or_program = UnitOrProgram.objects.get(name='Human Resources')
             elif department in ['Information Services', 'Information Services 2', 'Information Services 3']:
                 unit_or_program = UnitOrProgram.objects.get(name='Information Services')
-            elif department in ['Leads']:
+            elif department in ['Leads', 'Leads 2']:
                 unit_or_program = UnitOrProgram.objects.get(name='Leads')
             elif department in ['LGPS']:
                 unit_or_program = UnitOrProgram.objects.get(name='LGPS')
