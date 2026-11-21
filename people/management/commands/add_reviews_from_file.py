@@ -68,8 +68,8 @@ class Command(BaseCommand):
                     except MultipleObjectsReturned:
                         import pdb; pdb.set_trace();
                     except Employee.DoesNotExist:
-                        # Ignore employees not otherwise in the system
-                        continue
+                        # Employee not in the system
+                        import pdb; pdb.set_trace()
                     employee_review_rows = []
                 elif all([
                     not row[0],
