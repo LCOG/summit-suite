@@ -605,6 +605,17 @@ function updateAllowReservations() {
   allowReservations.value = !(hourOfDay < 6 || hourOfDay >= 17)
 }
 
+function refreshContent() {
+  updateAllowReservations()
+  initDesksAndReservations()
+    .then(() => {
+      handleSVG()
+    })
+    .catch(e => {
+      console.error('Error initializing desk reservations in component:', e)
+    })
+}
+
 onMounted(() => {
   window.addEventListener('resize', handleSVG)
 
@@ -627,18 +638,10 @@ onMounted(() => {
   //   console.error('Desk Reservation socket closed unexpectedly')
   // }
 
-  updateAllowReservations()
+  refreshContent()
   reservationWindowInterval = setInterval(
-    updateAllowReservations, 30 * 1000 // Every 30 seconds
+    refreshContent, 60 * 1000 // Every 60 seconds
   )
-
-  initDesksAndReservations()
-    .then(() => {
-      handleSVG()
-    })
-    .catch(e => {
-      console.error('Error initializing desk reservations in component:', e)
-    })
 
   if (!employees().length) {
     retrieveSimpleEmployeeList()
