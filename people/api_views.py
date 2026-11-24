@@ -370,12 +370,13 @@ class PerformanceReviewViewSet(viewsets.ModelViewSet):
                 signature = self.request.query_params.get('signature', None)
                 employee = self.request.query_params.get('employee', None)
                 manager = self.request.query_params.get('manager', None)
+                is_ed = e.is_executive_director
+                is_dir = e.is_division_director
+                is_hre = e.is_hr_employee
+                is_admin = any([is_ed, is_dir, is_hre])
                 if all is not None and is_true_string(all):
                     # All reviews (admin - EDs, HR employees, and Directors)
-                    is_ed = e.is_executive_director
-                    is_dir = e.is_division_director
-                    is_hre = e.is_hr_employee
-                    if any([is_ed, is_dir, is_hre]):
+                    if is_admin:
                         # Get all PRs with effective_date within the last year
                         complete = self.request.query_params.get(
                             'complete', None
@@ -415,9 +416,11 @@ class PerformanceReviewViewSet(viewsets.ModelViewSet):
                 elif employee is not None:
                     # Employee must be up the chain of the manager to see their
                     # reviews.
-                    if int(employee) not in e.get_direct_reports_descendants(
-                        include_self=True
-                    ).values_list('pk', flat=True):
+                    is_manager_ancestor = \
+                        int(employee) in e.get_direct_reports_descendants(
+                            include_self=True
+                        ).values_list('pk', flat=True)
+                    if not is_manager_ancestor and not is_admin:
                         return PerformanceReview.objects.none()
                     
                     # Your reviews: All PRs for a given employee
@@ -427,9 +430,11 @@ class PerformanceReviewViewSet(viewsets.ModelViewSet):
                 elif manager is not None:
                     # Employee must be up the chain of the manager to see their
                     # reviews.
-                    if int(manager) not in e.get_direct_reports_descendants(
-                        include_self=True
-                    ).values_list('pk', flat=True):
+                    is_manager_ancestor = \
+                        int(manager) in e.get_direct_reports_descendants(
+                            include_self=True
+                        ).values_list('pk', flat=True)
+                    if not is_manager_ancestor and not is_admin:
                         return PerformanceReview.objects.none()
                     
                     # All PRs for the manager's direct reports
