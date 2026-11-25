@@ -68,8 +68,8 @@ class Command(BaseCommand):
                     except MultipleObjectsReturned:
                         import pdb; pdb.set_trace();
                     except Employee.DoesNotExist:
-                        # Ignore employees not otherwise in the system
-                        continue
+                        # Employee not in the system
+                        import pdb; pdb.set_trace()
                     employee_review_rows = []
                 elif all([
                     not row[0],
@@ -151,8 +151,6 @@ class Command(BaseCommand):
                     employee=employee,
                     period_start_date=review_date,
                     period_end_date=next_review_date,
-                    effective_date=
-                        next_review_date + datetime.timedelta(days=1),
                     evaluation_type=evaluation_type,
                     form=form
                 )
@@ -173,8 +171,6 @@ class Command(BaseCommand):
                         period_start_date=review_date,
                         period_end_date=\
                             review_date + datetime.timedelta(days=90),
-                        effective_date=\
-                            review_date + datetime.timedelta(days=91),
                         evaluation_type=\
                             PerformanceReview.PROBATIONARY_EVALUATION,
                         form=probation_form

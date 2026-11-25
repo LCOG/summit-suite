@@ -273,10 +273,10 @@ interface QuasarReviewTableRowClickActionProps {
 const props = defineProps<{
   // Provide either signature, employeePk, or managerPk.
   // Optionally provide either complete or incomplete.
-  signature?: boolean, // Show PRs requiring signature 
+  signature?: boolean, // Show PRs requiring signature
   employeePk?: number, // If provided, show PRs for this employee
   managerPk?: number, // If provided, show direct report PRs for this manager
-  
+
   complete?: boolean, // Show only completed PRs
   incomplete?: boolean, // Show only incomplete PRs
 

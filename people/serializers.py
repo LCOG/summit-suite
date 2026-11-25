@@ -383,17 +383,7 @@ class PerformanceReviewSerializer(PerformanceReviewBaseSerializer):
             'days_until_review', 'status', 'period_start_date',
             'period_end_date', 'effective_date', 'evaluation_type',
             'probationary_evaluation_type', 'step_increase', 'top_step_bonus',
-            'action_other',
-
-            'factor_job_knowledge', 'factor_work_quality',
-            'factor_work_quantity', 'factor_work_habits', 'factor_analysis',
-            'factor_initiative', 'factor_interpersonal',
-            'factor_communication', 'factor_dependability',
-            'factor_professionalism', 'factor_management',
-            'factor_supervision', 'evaluation_successes',
-            'evaluation_opportunities', 'evaluation_goals_manager',
-            'evaluation_goals_employee','evaluation_comments_employee',
-
+            'action_other', 'evaluation_comments_employee',
             'position_description_link', 'description_reviewed_employee',
             'signed_position_description', 'all_required_signatures',
             'employee_action_required'

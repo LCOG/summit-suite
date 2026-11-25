@@ -60,7 +60,7 @@
         </div>
       </div>
     </div>
-    
+
     <div class="row q-gutter-md q-mt-xs">
       <FloorPlan class="floor-plan"/>
     </div>
@@ -99,15 +99,15 @@
   </q-page>
 </template>
 
-<style lang="scss"> 
+<style lang="scss">
   .floor-plan {
     width: 100%;
   }
-  
+
   #legend {
     border: 2px black solid;
   }
-  
+
   #drop-in-key {
     width: 35px;
     height: 35px;
@@ -115,7 +115,7 @@
     border: 1px black solid;
     text-align: center;
   }
-  
+
   #lead-drop-in-key {
     width: 35px;
     height: 35px;
@@ -123,7 +123,7 @@
     border: 1px black solid;
     text-align: center;
   }
-  
+
   .desk-buttom-number {
     font-size: 20px;
   }
@@ -184,12 +184,13 @@ const deskNumber = getRouteParam(route, 'deskNumber')
 if (deskNumber) {
   highlightedDeskNumber.value = deskNumber
 }
-  
+
 let highlightedDeskNumberX = ref(0)
 let highlightedDeskNumberY = ref(0)
 
 const emptyEmployee = {name: '', pk: -1}
 
+let reservationWindowInterval: ReturnType<typeof setInterval> | null = null
 let allowReservations = ref(true)
 let moveReservationDialogVisible = ref(false)
 let activeUserReservations = ref([]) as Ref<Array<DeskReservation>>
@@ -213,7 +214,7 @@ const orangeColor = 'orange'
 ///////////////
 // EMPLOYEES //
 ///////////////
-function employees(): Array<SimpleEmployeeRetrieve> {    
+function employees(): Array<SimpleEmployeeRetrieve> {
   const employees = peopleStore.simpleEmployeeList
   return employees.filter((employee) => {
     return employee.name.toLowerCase().indexOf(needle.value) != -1
@@ -299,7 +300,7 @@ function deleteReservation(pk: number) {
         .catch(e => {
           console.error('Error initializing desk reservations:', e)
         })
-      
+
       // Update reserved desks list everywhere with WebSocket
       // this.deskReservationSocket.send(
       //   JSON.stringify({
@@ -356,7 +357,7 @@ function reserveDesk() {
       selectedDeskNumber.value = ''
       deselectAllRoomButtons()
       if (reservation.created) {
-        Notify.create(`Reserved desk ${reservation.desk_number} for ${reservation.employee_name}`)  
+        Notify.create(`Reserved desk ${reservation.desk_number} for ${reservation.employee_name}`)
       } else {
         if (reservation.desk_held) {
           Notify.create({message: `Sorry! Desk ${reservation.desk_number} is held today. Please choose another`, type: 'negative'})
@@ -364,7 +365,7 @@ function reserveDesk() {
           Notify.create({message: `Sorry! Desk ${reservation.desk_number} is already reserved for ${reservation.employee_name}. Please choose another`, type: 'negative'})
         }
       }
-      
+
       // TODO: Temporarily restoring to remove sockets for production
       initDeskReservations()
         .then(() => {
@@ -373,7 +374,7 @@ function reserveDesk() {
         .catch(e => {
           console.error('Error initializing desk reservations:', e)
         })
-      
+
       // Update reserved desks list everywhere with WebSocket
       // this.deskReservationSocket.send(
       //   JSON.stringify({
@@ -443,7 +444,7 @@ function handleSVG() {
         return
       }
       const text = node.firstElementChild.innerHTML
-      
+
       // Ignore any text on the ignore list
       if (ignoreList.indexOf(text) != -1) {
         return
@@ -495,20 +496,20 @@ function handleSVG() {
 
         // Determine if the desk has a hold on it today
         const heldTodayText = desk.held_today ? '*' : ''
-      
+
         // Get the rectangle around the static map label
         const rect = node.getBoundingClientRect()
 
         // Create an annotation element to replace the static map label
         const annotationElem = document.createElement('div')
         annotationElem.className = 'annotation'
-      
+
         annotationElem.innerHTML = `<button class="desk-button" data-pk="${desk.number}"><div class="desk-buttom-number">${desk.number}${heldTodayText}</div><img class="desk-button-ergo" src="${ deskLogo }" /></button>`
-        
+
         // Position the annotation directly on top of the map label
         // annotationElem.style.left = (rect.left + rect.width/2 - 88).toString() + 'px'
         // annotationElem.style.top = (rect.top + rect.height/2 - 70).toString() + 'px'
-        
+
         // On narrower screens, the header takes up 2-4 rows, so we need to nudge the buttons down to match.
         var singleRowHeaderSpace = 76
         var rowsHeaderSpace = 76
@@ -567,11 +568,11 @@ function handleSVG() {
             })
           }
         }
-        
+
         document.querySelector('#schaefers-3-page')?.appendChild(annotationElem)
-        
+
         // const annotationSize = annotationElem.getBoundingClientRect()
-        
+
         // annotationElem.style.marginLeft = `-${annotationSize.width/2}px`
         // annotationElem.style.marginTop = `-${annotationSize.height/2}px`
       }
@@ -599,6 +600,22 @@ function showHelp() {
   bus.emit('showReservationHelpDialog', Math.random())
 }
 
+function updateAllowReservations() {
+  const hourOfDay = new Date().getHours()
+  allowReservations.value = !(hourOfDay < 6 || hourOfDay >= 17)
+}
+
+function refreshContent() {
+  updateAllowReservations()
+  initDesksAndReservations()
+    .then(() => {
+      handleSVG()
+    })
+    .catch(e => {
+      console.error('Error initializing desk reservations in component:', e)
+    })
+}
+
 onMounted(() => {
   window.addEventListener('resize', handleSVG)
 
@@ -620,19 +637,11 @@ onMounted(() => {
   // this.deskReservationSocket.onclose = () => {
   //   console.error('Desk Reservation socket closed unexpectedly')
   // }
-  
-  const hourOfDay = new Date().getHours()
-  if (hourOfDay < 6 || hourOfDay >= 17) {
-    allowReservations.value = false
-  }
-  
-  initDesksAndReservations()
-    .then(() => {
-      handleSVG()
-    })
-    .catch(e => {
-      console.error('Error initializing desk reservations in component:', e)
-    })
+
+  refreshContent()
+  reservationWindowInterval = setInterval(
+    refreshContent, 60 * 1000 // Every 60 seconds
+  )
 
   if (!employees().length) {
     retrieveSimpleEmployeeList()
@@ -641,5 +650,10 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('resize', handleSVG)
+
+  if (reservationWindowInterval) {
+    clearInterval(reservationWindowInterval)
+    reservationWindowInterval = null
+  }
 })
 </script>

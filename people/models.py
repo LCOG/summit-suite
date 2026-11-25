@@ -766,7 +766,7 @@ class PerformanceReview(models.Model):
     employee = models.ForeignKey("Employee", verbose_name=_("employee"), on_delete=models.CASCADE)
     period_start_date = models.DateField(_("performance period start date"), auto_now=False, auto_now_add=False)
     period_end_date = models.DateField(_("performance period end date"), auto_now=False, auto_now_add=False)
-    effective_date = models.DateField(_("effective date"), auto_now=False, auto_now_add=False)
+    effective_date = models.DateField(_("effective date"), auto_now=False, auto_now_add=False, blank=True, null=True)
 
     evaluation_type = models.CharField(_("evaluation type"), max_length=1, choices=EVALUATION_TYPE_CHOICE, default=ANNUAL_EVALUATION, blank=True, null=True)
     probationary_evaluation_type = models.CharField(_("probationary evaluation type"), max_length=1, choices=PROBATIONARY_EVALUATION_TYPE_CHOICE, blank=True, null=True)
@@ -774,24 +774,7 @@ class PerformanceReview(models.Model):
     step_increase = models.CharField(_("step increase"), max_length=1, choices=NULLABLE_BOOLEAN_CHOICE, blank=True, null=True)
     top_step_bonus = models.CharField(_("top step bonus"), max_length=1, choices=NULLABLE_BOOLEAN_CHOICE, blank=True, null=True)
     action_other = models.CharField(_("action other"), max_length=255, blank=True)
-    
-    factor_job_knowledge = models.CharField(_("job knowledge"), max_length=2, choices=PERFORMANCE_FACTOR_CHOICE, blank=True, null=True)
-    factor_work_quality = models.CharField(_("quality of work"), max_length=2, choices=PERFORMANCE_FACTOR_CHOICE, blank=True, null=True)
-    factor_work_quantity = models.CharField(_("quanitity of work"), max_length=2, choices=PERFORMANCE_FACTOR_CHOICE, blank=True, null=True)
-    factor_work_habits = models.CharField(_("work habits"), max_length=2, choices=PERFORMANCE_FACTOR_CHOICE, blank=True, null=True)
-    factor_analysis = models.CharField(_("analysis and decision-making"), max_length=2, choices=PERFORMANCE_FACTOR_CHOICE, blank=True, null=True)
-    factor_initiative = models.CharField(_("initiative and creativity"), max_length=2, choices=PERFORMANCE_FACTOR_CHOICE, blank=True, null=True)
-    factor_interpersonal = models.CharField(_("interpersonal relations"), max_length=2, choices=PERFORMANCE_FACTOR_CHOICE, blank=True, null=True)
-    factor_communication = models.CharField(_("communication"), max_length=2, choices=PERFORMANCE_FACTOR_CHOICE, blank=True, null=True)
-    factor_dependability = models.CharField(_("dependability and responsibility"), max_length=2, choices=PERFORMANCE_FACTOR_CHOICE, blank=True, null=True)
-    factor_professionalism = models.CharField(_("professionalism and customer service"), max_length=2, choices=PERFORMANCE_FACTOR_CHOICE, blank=True, null=True)
-    factor_management = models.CharField(_("project management"), max_length=2, choices=PERFORMANCE_FACTOR_CHOICE, blank=True, null=True)
-    factor_supervision = models.CharField(_("supervision"), max_length=2, choices=PERFORMANCE_FACTOR_CHOICE, blank=True, null=True)
 
-    evaluation_successes = models.TextField(_("employee's successes"), blank=True)
-    evaluation_opportunities = models.TextField(_("opportunities for growth"), blank=True)
-    evaluation_goals_manager = models.TextField(_("goals for the coming year (manager)"), blank=True)
-    evaluation_goals_employee = models.TextField(_("goals for the coming year (employee)"), blank=True)
     evaluation_comments_employee = models.TextField(_("employee comments"), blank=True)
 
     description_reviewed_employee = models.BooleanField(_("position description has been reviewed with employee"), default=False)
@@ -941,6 +924,12 @@ class PerformanceReview(models.Model):
             effective_date=self.effective_date + datetime.timedelta(days=365),
             evaluation_type=self.ANNUAL_EVALUATION
         )
+
+    def save(self, *args, **kwargs):
+        if not self.effective_date:
+            self.effective_date = self.period_end_date + \
+                datetime.timedelta(days=1)
+        super().save(*args, **kwargs)
 
 
 class PRForm(models.Model):
