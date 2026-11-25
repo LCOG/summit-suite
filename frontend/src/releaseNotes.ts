@@ -16,7 +16,7 @@ export const releases = [
         description: 'Remove hardcoded review performance fields.'
       },
       {
-        type: 'bugfix',
+        type: 'fix',
         description: 'Fixed an issue where HR could not view some PR tables.'
       }
     ]
