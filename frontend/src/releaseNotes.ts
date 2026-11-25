@@ -4,6 +4,24 @@
 
 export const releases = [
   {
+    version: '1.25.0',
+    date: new Date(2026, 10, 25),
+    changes: [
+      {
+        type: 'improved',
+        description: 'Desk reservation pages polls desks and time every minute.'
+      },
+      {
+        type: 'improved',
+        description: 'Remove hardcoded review performance fields.'
+      },
+      {
+        type: 'bugfix',
+        description: 'Fixed an issue where HR could not view some PR tables.'
+      }
+    ]
+  },
+  {
     version: '1.24.0',
     date: new Date(2026, 9, 28),
     changes: [
