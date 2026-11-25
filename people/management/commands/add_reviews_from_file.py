@@ -151,8 +151,6 @@ class Command(BaseCommand):
                     employee=employee,
                     period_start_date=review_date,
                     period_end_date=next_review_date,
-                    effective_date=
-                        next_review_date + datetime.timedelta(days=1),
                     evaluation_type=evaluation_type,
                     form=form
                 )
@@ -173,8 +171,6 @@ class Command(BaseCommand):
                         period_start_date=review_date,
                         period_end_date=\
                             review_date + datetime.timedelta(days=90),
-                        effective_date=\
-                            review_date + datetime.timedelta(days=91),
                         evaluation_type=\
                             PerformanceReview.PROBATIONARY_EVALUATION,
                         form=probation_form

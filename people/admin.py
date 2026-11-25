@@ -163,15 +163,9 @@ class PerformanceReviewAdmin(admin.ModelAdmin):
             if not user_is_superuser and employee_cannot_view_pr:
                 self.exclude = (
                     'step_increase', 'top_step_bonus', 'action_other',
-                    'factor_job_knowledge', 'factor_work_quality',
-                    'factor_work_quantity', 'factor_work_habits',
-                    'factor_analysis', 'factor_initiative', 'factor_interpersonal',
-                    'factor_communication', 'factor_dependability',
-                    'factor_professionalism', 'factor_management',
-                    'factor_supervision', 'evaluation_successes',
-                    'evaluation_opportunities', 'evaluation_goals_manager',
-                    'evaluation_goals_employee', 'evaluation_comments_employee',
-                    'description_reviewed_employee', 'signed_position_description'
+                    'evaluation_comments_employee',
+                    'description_reviewed_employee',
+                    'signed_position_description'
                 )
             else:
                 self.exclude = ()

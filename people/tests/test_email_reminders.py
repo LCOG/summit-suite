@@ -139,25 +139,9 @@ class ManagerWritesEvaluationTestCase(BaseEmailRemindersTestCase):
         # TODO: Manager completes review which triggers initial reminder to Employee
         # update_data = {
         #     'action_other': 'null',
-        #     'factor_initiative': "N",
         #     # description_reviewed_employee: true,
         #     # evaluation_comments_employee: "I think this seems goodsdfsfsgsrgasdfsdf",
-        #     # evaluation_goals_manager: "afaa",
-        #     # evaluation_opportunities: "Some opportunitya",
-        #     # evaluation_successes: "So great!",
         #     # evaluation_type: "P",
-        #     # factor_analysis: "N",
-        #     # factor_communication: "N",
-        #     # factor_dependability: "N",
-        #     # factor_initiative: "N",
-        #     # factor_interpersonal: "N",
-        #     # factor_job_knowledge: "N",
-        #     # factor_management: "NA",
-        #     # factor_professionalism: "N",
-        #     # factor_supervision: "NA",
-        #     # factor_work_habits: "N",
-        #     # factor_work_quality: "N",
-        #     # factor_work_quantity: "N",
         #     # probationary_evaluation_type: "N",
         #     # step_increase: "Y",
         #     # top_step_bonus: "Y"
@@ -179,46 +163,16 @@ class ManagerWritesEvaluationTestCase(BaseEmailRemindersTestCase):
         # action_other: null
         # description_reviewed_employee: true
         # evaluation_comments_employee: "I think this seems goodsdfsfsgsrgasdfsdf"
-        # evaluation_goals_manager: "afaa"
-        # evaluation_opportunities: "Some opportunitya"
-        # evaluation_successes: "So great!"
         # evaluation_type: "P"
-        # factor_analysis: "N"
-        # factor_communication: "N"
-        # factor_dependability: "N"
-        # factor_initiative: "N"
-        # factor_interpersonal: "N"
-        # factor_job_knowledge: "N"
-        # factor_management: "NA"
-        # factor_professionalism: "N"
-        # factor_supervision: "NA"
-        # factor_work_habits: "N"
-        # factor_work_quality: "N"
-        # factor_work_quantity: "N"
         # probationary_evaluation_type: "N"
         # step_increase: "Y"
         # top_step_bonus: "Y"
 
         pr.description_reviewed_employee = True
-        pr.evaluation_goals_manager: 'Some goals'
-        pr.evaluation_opportunities: 'Some opportunities'
-        pr.evaluation_successes: 'So great!'
-        pr.evaluation_type: 'P'
-        pr.factor_analysis: 'N'
-        pr.factor_communication: 'N'
-        pr.factor_dependability: 'N'
-        pr.factor_initiative: 'N'
-        pr.factor_interpersonal: 'N'
-        pr.factor_job_knowledge: 'N'
-        pr.factor_management: 'NA'
-        pr.factor_professionalism: 'N'
-        pr.factor_supervision: 'NA'
-        pr.factor_work_habits: 'N'
-        pr.factor_work_quality: 'N'
-        pr.factor_work_quantity: 'N'
-        pr.probationary_evaluation_type: 'N'
-        pr.step_increase: 'Y'
-        pr.top_step_bonus: 'Y'
+        pr.evaluation_type = 'P'
+        pr.probationary_evaluation_type = 'N'
+        pr.step_increase = 'Y'
+        pr.top_step_bonus = 'Y'
         
         # TODO: Not needed once we make the API call above
         pr.status = PerformanceReview.EVALUATION_WRITTEN
@@ -297,22 +251,7 @@ class ManagerWritesEvaluationTestCase(BaseEmailRemindersTestCase):
             period_end_date=datetime.date.today(),
             effective_date=datetime.date.today() + datetime.timedelta(60),
             description_reviewed_employee=True,
-            evaluation_goals_manager='Some goals',
-            evaluation_opportunities='Some opportunities',
-            evaluation_successes='So great!',
             evaluation_type='P',
-            factor_analysis='N',
-            factor_communication='N',
-            factor_dependability='N',
-            factor_initiative='N',
-            factor_interpersonal='N',
-            factor_job_knowledge='N',
-            factor_management='NA',
-            factor_professionalism='N',
-            factor_supervision='NA',
-            factor_work_habits='N',
-            factor_work_quality='N',
-            factor_work_quantity='N',
             probationary_evaluation_type='N',
             step_increase='Y',
             top_step_bonus='Y'
@@ -362,22 +301,7 @@ class ManagerWritesEvaluationTestCase(BaseEmailRemindersTestCase):
             period_end_date=datetime.date.today(),
             effective_date=datetime.date.today() + datetime.timedelta(60),
             description_reviewed_employee=True,
-            evaluation_goals_manager='Some goals',
-            evaluation_opportunities='Some opportunities',
-            evaluation_successes='So great!',
             evaluation_type='P',
-            factor_analysis='N',
-            factor_communication='N',
-            factor_dependability='N',
-            factor_initiative='N',
-            factor_interpersonal='N',
-            factor_job_knowledge='N',
-            factor_management='NA',
-            factor_professionalism='N',
-            factor_supervision='NA',
-            factor_work_habits='N',
-            factor_work_quality='N',
-            factor_work_quantity='N',
             probationary_evaluation_type='N',
             step_increase='Y',
             top_step_bonus='Y'
@@ -424,22 +348,7 @@ class ManagerWritesEvaluationTestCase(BaseEmailRemindersTestCase):
             period_end_date=datetime.date.today(),
             effective_date=datetime.date.today() + datetime.timedelta(60),
             description_reviewed_employee=True,
-            evaluation_goals_manager='Some goals',
-            evaluation_opportunities='Some opportunities',
-            evaluation_successes='So great!',
             evaluation_type='P',
-            factor_analysis='N',
-            factor_communication='N',
-            factor_dependability='N',
-            factor_initiative='N',
-            factor_interpersonal='N',
-            factor_job_knowledge='N',
-            factor_management='NA',
-            factor_professionalism='N',
-            factor_supervision='NA',
-            factor_work_habits='N',
-            factor_work_quality='N',
-            factor_work_quantity='N',
             probationary_evaluation_type='N',
             step_increase='Y',
             top_step_bonus='Y'
@@ -487,22 +396,7 @@ class ManagerWritesEvaluationTestCase(BaseEmailRemindersTestCase):
             period_end_date=datetime.date.today(),
             effective_date=datetime.date.today() + datetime.timedelta(60),
             description_reviewed_employee=True,
-            evaluation_goals_manager='Some goals',
-            evaluation_opportunities='Some opportunities',
-            evaluation_successes='So great!',
             evaluation_type='P',
-            factor_analysis='N',
-            factor_communication='N',
-            factor_dependability='N',
-            factor_initiative='N',
-            factor_interpersonal='N',
-            factor_job_knowledge='N',
-            factor_management='NA',
-            factor_professionalism='N',
-            factor_supervision='NA',
-            factor_work_habits='N',
-            factor_work_quality='N',
-            factor_work_quantity='N',
             probationary_evaluation_type='N',
             step_increase='Y',
             top_step_bonus='Y'
@@ -551,22 +445,7 @@ class ManagerWritesEvaluationTestCase(BaseEmailRemindersTestCase):
             period_end_date=datetime.date.today(),
             effective_date=datetime.date.today() + datetime.timedelta(60),
             description_reviewed_employee=True,
-            evaluation_goals_manager='Some goals',
-            evaluation_opportunities='Some opportunities',
-            evaluation_successes='So great!',
             evaluation_type='P',
-            factor_analysis='N',
-            factor_communication='N',
-            factor_dependability='N',
-            factor_initiative='N',
-            factor_interpersonal='N',
-            factor_job_knowledge='N',
-            factor_management='NA',
-            factor_professionalism='N',
-            factor_supervision='NA',
-            factor_work_habits='N',
-            factor_work_quality='N',
-            factor_work_quantity='N',
             probationary_evaluation_type='N',
             step_increase='Y',
             top_step_bonus='Y'
@@ -634,22 +513,7 @@ class ManagerWritesEvaluationTestCase(BaseEmailRemindersTestCase):
             period_end_date=datetime.date.today(),
             effective_date=datetime.date.today() + datetime.timedelta(60),
             description_reviewed_employee=True,
-            evaluation_goals_manager='Some goals',
-            evaluation_opportunities='Some opportunities',
-            evaluation_successes='So great!',
             evaluation_type='P',
-            factor_analysis='N',
-            factor_communication='N',
-            factor_dependability='N',
-            factor_initiative='N',
-            factor_interpersonal='N',
-            factor_job_knowledge='N',
-            factor_management='NA',
-            factor_professionalism='N',
-            factor_supervision='NA',
-            factor_work_habits='N',
-            factor_work_quality='N',
-            factor_work_quantity='N',
             probationary_evaluation_type='N',
             step_increase='Y',
             top_step_bonus='Y'
